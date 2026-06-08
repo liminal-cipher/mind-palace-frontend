@@ -1,0 +1,8 @@
+# Keep shell scripts LF so they run on Azure Linux App Service
+*.sh text eol=lf
+
+# Windows-only helper stays CRLF
+*.ps1 text eol=crlf
+
+# Let Git handle the rest automatically
+* text=auto

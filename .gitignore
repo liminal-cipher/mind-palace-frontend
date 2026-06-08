@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# Node/Vite
+frontend/node_modules/
+frontend/dist/
+
+# Local env
+.env
+frontend/.env
+backend/.env
+
+# Generated uploads/logs
+backend/uploads/
+*.log
