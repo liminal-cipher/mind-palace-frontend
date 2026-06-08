@@ -28,7 +28,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: ./frontend
+          path: . # 💡 기존 ./frontend 에서 점('.')으로 변경하여 프로젝트 전체를 업로드합니다.
 
   deploy:
     runs-on: ubuntu-latest
