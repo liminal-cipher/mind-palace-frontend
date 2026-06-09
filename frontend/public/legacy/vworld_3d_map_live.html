@@ -383,6 +383,45 @@
         height: 10px;
       }
 
+      /* 화면 밖(지나간) 건물 방향 아이콘 */
+      #offscreenIndicators {
+        position: absolute;
+        inset: 0;
+        z-index: 5;
+        pointer-events: none;
+      }
+      .osi {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(8, 12, 11, 0.82);
+        border: 2px solid var(--c);
+        color: var(--c);
+        font-weight: 900;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: auto;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
+      }
+      .osi-num {
+        line-height: 1;
+      }
+      .osi-arrow {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 0;
+        height: 0;
+        border-left: 5px solid transparent;
+        border-right: 5px solid transparent;
+        border-bottom: 9px solid var(--c);
+      }
+
       .building-layer {
         position: absolute;
         inset: 0;
@@ -1277,10 +1316,10 @@
       // (카메라 지상 위치 그대로. flyTo는 목표점 해석이 달라 시작은 직접 setView 사용)
       const GWANGHWAMUN = {
         lon: 126.97689,
-        lat: 37.5689,
-        height: 185,
+        lat: 37.5682,
+        height: 225,
         heading: 0,
-        pitch: -19,
+        pitch: -20,
       };
       // 시작 카메라를 정확히 그 위치/각도로 직접 배치(클램프 -25 안쪽, 공허 없음).
       function setInitialView() {
@@ -2178,9 +2217,100 @@
           }
         } catch (e) {}
         updateMinimap(); // 매 프레임 미니맵을 카메라 현위치에 동기(드래그·WASD·비행 모두)
+        updateOffscreenIndicators(); // 화면 밖(지나간) 건물 방향 아이콘
         requestAnimationFrame(wasdTick);
       }
       requestAnimationFrame(wasdTick);
+
+      // ── 화면 밖 건물 방향 표시 — 지나간/안 보이는 한옥을 화면 가장자리(주로 하단)에 아이콘으로 ──
+      function ensureIndicators() {
+        let c = document.getElementById("offscreenIndicators");
+        if (!c) {
+          c = document.createElement("div");
+          c.id = "offscreenIndicators";
+          (document.querySelector(".palace-shell") || document.body).appendChild(c);
+        }
+        if (c.children.length === 0) {
+          PALACE_BUILDINGS.forEach((b, i) => {
+            const color = (PALACE_ANCHORS[i] && PALACE_ANCHORS[i].color) || "#a9d8c8";
+            const el = document.createElement("button");
+            el.className = "osi";
+            el.id = "osi-" + i;
+            el.type = "button";
+            el.style.setProperty("--c", color);
+            el.title = `${i + 1}. ${b.title} 방향`;
+            el.innerHTML = `<span class="osi-arrow"></span><span class="osi-num">${i + 1}</span>`;
+            el.style.display = "none";
+            el.addEventListener("click", () => { try { stopTour(false); } catch (e) {} flyToAnchor(i); });
+            c.appendChild(el);
+          });
+        }
+      }
+      function updateOffscreenIndicators() {
+        const viewer = getVWorldViewer();
+        const C = window.Cesium;
+        if (!viewer || !C || !viewer.scene || !viewer.camera) return;
+        ensureIndicators();
+        const cam = viewer.camera;
+        const W = window.innerWidth, H = window.innerHeight;
+        const cx = W / 2, cy = H / 2;
+        const ml = 42, mr = 42, mt = 70, mb = 130; // 가장자리 여백(하단 네비 위)
+        const scratch = new C.Cartesian3();
+        const items = [];
+        PALACE_BUILDINGS.forEach((b, i) => {
+          const el = document.getElementById("osi-" + i);
+          if (!el) return;
+          const world = C.Cartesian3.fromDegrees(b.lon, b.lat, 30);
+          const toB = C.Cartesian3.subtract(world, cam.positionWC, scratch);
+          const fwd = C.Cartesian3.dot(toB, cam.directionWC);
+          const right = C.Cartesian3.dot(toB, cam.rightWC);
+          const up = C.Cartesian3.dot(toB, cam.upWC);
+          const dist = C.Cartesian3.magnitude(toB) || 1;
+          let onScreen = false, px, py;
+          if (fwd > 1) {
+            const win = C.SceneTransforms.wgs84ToWindowCoordinates(viewer.scene, world);
+            if (win && Number.isFinite(win.x)) {
+              px = win.x; py = win.y;
+              onScreen = px >= 0 && px <= W && py >= 0 && py <= H;
+            }
+          }
+          if (onScreen) { el.style.display = "none"; return; }
+          let dirx, diry;
+          if (fwd > 1 && px !== undefined) {
+            dirx = px - cx; diry = py - cy;            // 앞쪽이지만 프레임 밖
+          } else {
+            dirx = right; diry = Math.abs(up) + dist * 0.6; // 뒤쪽(지나감) → 아래로 치우침
+          }
+          const ang = Math.atan2(diry, dirx);
+          const ex = Math.cos(ang), ey = Math.sin(ang);
+          let t = Infinity;
+          if (ex > 0) t = Math.min(t, (W - mr - cx) / ex);
+          else if (ex < 0) t = Math.min(t, (ml - cx) / ex);
+          if (ey > 0) t = Math.min(t, (H - mb - cy) / ey);
+          else if (ey < 0) t = Math.min(t, (mt - cy) / ey);
+          if (!Number.isFinite(t) || t < 0) t = 0;
+          items.push({ el, x: cx + ex * t, y: cy + ey * t, ang });
+        });
+        // 같은 가장자리에서 겹치는 아이콘을 가로로 펼침(최소 간격 40px)
+        const GAP = 40;
+        items.sort((a, b) => a.x - b.x);
+        for (let k = 1; k < items.length; k++) {
+          if (items[k].x - items[k - 1].x < GAP) items[k].x = items[k - 1].x + GAP;
+        }
+        // 오른쪽으로 밀려 화면을 넘으면 왼쪽으로 되감기
+        const maxX = W - mr;
+        for (let k = items.length - 1; k >= 0; k--) {
+          if (items[k].x > maxX) items[k].x = maxX - (items.length - 1 - k) * GAP;
+        }
+        items.forEach((it) => {
+          it.el.style.display = "flex";
+          it.el.style.left = it.x + "px";
+          it.el.style.top = it.y + "px";
+          const arrow = it.el.querySelector(".osi-arrow");
+          if (arrow)
+            arrow.style.transform = `translate(-50%, -50%) rotate(${it.ang + Math.PI / 2}rad) translateY(-21px)`;
+        });
+      }
 
       function initBuildings() {
         const layer = qs("buildingLayer");
