@@ -173,11 +173,11 @@
       }
       .entry-dock .anchor-tabs {
         position: absolute;
-        top: 7px;
+        top: 9px;
         right: 14px;
       }
       .entry-dock {
-        padding-top: 30px; /* 우측 상단 도트 공간 */
+        padding-top: 80px; /* 도트 줄과 이전/다음 버튼이 겹치지 않게 충분히 띄움 */
       }
 
       .route-title {
@@ -1189,15 +1189,6 @@
         <div class="perf-panel" aria-label="성능 설정">
           <div class="kicker">Performance</div>
           <div class="perf-row">
-            <span>광화문 집중 모드</span>
-            <button
-              class="switch active"
-              id="focusToggle"
-              type="button"
-              aria-label="광화문 집중 모드"
-            ></button>
-          </div>
-          <div class="perf-row">
             <span>경량 overlay</span>
             <button
               class="switch active"
@@ -1259,12 +1250,13 @@
       // (카메라 지상 위치 그대로. flyTo는 목표점 해석이 달라 시작은 직접 setView 사용)
       // 시작 카메라 = 종로구 일대 상공 조망(경복궁·광화문·창덕궁·종묘·보신각·청계광장 등 한눈에).
       //  (위치/각도/높이만 바꾸면 시작 뷰 조절 가능. height는 maximumZoomDistance 이내)
+      // 시작: 7번 남산타워(lat 37.5512)보다 남쪽에서 북향 → 10개 마커가 모두 북쪽 시야에 들어옴.
       const GWANGHWAMUN = {
-        lon: 126.9885,
-        lat: 37.5575,
-        height: 1980,
+        lon: 126.9920,
+        lat: 37.5380,
+        height: 2500,
         heading: 0,
-        pitch: -35,
+        pitch: -38,
       };
       // 시작 카메라를 정확히 그 위치/각도로 직접 배치.
       function setInitialView() {
@@ -1740,7 +1732,7 @@
 
         // ── 카메라 이동·줌 제한 ────────────────────────────────────────────────
         const ctrl = viewer.scene.screenSpaceCameraController;
-        ctrl.maximumZoomDistance = 3500; // 카메라-지면 거리. -35° 기울기에서 고도 ≈2000m까지 휠 줌아웃 가능
+        ctrl.maximumZoomDistance = 4100; // 카메라-지면 거리. -38° 기울기에서 고도 ≈2500m까지 휠 줌아웃 가능
         ctrl.minimumZoomDistance = 60;
 
         const EV = engine.CameraEventType;
@@ -1843,18 +1835,30 @@
       }
 
       function flyToAnchor(index) {
-        activeIndex = Math.max(0, Math.min(PALACE_ANCHORS.length - 1, index));
+        activeIndex = Math.max(0, Math.min(STOPS.length - 1, index));
         navLocked = true;
         clearTimeout(navLocked._t);
         navLocked._t = setTimeout(() => { navLocked = false; }, 1500);
-        const anchor = PALACE_ANCHORS[activeIndex];
+        const stop = STOPS[activeIndex];
         renderUi();
-        flyTo(anchor.camera);
+        flyTo(stop.camera);
         syncBuildingPositions();
         requestRender();
         setStatus(
-          `${anchor.title} 위경도 위치로 이동했습니다. 건물을 클릭하면 ${PALACE_BUILDINGS[activeIndex].page}로 들어갑니다.`,
+          stop.page
+            ? `${stop.num}. ${stop.title}(으)로 이동. 건물을 클릭하면 방으로 입장합니다.`
+            : `${stop.num}. ${stop.title}(으)로 이동했습니다.`,
         );
+      }
+
+      // 현재 정거장 입장(2·3번만 방이 있음)
+      function enterCurrentStop() {
+        const stop = STOPS[activeIndex];
+        if (stop && stop.page) {
+          location.href = stop.page;
+        } else {
+          setStatus(`${stop ? stop.title : "이 명소"}: 입장 가능한 방이 없습니다.`);
+        }
       }
 
       function showBuildingLayers(visible, announce = true) {
@@ -2042,30 +2046,27 @@
       }
 
       function renderUi() {
-        const anchor = PALACE_ANCHORS[activeIndex];
-        const building = PALACE_BUILDINGS[activeIndex];
-        qs("routeCount").textContent =
-          `${activeIndex + 1} / ${PALACE_ANCHORS.length}`;
-        qs("routeSummary").textContent =
-          `${anchor.title}에 ${building.title} 기억궁전 외관을 배치했습니다.`;
-        qs("eraPill").textContent = anchor.era;
-        qs("anchorTitle").textContent = building.title;
-        qs("anchorQuestion").textContent = anchor.cue;
-        qs("entryQuestion").textContent =
-          `${activeIndex + 1}단계 ${building.title} 건물`;
-        qs("spatialCue").textContent =
-          `${anchor.subtitle}. 클릭 시 ${building.page}로 이동합니다. 이번 단계는 외관 shell만 렌더링합니다.`;
+        const stop = STOPS[activeIndex] || STOPS[0];
+        qs("routeCount").textContent = `${stop.num} / ${STOPS.length}`;
+        qs("routeSummary").textContent = `${stop.title} · 서울 주요 명소`;
+        qs("eraPill").textContent = `${stop.num}번 명소`;
+        qs("anchorTitle").textContent = stop.title;
+        qs("anchorQuestion").textContent = stop.desc;
+        qs("entryQuestion").textContent = `${stop.num}. ${stop.title}`;
+        qs("spatialCue").textContent = stop.page
+          ? `${stop.desc} 건물을 클릭하면 방으로 입장합니다.`
+          : stop.desc;
 
         const tabs = qs("anchorTabs");
         tabs.innerHTML = "";
-        PALACE_ANCHORS.forEach((item, index) => {
+        STOPS.forEach((item, index) => {
           const tab = document.createElement("button");
           tab.type = "button";
           const visited = index < activeIndex;
           tab.className = `anchor-tab${index === activeIndex ? " active" : visited ? " visited" : ""}`;
           tab.style.setProperty("--accent", item.color);
-          tab.title = `${index + 1}. ${item.title}`;
-          tab.innerHTML = `<span class="anchor-num">${index + 1}</span>`;
+          tab.title = `${item.num}. ${item.title}`;
+          tab.innerHTML = `<span class="anchor-num">${item.num}</span>`;
           tab.addEventListener("click", () => {
             stopTour(false);
             flyToAnchor(index);
@@ -2075,7 +2076,10 @@
 
         const list = qs("conceptList");
         list.innerHTML = "";
-        anchor.concepts.forEach(([term, description]) => {
+        const cards = stop.page
+          ? [["방 입장", "건물을 클릭하면 해당 방(memory-walk)으로 들어갑니다."]]
+          : [["명소 안내", stop.desc]];
+        cards.forEach(([term, description]) => {
           const card = document.createElement("article");
           card.className = "concept-card";
           card.innerHTML = `<strong>${escapeHtml(term)}</strong><span>${escapeHtml(description)}</span>`;
@@ -2114,13 +2118,13 @@
             { minZoom: 12, maxZoom: 19, opacity: 0.45 }, // 타일 흐리게 → 텍스트·도로 덜 보이고 핀만 또렷
           ).addTo(miniMap);
         }
-        PALACE_BUILDINGS.forEach((b, i) => {
-          const color = (PALACE_ANCHORS[i] && PALACE_ANCHORS[i].color) || "#a9d8c8";
+        LANDMARKS.forEach((b, i) => {
+          const color = "#e23b3b"; // 마커와 동일 빨강
           L.marker([b.lat, b.lon], {
             icon: L.divIcon({
               className: "mini-pin",
               html:
-                `<span class="mini-pin-ring" style="--c:${color};animation-delay:${(i * 0.28).toFixed(2)}s"></span>` +
+                `<span class="mini-pin-ring" style="--c:${color};animation-delay:${(i * 0.18).toFixed(2)}s"></span>` +
                 `<span class="mini-pin-dot" style="--c:${color}"></span>`,
               iconSize: [12, 12], iconAnchor: [6, 6],
             }),
@@ -2267,11 +2271,11 @@
       function playTour() {
         stopTour(false);
         setStatus(
-          "자동 투어를 시작합니다. 광화문 축을 따라 5개 외관 건물을 순서대로 보여줍니다.",
+          "자동 투어를 시작합니다. 서울 주요 명소 10곳을 순서대로 보여줍니다.",
         );
         qs("tourBtn").classList.add("active");
         tourTimer = window.setInterval(() => {
-          if (activeIndex >= PALACE_ANCHORS.length - 1) {
+          if (activeIndex >= STOPS.length - 1) {
             stopTour(true);
             return;
           }
@@ -2301,7 +2305,7 @@
           labelsHidden = !labelsHidden;
           renderUi();
         });
-        qs("enterBtn").addEventListener("click", () => openBuilding());
+        qs("enterBtn").addEventListener("click", () => enterCurrentStop());
         qs("dockPrevBtn").addEventListener("click", () => {
           stopTour(false);
           flyToAnchor(activeIndex - 1);
@@ -2313,10 +2317,7 @@
         qs("dockFocusBtn").addEventListener("click", () =>
           flyToAnchor(activeIndex),
         );
-        qs("dockEnterBtn").addEventListener("click", () => openBuilding());
-        qs("focusToggle").addEventListener("click", () =>
-          setFocusMode(!focusMode),
-        );
+        qs("dockEnterBtn").addEventListener("click", () => enterCurrentStop());
         qs("performanceToggle").addEventListener("click", () =>
           applyPerformanceMode(!performanceMode),
         );
@@ -2355,7 +2356,7 @@
             flyToAnchor(activeIndex - 1);
           }
           if (event.key === "Enter") {
-            openBuilding();
+            enterCurrentStop();
           }
           if (event.code === "Space") {
             event.preventDefault();
@@ -2367,18 +2368,53 @@
 
       // ── 종로구 일대 주요 명소 10곳 마커 ──
       // h = 해당 건물(구조물) 대략 높이(m). 마커는 이 높이 + 50m 위에 띄움.
+      // cam = 번호 클릭 시 카메라 오버라이드(없으면 기본: 245m 남쪽·북향·pitch -35).
+      //   latOff(+북/-남), lonOff(+동/-서), heading(도), height(m), pitch(도)
       const LANDMARKS = [
-        { name: "경복궁", lon: 126.9770, lat: 37.5796, h: 22 },
-        { name: "광화문", lon: 126.9769, lat: 37.5759, h: 18 },
-        { name: "청계광장", lon: 126.9788, lat: 37.5693, h: 5 },
-        { name: "덕수궁", lon: 126.9751, lat: 37.5658, h: 18 },
-        { name: "숭례문", lon: 126.9753, lat: 37.5600, h: 30 },
-        { name: "보신각", lon: 126.9832, lat: 37.5703, h: 15 },
-        { name: "남산서울타워", lon: 126.9882, lat: 37.5512, h: 237 },
-        { name: "창덕궁", lon: 126.9910, lat: 37.5794, h: 20 },
-        { name: "종묘", lon: 126.9942, lat: 37.5746, h: 16 },
-        { name: "흥인지문", lon: 127.0094, lat: 37.5712, h: 25 },
+        { name: "경복궁", lon: 126.9770, lat: 37.5796, h: 22, desc: "조선의 법궁(1395). 종로구의 대표 궁궐.",
+          cam: { latOff: -0.0045, height: 260, pitch: -32 } },                 // 1: 더 남쪽(근정전 정면)
+        { name: "광화문", lon: 126.9769, lat: 37.5759, h: 18, desc: "경복궁 정문이자 광화문광장의 상징." },
+        { name: "청계광장", lon: 126.9788, lat: 37.5691, h: 5, desc: "청계천이 시작되는 도심 속 광장.",
+          cam: { lonOff: -0.0030, latOff: 0.0007, heading: 92, height: 220, pitch: -26 } }, // 3: 서→동
+        { name: "덕수궁", lon: 126.9751, lat: 37.5658, h: 18, desc: "대한제국 황궁. 근대 건축이 어우러진 궁궐." },
+        { name: "숭례문", lon: 126.9753, lat: 37.5600, h: 30, desc: "국보 제1호, 한양도성의 남대문.",
+          cam: { lonOff: -0.0029, latOff: -0.0020, heading: 50, height: 270, pitch: -25 } }, // 5: 살짝 북서로
+        { name: "보신각", lon: 126.9836, lat: 37.5697, h: 15, desc: "종로 종각. 제야의 종 타종 장소.",
+          cam: { lonOff: -0.0022, latOff: 0.0010, heading: 135, height: 230, pitch: -34 } }, // 6: 살짝 남서로
+        { name: "남산서울타워", lon: 126.9882, lat: 37.5512, h: 237, desc: "남산 정상의 전망 타워, 서울 랜드마크.",
+          cam: { latOff: -0.0055, height: 550, pitch: -14 } },                 // 7: 낮은 고도·약간 남쪽에서 타워 전체
+        { name: "창덕궁", lon: 126.9910, lat: 37.5794, h: 20, desc: "유네스코 세계유산, 자연과 어우러진 궁궐." },
+        { name: "종묘", lon: 126.9942, lat: 37.5746, h: 16, desc: "조선 왕조 신주를 모신 유네스코 세계유산." },
+        { name: "흥인지문", lon: 127.0094, lat: 37.5712, h: 25, desc: "보물, 한양도성의 동대문.",
+          cam: { lonOff: -0.0035, latOff: -0.0008, heading: 95, height: 260, pitch: -28 } }, // 10: 많이 서쪽에서 동향
       ];
+
+      // 하단 번호 도트 색(원래 디자인 — 다양한 톤)
+      const TAB_COLORS = ["#95c8bd","#9db8d2","#a8d8c9","#cf9286","#9ac78f","#86bcb4","#7fb0c6","#b6c98f","#caa18f","#9fc7b0"];
+
+      // ── 대시보드/네비게이션용 10개 정거장(마커와 동일) ──
+      const STOPS = LANDMARKS.map((m, i) => {
+        const o = m.cam || {};
+        return {
+          num: i + 1,
+          title: m.name,
+          desc: m.desc || "",
+          color: "#86bcb4", // 도트 색상 통일
+          camera: {
+            lon: m.lon + (o.lonOff || 0),
+            lat: m.lat + (o.latOff != null ? o.latOff : -0.0022),
+            height: o.height != null ? o.height : (m.h || 15) + 180,
+            heading: o.heading != null ? o.heading : 0,
+            pitch: o.pitch != null ? o.pitch : -35,
+          },
+          page:
+            i === 1
+              ? (PALACE_BUILDINGS.find((b) => b.id === "room-02") || {}).page // 2번 광화문→room2
+              : i === 2
+                ? (PALACE_BUILDINGS.find((b) => b.id === "room-03") || {}).page // 3번 청계광장→room3
+                : null,
+        };
+      });
 
       function addLandmarkMarkers() {
         const viewer = (window.ws3d && window.ws3d.viewer) || getVWorldViewer();
@@ -2412,8 +2448,8 @@
         LANDMARKS.forEach((m, i) => {
           viewer.entities.add({
             name: m.name,
-            // 해당 건물 높이(m.h) + 50m 위에 띄움(지면 기준)
-            position: engine.Cartesian3.fromDegrees(m.lon, m.lat, (m.h || 0) + 50),
+            // 해당 건물 높이(m.h) + 25m 위에 띄움(지면 기준)
+            position: engine.Cartesian3.fromDegrees(m.lon, m.lat, (m.h || 0) + 25),
             billboard: {
               image: makeNumberPin(i + 1),
               verticalOrigin: engine.VerticalOrigin.BOTTOM, // 핀 꼭지가 위치에 닿게
