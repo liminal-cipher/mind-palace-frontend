@@ -1682,6 +1682,18 @@
             p.maximumScreenSpaceError = LOW_QUALITY_SSE;
             p.dynamicScreenSpaceError = false; // 거리별 화질 완화 끔 → 먼/높은 곳 건물도 렌더
             p.clippingPlanes = makeSeoulPlanes(); // 서울 밖 건물 컷(타일셋마다 별도 생성)
+            // ── 접근 시 디테일이 빨리 뜨도록 타일 스트리밍 최적화 ──
+            p.cullRequestsWhileMoving = false; // ★ 이동 중에도 타일 로드(멈춰야만 뜨던 문제 해결)
+            p.preferLeaves = true;          // 상세(잎) 타일 우선 로드 → 디테일 빨리 표시
+            p.skipLevelOfDetail = true;     // 중간 LOD 건너뛰고 목표 디테일로 바로 점프
+            p.baseScreenSpaceError = 1024;
+            p.skipScreenSpaceErrorFactor = 16;
+            p.skipLevels = 1;
+            p.loadSiblings = false;         // 화면 밖 형제 타일 안 불러옴(대역폭 near쪽 집중)
+            p.cullWithChildrenBounds = true;
+            // 캐시 크게 → 한번 본 건물은 재접근 시 즉시 표시(버전별 속성 대응)
+            if ("cacheBytes" in p) p.cacheBytes = 768 * 1024 * 1024;
+            else p.maximumMemoryUsage = 768; // 구버전 Cesium(MB 단위)
           } catch {}
         };
 
@@ -1706,7 +1718,7 @@
         viewer.scene.globe.backFaceCulling = true;
         viewer.scene.globe.showSkirts = false;
         viewer.scene.globe.maximumScreenSpaceError = 8; // 지형 화질↓(기본 2)로 추가 가속
-        try { viewer.resolutionScale = 0.7; } catch {}    // 렌더 해상도↓(픽셀 수↓ → 속도↑)
+        try { viewer.resolutionScale = 1.0; } catch {}    // 네이티브 해상도(라벨/글자 선명하게)
         try { viewer.scene.fog.enabled = true; viewer.scene.fog.density = 0.0006; } catch {} // 원경 안개로 먼 타일 부하↓
         try { viewer.scene.postProcessStages.fxaa.enabled = false; } catch {} // 안티에일리어싱 끔(속도↑)
 
@@ -2182,6 +2194,8 @@
             if (keyMove.a) { cam.move(right, -step); moved = true; } // 왼쪽(좌)
             if (keyMove.d) { cam.move(right, step); moved = true; }  // 오른쪽(우)
             if (moved) {
+              // 이동 중에도 씬을 강제로 다시 그려 타일/건물이 실시간 로드되게
+              if (viewer.scene && viewer.scene.requestRender) viewer.scene.requestRender();
               if (typeof syncBuildingPositions === "function") syncBuildingPositions();
               if (typeof requestRender === "function") requestRender();
             }
