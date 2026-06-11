@@ -267,7 +267,19 @@
     <div class="top">
       <div class="badge">서울 랜드마크 기억궁전<small id="modeHint">반짝이는 랜드마크를 눌러 다가가세요</small></div>
       <button id="backBtn" type="button">↩ 전체 보기</button>
+      <button id="liteBtn" type="button" style="height:38px;padding:0 12px;border-radius:10px;background:var(--panel);border:1px solid var(--line);color:var(--ink);backdrop-filter:blur(8px);font-size:12px;font-weight:800;cursor:pointer" title="저사양 모드: 빌딩 레이어 숨김·해상도 낮춤·렉 ↓"></button>
     </div>
+    <script>
+      // 라이트 토글 — 현재 상태를 보여주고 누르면 ?lite=1/0로 다시 들어와 적용.
+      (function(){ const b=document.getElementById("liteBtn"); if(!b) return;
+        const isLite = /(?:^|\?|&)lite=1/.test(location.search) || (!(/(?:^|\?|&)lite=0/.test(location.search)) && false);
+        // 실제 라이트 상태는 페이지 스크립트의 LITE에 있음 — 버튼 라벨은 1프레임 뒤 동기화
+        setTimeout(() => { try { b.textContent = (window.LITE || isLite) ? "⚡ 라이트 ON" : "⚡ 라이트 OFF"; } catch(e){} }, 50);
+        b.onclick = () => { const u = new URL(location.href);
+          const cur = (u.searchParams.get("lite") === "1") || (window.LITE && u.searchParams.get("lite") !== "0");
+          u.searchParams.set("lite", cur ? "0" : "1"); location.href = u.toString(); };
+      })();
+    </script>
 
     <aside class="info" id="infoCard">
       <div class="kicker" id="infoKicker">LANDMARK</div>
@@ -293,6 +305,25 @@
       const QP = new URLSearchParams(location.search);
       // ?shot=1 — 배경 캡처용 클린 모드(UI 전부 숨김), ?focus=<id> — 해당 랜드마크 프리셋으로 자동 이동
       if (QP.get("shot") === "1") document.documentElement.classList.add("shotmode");
+      // 저사양(내장그래픽) 자동 감지 — Intel/UHD/낮은 CPU·메모리 → 빌딩 레이어 끄고 해상도 낮춤.
+      const LITE = (() => {
+        const q = QP.get("lite");
+        if (q === "1") return true;
+        if (q === "0") return false;
+        try {
+          const cv = document.createElement("canvas");
+          const gl = cv.getContext("webgl2") || cv.getContext("webgl") || cv.getContext("experimental-webgl");
+          if (!gl) return true;
+          const dbg = gl.getExtension("WEBGL_debug_renderer_info");
+          const r = dbg ? String(gl.getParameter(dbg.UNMASKED_RENDERER_WEBGL) || "") : "";
+          if (/Intel|UHD|Iris\b|HD Graphics|Mesa|llvmpipe|SwiftShader|Microsoft Basic/i.test(r)) return true;
+          if ((navigator.hardwareConcurrency || 8) <= 4) return true;
+          if ((navigator.deviceMemory || 8) <= 4) return true;
+        } catch {}
+        return false;
+      })();
+      if (LITE) console.info("[landmarks] LITE 모드 — 빌딩 레이어 숨김·렌더 온디맨드·해상도 0.7");
+      window.LITE = LITE;
       const setStatus = (t) => { qs("status").textContent = t; };
 
       // ── 랜드마크 10 — 마커 위경도 + "미리 지정한 최적 카메라"(위치/방향) + 연결 방 ──
@@ -407,6 +438,19 @@
         const C = window.Cesium;
         if (!viewer || !C) return;
         viewer.scene.backgroundColor = new C.Color(7 / 255, 10 / 255, 11 / 255, 1);
+        // ── 라이트 모드: GPU 부담 최소화(빌딩 레이어 숨김·해상도 0.7·온디맨드 렌더) ──
+        if (LITE) {
+          try { viewer.resolutionScale = 0.7; } catch {}                  // 픽셀 수 ↓ 약 49%
+          try { viewer.scene.requestRenderMode = true;                    // 변화 있을 때만 그림
+                viewer.scene.maximumRenderTimeChange = 0.25; } catch {}
+          try { viewer.scene.fog.enabled = false; } catch {}
+          try { viewer.scene.globe.showGroundAtmosphere = false; } catch {}
+          // 서울 3D 빌딩(가장 비싼 항목) 숨김 — 랜드마크 페이지는 위성/지형만 있으면 충분
+          const map = window.vworldMap;
+          if (map && map.getLayerElement) ["facility_build","facility_build_world"].forEach(n => {
+            try { const L = map.getLayerElement(n); if (L && L.hide) L.hide(); } catch {}
+          });
+        }
         const ctrl = viewer.scene.screenSpaceCameraController;
         ctrl.maximumZoomDistance = 5200;   // 오버뷰(3km) 여유
         ctrl.minimumZoomDistance = 60;
@@ -535,7 +579,9 @@
           spot.style.display = "none";
         }
         updateMinimap();
-        requestAnimationFrame(tick);
+        // 라이트 모드는 30fps로 — 매 프레임 미니맵·핫스팟 투영을 절반으로
+        if (LITE) setTimeout(() => requestAnimationFrame(tick), 33);
+        else requestAnimationFrame(tick);
       }
 
       // ── 미니맵(GPS형: 화살표 중앙 고정, 맵이 따라옴) ──
