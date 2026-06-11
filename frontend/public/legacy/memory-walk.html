@@ -329,59 +329,86 @@
       t.mapping = THREE.EquirectangularReflectionMapping;
       scene.environment = pmrem.fromEquirectangular(t).texture; scene.background = t;
     }, undefined, useNeutral); else useNeutral();
-    // 랜드마크 배경 — "빌보드 + 하늘 그라데이션" 방식.
-    //   원근 사진 한 장을 구 전체에 감싸면 늘어남·중복이 생기므로(평면≠파노라마),
-    //   ① 하늘은 색 그라데이션 돔(왜곡 없음) ② 랜드마크 사진은 건물 띠만 알파 페이드해
-    //   실제 방위 방향 한 곳에 "창밖 풍경"처럼 평면(빌보드)으로 세운다 = 방↔랜드마크 직접 결합.
+    // 랜드마크 배경 — "지면 위에 선 방" 방식.
+    //   방이 공중에 뜬 게 아니라 광장 바닥에 서 있고, 그 너머로 랜드마크가 보이게:
+    //   ① 주간 하늘 돔(천정 파랑→지평선 옅음) ② 땅 디스크(광장 바닥, 지평선까지)
+    //   ③ 랜드마크를 "땅에서 솟은" 빌보드로(사방 페이드로 배경에 녹임) — 정면 자동 배치.
+    let __bdMesh = null, __bdGround = null, __bdFloor = null, __bdAngle = null;
+    function __applyBackdrop() {                          // floor·정면각이 정해지면 땅·빌보드 위치 확정
+      if (__bdFloor == null) return;
+      if (__bdGround) { __bdGround.position.y = __bdFloor - 0.05; __bdGround.visible = true; }
+      if (__bdMesh) {
+        const ang = (THEME.bearing != null) ? THEME.bearing * Math.PI / 180 : (__bdAngle != null ? __bdAngle : 0);
+        const DIST = 50, H = __bdMesh.userData.h;
+        __bdMesh.position.set(Math.sin(ang) * DIST, __bdFloor + H * 0.42, -Math.cos(ang) * DIST);
+        __bdMesh.lookAt(0, __bdMesh.position.y, 0);       // 방 중심을 바라봄(정면)
+        __bdMesh.visible = true;
+      }
+    }
+    window.__placeBackdrop = (floorY, angle) => { __bdFloor = floorY; if (angle != null) __bdAngle = angle; __applyBackdrop(); };
     if (THEME && THEME.bg && !ENV) {
-      // ── ① 하늘 그라데이션 돔 ── 천정(위) → 지평선(아래)으로 자연스러운 색 변화
-      const skyTop = new THREE.Color(THEME.sky != null ? THEME.sky : 0x8db4d8);
-      const skyBot = new THREE.Color(THEME.hemi != null ? THEME.hemi : 0xdfe9f2);
+      const horizonCol = new THREE.Color(0xdfe6ec);       // 지평선 옅은 하늘빛
+      const zenithCol  = new THREE.Color(0x7c9fce);       // 천정 주간 파랑
+      const groundCol  = new THREE.Color(THEME.ground != null ? THEME.ground : 0xb6afa2); // 광장 바닥(돌)
+      // ── ① 하늘 돔 ── 천정 파랑 → 지평선 옅음 (아래 절반은 땅 디스크가 가림)
       const gc = document.createElement('canvas'); gc.width = 16; gc.height = 256;
       const gx = gc.getContext('2d');
       const grad = gx.createLinearGradient(0, 0, 0, 256);
-      grad.addColorStop(0.00, '#' + skyTop.getHexString());                          // 천정
-      grad.addColorStop(0.60, '#' + skyTop.clone().lerp(skyBot, 0.6).getHexString());// 중간
-      grad.addColorStop(1.00, '#' + skyBot.getHexString());                          // 지평선
+      grad.addColorStop(0.00, '#' + zenithCol.getHexString());
+      grad.addColorStop(0.50, '#' + zenithCol.clone().lerp(horizonCol, 0.7).getHexString());
+      grad.addColorStop(1.00, '#' + horizonCol.getHexString());
       gx.fillStyle = grad; gx.fillRect(0, 0, 16, 256);
       const gtex = new THREE.CanvasTexture(gc); gtex.colorSpace = THREE.SRGBColorSpace;
-      scene.background = gtex;
+      scene.background = horizonCol.clone();
       const SKY_R = 95, segW = LITE ? 24 : 40, segH = LITE ? 16 : 24;
       const dome = new THREE.Mesh(
         new THREE.SphereGeometry(SKY_R, segW, segH),
         new THREE.MeshBasicMaterial({ map: gtex, side: THREE.BackSide, depthWrite: false, fog: false, toneMapped: false }));
-      dome.renderOrder = -2; dome.frustumCulled = false; scene.add(dome);
-      window.__sky = dome;                              // 카메라에 붙어 따라다님(parallax 없는 하늘)
+      dome.renderOrder = -3; dome.frustumCulled = false; scene.add(dome);
+      window.__sky = dome;                                // 카메라에 붙어 따라다님(무한히 먼 하늘)
 
-      // ── ② 랜드마크 빌보드 ── 정면 사진을 건물 띠만 남기고(상하 알파 페이드) 한 방향에 세움
+      // ── ② 땅 디스크 ── 중심 밝음 → 가장자리는 지평선 하늘빛으로 번져 경계가 안 보이게
+      const gr = document.createElement('canvas'); gr.width = gr.height = 256;
+      const grx = gr.getContext('2d');
+      const rad = grx.createRadialGradient(128, 128, 8, 128, 128, 128);
+      rad.addColorStop(0.00, '#' + groundCol.clone().lerp(new THREE.Color(0xffffff), 0.10).getHexString());
+      rad.addColorStop(0.72, '#' + groundCol.getHexString());
+      rad.addColorStop(1.00, '#' + horizonCol.getHexString());  // 가장자리 = 하늘빛 → 지평선과 이음새 없음
+      grx.fillStyle = rad; grx.fillRect(0, 0, 256, 256);
+      const grtex = new THREE.CanvasTexture(gr); grtex.colorSpace = THREE.SRGBColorSpace;
+      const ground = new THREE.Mesh(
+        new THREE.CircleGeometry(SKY_R * 0.99, 64),
+        new THREE.MeshBasicMaterial({ map: grtex, side: THREE.DoubleSide, depthWrite: false, fog: false, toneMapped: false }));
+      ground.rotation.x = -Math.PI / 2; ground.renderOrder = -2; ground.frustumCulled = false; ground.visible = false;
+      scene.add(ground); __bdGround = ground; window.__ground = ground;
+
+      // ── ③ 랜드마크 빌보드 ── 사방(상하좌우) 알파 페이드로 배경에 녹임, 땅에서 솟아오름
       new THREE.TextureLoader().load(THEME.bg, t => {
         const img = t.image, iw = img.width, ih = img.height;
-        const maxW = LITE ? 1024 : 2048;                // 저사양 GPU VRAM 보호용 다운스케일
+        const maxW = LITE ? 1024 : 2048;                  // 저사양 GPU VRAM 보호용 다운스케일
         const sc = Math.min(1, maxW / iw);
         const bc = document.createElement('canvas');
         bc.width = Math.max(1, Math.round(iw * sc)); bc.height = Math.max(1, Math.round(ih * sc));
         const bx = bc.getContext('2d');
         bx.drawImage(img, 0, 0, bc.width, bc.height);
-        // 상하 알파 페이드: 위(사진 속 하늘)·아래(땅)를 투명 처리 → 누끼 없이 건물 띠만 떠 보임
-        bx.globalCompositeOperation = 'destination-in';
-        const ag = bx.createLinearGradient(0, 0, 0, bc.height);
-        ag.addColorStop(0.00, 'rgba(0,0,0,0)');  // 맨 위 = 투명(하늘로 녹아듦)
-        ag.addColorStop(0.20, 'rgba(0,0,0,1)');  // 건물 시작
-        ag.addColorStop(0.82, 'rgba(0,0,0,1)');  // 건물 끝
-        ag.addColorStop(1.00, 'rgba(0,0,0,0)');  // 맨 아래(땅) = 투명
-        bx.fillStyle = ag; bx.fillRect(0, 0, bc.width, bc.height);
+        bx.globalCompositeOperation = 'destination-in';   // 이후 채우는 알파를 곱함(겹치면 모서리 더 투명 = 비네트)
+        const vg = bx.createLinearGradient(0, 0, 0, bc.height);  // 상하: 위(하늘) 투명 → 아래(땅) 약한 페이드
+        vg.addColorStop(0.00, 'rgba(0,0,0,0)'); vg.addColorStop(0.16, 'rgba(0,0,0,1)');
+        vg.addColorStop(0.90, 'rgba(0,0,0,1)'); vg.addColorStop(1.00, 'rgba(0,0,0,0.55)');
+        bx.fillStyle = vg; bx.fillRect(0, 0, bc.width, bc.height);
+        const hg = bx.createLinearGradient(0, 0, bc.width, 0);   // 좌우: 양 끝 투명 → 가운데 불투명
+        hg.addColorStop(0.00, 'rgba(0,0,0,0)'); hg.addColorStop(0.12, 'rgba(0,0,0,1)');
+        hg.addColorStop(0.88, 'rgba(0,0,0,1)'); hg.addColorStop(1.00, 'rgba(0,0,0,0)');
+        bx.fillStyle = hg; bx.fillRect(0, 0, bc.width, bc.height);
         const btex = new THREE.CanvasTexture(bc); btex.colorSpace = THREE.SRGBColorSpace;
         btex.anisotropy = (typeof _maxAniso !== 'undefined') ? _maxAniso : 1;
-        const aspect = iw / ih, BW = 72, BH = BW / aspect;
+        const aspect = iw / ih, BH = 34, BW = BH * aspect; // 목표 높이 34m → 벽 위로 솟아 정면에서 보임
         const bill = new THREE.Mesh(
           new THREE.PlaneGeometry(BW, BH),
           new THREE.MeshBasicMaterial({ map: btex, transparent: true, depthWrite: false, fog: false, toneMapped: false }));
-        const DIR = (THEME.bearing != null ? THEME.bearing : 0) * Math.PI / 180; // 0 = 정면(-Z)
-        const DIST = 58;                                  // 방 밖 멀리 — 걸어가도 못 닿음
-        bill.position.set(Math.sin(DIR) * DIST, BH * 0.28, -Math.cos(DIR) * DIST);
-        bill.lookAt(0, BH * 0.28, 0);
-        bill.renderOrder = -1; bill.frustumCulled = false;
-        scene.add(bill); window.__bill = bill;
+        bill.userData.h = BH; bill.renderOrder = -1; bill.frustumCulled = false; bill.visible = false;
+        scene.add(bill); __bdMesh = bill; window.__bill = bill;
+        __applyBackdrop();                                // floor가 이미 정해졌으면 즉시 배치
       }, undefined, () => {});
     }
     scene.add(new THREE.HemisphereLight(THEME ? THEME.hemi : 0xffffff, 0x444444, 0.4));  // 랜드마크 톤 조명
@@ -639,6 +666,11 @@
       $("cmapBtn").style.display = "inline-flex"; $("cmapBtn").onclick = openEditor;
       buildMarkers(); buildRouteLine(spawn); buildRelations();
       spawnAt(spawn);
+      // 배경 랜드마크를 "정면"에 자동 배치: 스폰→방중심 방향 = 시작 시야 정면
+      if (window.__placeBackdrop) {
+        const dx = center.x - spawn.x, dz = center.z - spawn.z;
+        window.__placeBackdrop(bounds.min.y, Math.atan2(dx, -dz));
+      }
       $("nav").style.display = "";
       $("miniCv").style.display = "block";
       const mapped = route.filter(h => h.entity).length;
@@ -1400,8 +1432,9 @@
         camera.position.lerpVectors(camTween.fromPos,camTween.toPos,e); controls.target.lerpVectors(camTween.fromTgt,camTween.toTgt,e);
         if(k>=1)camTween=null; }
       walk(dt); controls.update();
-      // 하늘 그라데이션 돔만 카메라에 붙여둠(무한히 먼 하늘). 빌보드는 월드 고정 → 걸으면 시차로 멀게 느껴짐.
+      // 하늘 돔·땅 디스크는 카메라를 따라옴(무한히 먼 하늘·바닥). 빌보드는 월드 고정 → 걸으면 시차로 멀게 느껴짐.
       if (window.__sky) window.__sky.position.copy(camera.position);
+      if (window.__ground) { window.__ground.position.x = camera.position.x; window.__ground.position.z = camera.position.z; }
       renderer.render(scene,camera); drawMini(); requestAnimationFrame(tick);
     }
     requestAnimationFrame(tick);
