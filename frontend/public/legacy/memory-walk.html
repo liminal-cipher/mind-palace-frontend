@@ -592,17 +592,23 @@
     }
 
     // ── 핫스팟 마커(번호 배지) ──
+    // 번호 마커 스프라이트 — 캔버스 4배 키워 텍스트 선명, anisotropy GPU 최대치로
+    const _maxAniso = renderer.capabilities.getMaxAnisotropy ? renderer.capabilities.getMaxAnisotropy() : 8;
     function numberSprite(n, active) {
-      const S=256,c=S/2,cv=document.createElement("canvas"); cv.width=cv.height=S;
+      const S=1024,c=S/2,cv=document.createElement("canvas"); cv.width=cv.height=S;
       const g=cv.getContext("2d");
       g.beginPath();g.arc(c,c,c*0.6,0,7);g.fillStyle=active?"rgba(214,187,112,.25)":"rgba(169,216,200,.16)";g.fill();
       g.beginPath();g.arc(c,c,c*0.44,0,7);
       const gr=g.createLinearGradient(0,c*0.5,0,c*1.5);gr.addColorStop(0,"rgba(18,24,21,.96)");gr.addColorStop(1,"rgba(9,12,11,.96)");
       g.fillStyle=gr;g.fill();
       g.lineWidth=S*0.03;g.strokeStyle=active?"#d6bb70":"#a9d8c8";g.stroke();
-      g.fillStyle="#fffaf0";g.font=`800 ${S*0.36}px 'Malgun Gothic',Arial`;g.textAlign="center";g.textBaseline="middle";
+      g.fillStyle="#fffaf0";g.font=`900 ${S*0.36}px 'Malgun Gothic',Arial`;g.textAlign="center";g.textBaseline="middle";
       g.fillText(String(n),c,c+S*0.015);
-      const tex=new THREE.CanvasTexture(cv);tex.colorSpace=THREE.SRGBColorSpace;tex.anisotropy=4;
+      const tex=new THREE.CanvasTexture(cv);
+      tex.colorSpace=THREE.SRGBColorSpace;
+      tex.anisotropy=_maxAniso;                                          // GPU 최대 이방성 필터
+      tex.minFilter=THREE.LinearMipmapLinearFilter;                      // 거리에 따라 깔끔히 축소
+      tex.magFilter=THREE.LinearFilter; tex.generateMipmaps=true;
       const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,depthTest:false,depthWrite:false,transparent:true}));
       sp.scale.set(0.34,0.34,0.34); return sp;
     }
