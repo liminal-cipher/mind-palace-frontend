@@ -1,6 +1,6 @@
 import "./styles.css";
 
-const LEGACY_ENTRY = "/legacy/vworld_landmarks.html";
+const LEGACY_ENTRY = "/legacy/region-select.html";
 
 export default function App() {
   return (
