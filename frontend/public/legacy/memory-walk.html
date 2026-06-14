@@ -849,7 +849,7 @@
     // 광화문 지도로 복귀: 지도에서 들어왔으면 그 페이지(키 포함)로, 아니면 지도 페이지로.
     $("backBtn").onclick = () => {
       if (history.length > 1 && document.referrer) history.back();
-      else location.href = THEME ? "vworld_landmarks.html" : "vworld_3d_map_live.html";
+      else location.href = THEME ? "vworld_landmarks.html" : "vworld_jongnogu.html";
     };
     // ⌂ 홈 — 미리 잡아둔 "모든 핫스팟이 가장 잘 보이는" 전체 조망으로.
     $("homeBtn").onclick = () => { activeIdx = -1; renderDots(-1); $("card").style.display = "none"; roomEntryView(false); };
