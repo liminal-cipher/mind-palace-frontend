@@ -1,0 +1,167 @@
+{
+  "ordered": true,
+  "source": "geometry-derived",
+  "room": "living_room",
+  "hotspots": [
+    {
+      "slot": 1,
+      "object": "living_room_1",
+      "detectedClass": "table",
+      "markerPosition": [
+        0,
+        0.3,
+        0
+      ]
+    },
+    {
+      "slot": 2,
+      "object": "living_room_2",
+      "detectedClass": "chair",
+      "markerPosition": [
+        -3.542,
+        2.483,
+        0
+      ]
+    },
+    {
+      "slot": 3,
+      "object": "living_room_3",
+      "detectedClass": "shelf",
+      "markerPosition": [
+        3.542,
+        2.483,
+        0
+      ]
+    },
+    {
+      "slot": 4,
+      "object": "living_room_4",
+      "detectedClass": "cabinet",
+      "markerPosition": [
+        2.858,
+        0.3,
+        -1.858
+      ]
+    },
+    {
+      "slot": 5,
+      "object": "living_room_5",
+      "detectedClass": "painting",
+      "markerPosition": [
+        0,
+        2.483,
+        -1.829
+      ]
+    },
+    {
+      "slot": 6,
+      "object": "living_room_6",
+      "detectedClass": "plant",
+      "markerPosition": [
+        -0.03,
+        2.483,
+        1.575
+      ]
+    },
+    {
+      "slot": 7,
+      "object": "living_room_7",
+      "detectedClass": "lamp",
+      "markerPosition": [
+        -1.823,
+        0.3,
+        1.858
+      ]
+    },
+    {
+      "slot": 8,
+      "object": "living_room_8",
+      "detectedClass": "desk",
+      "markerPosition": [
+        1.813,
+        0.3,
+        1.858
+      ]
+    },
+    {
+      "slot": 9,
+      "object": "living_room_9",
+      "detectedClass": "sofa",
+      "markerPosition": [
+        -1.974,
+        0.3,
+        -1.578
+      ]
+    },
+    {
+      "slot": 10,
+      "object": "living_room_10",
+      "detectedClass": "bench",
+      "markerPosition": [
+        -1.33,
+        2.173,
+        -0.153
+      ]
+    },
+    {
+      "slot": 11,
+      "object": "living_room_11",
+      "detectedClass": "vase",
+      "markerPosition": [
+        -3.513,
+        0.3,
+        -0.154
+      ]
+    },
+    {
+      "slot": 12,
+      "object": "living_room_12",
+      "detectedClass": "stand",
+      "markerPosition": [
+        0.53,
+        0.3,
+        -1.858
+      ]
+    },
+    {
+      "slot": 13,
+      "object": "living_room_13",
+      "detectedClass": "table",
+      "markerPosition": [
+        1.831,
+        2.483,
+        1.829
+      ]
+    },
+    {
+      "slot": 14,
+      "object": "living_room_14",
+      "detectedClass": "chair",
+      "markerPosition": [
+        2.791,
+        0.628,
+        -0.079
+      ]
+    },
+    {
+      "slot": 15,
+      "object": "living_room_15",
+      "detectedClass": "shelf",
+      "markerPosition": [
+        -1.678,
+        2.483,
+        1.829
+      ]
+    },
+    {
+      "slot": 16,
+      "object": "living_room_16",
+      "detectedClass": "cabinet",
+      "markerPosition": [
+        1.74,
+        1.36,
+        -1.759
+      ]
+    }
+  ]
+}

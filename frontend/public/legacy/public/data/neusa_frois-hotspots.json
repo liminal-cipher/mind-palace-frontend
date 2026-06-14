@@ -1,0 +1,167 @@
+{
+  "ordered": true,
+  "source": "geometry-derived",
+  "room": "neusa_frois",
+  "hotspots": [
+    {
+      "slot": 1,
+      "object": "neusa_frois_1",
+      "detectedClass": "table",
+      "markerPosition": [
+        0,
+        0.801,
+        0.039
+      ]
+    },
+    {
+      "slot": 2,
+      "object": "neusa_frois_2",
+      "detectedClass": "chair",
+      "markerPosition": [
+        0.309,
+        0.92,
+        3.591
+      ]
+    },
+    {
+      "slot": 3,
+      "object": "neusa_frois_3",
+      "detectedClass": "shelf",
+      "markerPosition": [
+        0.535,
+        0.566,
+        -3.426
+      ]
+    },
+    {
+      "slot": 4,
+      "object": "neusa_frois_4",
+      "detectedClass": "cabinet",
+      "markerPosition": [
+        -0.903,
+        0.801,
+        1.962
+      ]
+    },
+    {
+      "slot": 5,
+      "object": "neusa_frois_5",
+      "detectedClass": "painting",
+      "markerPosition": [
+        1.22,
+        0.448,
+        1.603
+      ]
+    },
+    {
+      "slot": 6,
+      "object": "neusa_frois_6",
+      "detectedClass": "plant",
+      "markerPosition": [
+        1.545,
+        0.605,
+        -1.008
+      ]
+    },
+    {
+      "slot": 7,
+      "object": "neusa_frois_7",
+      "detectedClass": "lamp",
+      "markerPosition": [
+        1.545,
+        0.867,
+        3.066
+      ]
+    },
+    {
+      "slot": 8,
+      "object": "neusa_frois_8",
+      "detectedClass": "desk",
+      "markerPosition": [
+        1.545,
+        0.867,
+        0.196
+      ]
+    },
+    {
+      "slot": 9,
+      "object": "neusa_frois_9",
+      "detectedClass": "sofa",
+      "markerPosition": [
+        -0.782,
+        0.3,
+        0.553
+      ]
+    },
+    {
+      "slot": 10,
+      "object": "neusa_frois_10",
+      "detectedClass": "bench",
+      "markerPosition": [
+        1.284,
+        0.475,
+        -2.577
+      ]
+    },
+    {
+      "slot": 11,
+      "object": "neusa_frois_11",
+      "detectedClass": "vase",
+      "markerPosition": [
+        -0.74,
+        1.028,
+        0.598
+      ]
+    },
+    {
+      "slot": 12,
+      "object": "neusa_frois_12",
+      "detectedClass": "stand",
+      "markerPosition": [
+        0.004,
+        1.575,
+        0.352
+      ]
+    },
+    {
+      "slot": 13,
+      "object": "neusa_frois_13",
+      "detectedClass": "table",
+      "markerPosition": [
+        0.531,
+        0.3,
+        3.441
+      ]
+    },
+    {
+      "slot": 14,
+      "object": "neusa_frois_14",
+      "detectedClass": "chair",
+      "markerPosition": [
+        -0.749,
+        0.3,
+        1.254
+      ]
+    },
+    {
+      "slot": 15,
+      "object": "neusa_frois_15",
+      "detectedClass": "shelf",
+      "markerPosition": [
+        1.467,
+        0.803,
+        1.037
+      ]
+    },
+    {
+      "slot": 16,
+      "object": "neusa_frois_16",
+      "detectedClass": "cabinet",
+      "markerPosition": [
+        -0.086,
+        0.801,
+        0.757
+      ]
+    }
+  ]
+}

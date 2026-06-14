@@ -1,0 +1,167 @@
+{
+  "ordered": true,
+  "source": "geometry-derived",
+  "room": "school_class_room",
+  "hotspots": [
+    {
+      "slot": 1,
+      "object": "school_class_room_1",
+      "detectedClass": "table",
+      "markerPosition": [
+        -2.637,
+        0.3,
+        -3.317
+      ]
+    },
+    {
+      "slot": 2,
+      "object": "school_class_room_2",
+      "detectedClass": "chair",
+      "markerPosition": [
+        1.944,
+        1.18,
+        3.476
+      ]
+    },
+    {
+      "slot": 3,
+      "object": "school_class_room_3",
+      "detectedClass": "shelf",
+      "markerPosition": [
+        2.829,
+        1.355,
+        -1.652
+      ]
+    },
+    {
+      "slot": 4,
+      "object": "school_class_room_4",
+      "detectedClass": "cabinet",
+      "markerPosition": [
+        -2.829,
+        1.042,
+        1.68
+      ]
+    },
+    {
+      "slot": 5,
+      "object": "school_class_room_5",
+      "detectedClass": "painting",
+      "markerPosition": [
+        0,
+        2.326,
+        0
+      ]
+    },
+    {
+      "slot": 6,
+      "object": "school_class_room_6",
+      "detectedClass": "plant",
+      "markerPosition": [
+        0.176,
+        1.24,
+        -3.451
+      ]
+    },
+    {
+      "slot": 7,
+      "object": "school_class_room_7",
+      "detectedClass": "lamp",
+      "markerPosition": [
+        -1.819,
+        2.172,
+        -1.896
+      ]
+    },
+    {
+      "slot": 8,
+      "object": "school_class_room_8",
+      "detectedClass": "desk",
+      "markerPosition": [
+        -0.229,
+        0.3,
+        2.842
+      ]
+    },
+    {
+      "slot": 9,
+      "object": "school_class_room_9",
+      "detectedClass": "sofa",
+      "markerPosition": [
+        2.132,
+        0.543,
+        1.128
+      ]
+    },
+    {
+      "slot": 10,
+      "object": "school_class_room_10",
+      "detectedClass": "bench",
+      "markerPosition": [
+        0,
+        0.3,
+        0.069
+      ]
+    },
+    {
+      "slot": 11,
+      "object": "school_class_room_11",
+      "detectedClass": "vase",
+      "markerPosition": [
+        -2.204,
+        0.543,
+        -0.271
+      ]
+    },
+    {
+      "slot": 12,
+      "object": "school_class_room_12",
+      "detectedClass": "stand",
+      "markerPosition": [
+        2.2,
+        0.3,
+        -3.242
+      ]
+    },
+    {
+      "slot": 13,
+      "object": "school_class_room_13",
+      "detectedClass": "table",
+      "markerPosition": [
+        -1.944,
+        1.18,
+        3.476
+      ]
+    },
+    {
+      "slot": 14,
+      "object": "school_class_room_14",
+      "detectedClass": "chair",
+      "markerPosition": [
+        -0.447,
+        0.543,
+        -1.685
+      ]
+    },
+    {
+      "slot": 15,
+      "object": "school_class_room_15",
+      "detectedClass": "shelf",
+      "markerPosition": [
+        1.819,
+        2.172,
+        -0.264
+      ]
+    },
+    {
+      "slot": 16,
+      "object": "school_class_room_16",
+      "detectedClass": "cabinet",
+      "markerPosition": [
+        -0.694,
+        1.866,
+        2.447
+      ]
+    }
+  ]
+}

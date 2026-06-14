@@ -1,0 +1,127 @@
+{
+  "ordered": true,
+  "source": "geometry-derived",
+  "room": "modern_bedroom",
+  "hotspots": [
+    {
+      "slot": 1,
+      "object": "modern_bedroom_1",
+      "detectedClass": "table",
+      "markerPosition": [
+        0,
+        1.538,
+        0
+      ]
+    },
+    {
+      "slot": 2,
+      "object": "modern_bedroom_2",
+      "detectedClass": "chair",
+      "markerPosition": [
+        -2.502,
+        0.401,
+        1.313
+      ]
+    },
+    {
+      "slot": 3,
+      "object": "modern_bedroom_3",
+      "detectedClass": "shelf",
+      "markerPosition": [
+        1.018,
+        0.3,
+        1.95
+      ]
+    },
+    {
+      "slot": 4,
+      "object": "modern_bedroom_4",
+      "detectedClass": "cabinet",
+      "markerPosition": [
+        -2.502,
+        1.749,
+        1.72
+      ]
+    },
+    {
+      "slot": 5,
+      "object": "modern_bedroom_5",
+      "detectedClass": "painting",
+      "markerPosition": [
+        1.018,
+        0.3,
+        0.701
+      ]
+    },
+    {
+      "slot": 6,
+      "object": "modern_bedroom_6",
+      "detectedClass": "plant",
+      "markerPosition": [
+        -0.48,
+        1.538,
+        0.359
+      ]
+    },
+    {
+      "slot": 7,
+      "object": "modern_bedroom_7",
+      "detectedClass": "lamp",
+      "markerPosition": [
+        1.018,
+        0.511,
+        0.966
+      ]
+    },
+    {
+      "slot": 8,
+      "object": "modern_bedroom_8",
+      "detectedClass": "desk",
+      "markerPosition": [
+        1.019,
+        0.709,
+        2.165
+      ]
+    },
+    {
+      "slot": 9,
+      "object": "modern_bedroom_9",
+      "detectedClass": "sofa",
+      "markerPosition": [
+        1.934,
+        1,
+        0
+      ]
+    },
+    {
+      "slot": 10,
+      "object": "modern_bedroom_10",
+      "detectedClass": "bench",
+      "markerPosition": [
+        -1.426,
+        1,
+        1.003
+      ]
+    },
+    {
+      "slot": 11,
+      "object": "modern_bedroom_11",
+      "detectedClass": "vase",
+      "markerPosition": [
+        0.169,
+        1,
+        -1.479
+      ]
+    },
+    {
+      "slot": 12,
+      "object": "modern_bedroom_12",
+      "detectedClass": "stand",
+      "markerPosition": [
+        1.177,
+        1,
+        1.178
+      ]
+    }
+  ]
+}
