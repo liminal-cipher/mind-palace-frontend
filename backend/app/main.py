@@ -135,7 +135,7 @@ elif LEGACY_DIR.exists():
 
     @app.get("/")
     def serve_legacy_entry() -> RedirectResponse:
-        return RedirectResponse("/legacy/vworld_3d_map_live.html")
+        return RedirectResponse("/legacy/vworld_landmarks.html")
 
 
 def decode_data_url(value: str) -> bytes:
