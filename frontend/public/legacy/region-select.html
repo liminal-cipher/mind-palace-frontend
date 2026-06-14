@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>기억궁전 — 지역 선택</title>
+<style>
+  :root{ color-scheme:dark;
+    --bg:#080a09; --panel:rgba(16,20,18,.72); --line:rgba(220,230,222,.14);
+    --text:#f4f1ea; --muted:rgba(244,241,234,.62); --accent:#a9d8c8; --accent2:#8fc9b5; --gold:#dcc079; }
+  *{box-sizing:border-box;}
+  body{margin:0; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    font-family:"Pretendard","Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif;
+    color:var(--text); -webkit-font-smoothing:antialiased; overflow-x:hidden;
+    background:
+      radial-gradient(60% 50% at 50% -5%, rgba(169,216,200,.16), transparent 60%),
+      radial-gradient(50% 40% at 85% 100%, rgba(220,192,121,.10), transparent 60%),
+      var(--bg);}
+  body::before{content:""; position:fixed; inset:0; pointer-events:none; opacity:.5;
+    background-image:linear-gradient(rgba(169,216,200,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(169,216,200,.05) 1px,transparent 1px);
+    background-size:46px 46px; mask:radial-gradient(80% 70% at 50% 30%,#000,transparent 75%);}
+  .head{position:relative; text-align:center; padding:0 22px; margin-bottom:38px;}
+  .kicker{color:var(--gold); font-size:12px; font-weight:800; letter-spacing:.18em; text-transform:uppercase;}
+  h1{margin:14px 0 8px; font-size:clamp(30px,6vw,52px); font-weight:900; letter-spacing:-.03em; line-height:1.05;}
+  h1 .grad{background:linear-gradient(120deg,var(--accent),var(--gold)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;}
+  .sub{color:var(--muted); font-size:clamp(13px,2.2vw,16px); line-height:1.6; max-width:520px; margin:0 auto;}
+  /* 중앙 박스 2개 */
+  .grid{position:relative; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:22px;
+    width:min(820px, calc(100vw - 44px)); padding:0 22px;}
+  @media(max-width:620px){ .grid{grid-template-columns:1fr;} }
+  .box{position:relative; display:flex; flex-direction:column; min-height:260px; padding:26px 24px;
+    border:1px solid var(--line); border-radius:20px; background:var(--panel); backdrop-filter:blur(14px);
+    box-shadow:0 18px 48px rgba(0,0,0,.42); text-decoration:none; color:var(--text);
+    transition:transform .18s, box-shadow .18s, border-color .18s;}
+  .box:hover{transform:translateY(-4px); border-color:rgba(169,216,200,.5);
+    box-shadow:0 26px 64px rgba(0,0,0,.55), 0 0 0 1px rgba(169,216,200,.22) inset;}
+  .box .ic{font-size:34px;}
+  .box .tag{margin-top:auto; align-self:flex-start; padding:5px 12px; border-radius:999px; font-size:11px; font-weight:800;
+    border:1px solid var(--line); color:var(--muted);}
+  .box h2{margin:14px 0 8px; font-size:26px; font-weight:900;}
+  .box p{margin:0; color:var(--muted); font-size:13.5px; line-height:1.6;}
+  .box .go{margin-top:16px; display:inline-flex; align-items:center; gap:7px; font-size:13.5px; font-weight:800; color:var(--accent);}
+  .box--jongno{background-image:radial-gradient(120% 90% at 100% 0%, rgba(169,216,200,.14), transparent 55%);}
+  .box--gyeongju{background-image:radial-gradient(120% 90% at 100% 0%, rgba(220,192,121,.14), transparent 55%);}
+  .box--gyeongju h2 .grad2{background:linear-gradient(120deg,var(--gold),var(--accent)); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;}
+  .foot{margin-top:34px; color:var(--muted); font-size:12px; text-align:center; padding:0 22px;}
+</style>
+</head>
+<body>
+  <div class="head">
+    <div class="kicker">VWorld · 장소법 기억궁전</div>
+    <h1>어디의 <span class="grad">기억궁전</span>으로 갈까요?</h1>
+    <p class="sub">실제 3D 지도 위 랜드마크에 공부할 내용을 배치하고, 같은 길·같은 자리를 걸으며 외우는 학습 공간입니다. 지역을 골라 시작하세요.</p>
+  </div>
+
+  <div class="grid">
+    <a class="box box--jongno" id="jongnoBox" href="vworld_jongnogu.html">
+      <div class="ic">🏯</div>
+      <h2>종로구</h2>
+      <p>경복궁·광화문·남산서울타워·종묘 등 서울 도심 랜드마크 10곳을 3D 지도에서 둘러봅니다.</p>
+      <span class="go">지도 열기 →</span>
+      <span class="tag">서울 · 10개 명소</span>
+    </a>
+
+    <a class="box box--gyeongju" id="gyeongjuBox" href="vworld_gyeongju.html">
+      <div class="ic">🛕</div>
+      <h2><span class="grad2">경주</span></h2>
+      <p>불국사·석굴암·첨성대·대릉원 등 신라 천년 고도의 랜드마크 10곳을 3D 지도에서 둘러봅니다.</p>
+      <span class="go">지도 열기 →</span>
+      <span class="tag">경주 · 10개 명소</span>
+    </a>
+  </div>
+
+  <div class="foot">랜드마크 핀을 눌러 다가가고, 마우스 드래그로 둘러보며 <b>WASD</b>로 걷습니다.</div>
+
+<script>
+  // VWorld 키는 소스에 박지 않는다 — 받은 ?key= 를 저장하고 각 지도 링크로 그대로 전달.
+  const key = new URLSearchParams(location.search).get("key");
+  if (key) {
+    try { localStorage.setItem("VWORLD_API_KEY", key); } catch(e){}
+    const add = (href) => href + (href.includes("?") ? "&" : "?") + "key=" + encodeURIComponent(key);
+    document.querySelectorAll('a.box[href]').forEach(a => a.setAttribute('href', add(a.getAttribute('href'))));
+  }
+</script>
+</body>
+</html>
