@@ -1,166 +1,171 @@
 {
+  "roomId": "school_class_room",
+  "generatedBy": "personal-room-scanner-3d (Azure AI Vision, headless)",
   "ordered": true,
-  "source": "geometry-derived",
-  "room": "school_class_room",
   "hotspots": [
     {
       "slot": 1,
-      "object": "school_class_room_1",
-      "detectedClass": "table",
+      "object": "chair",
+      "detectedClass": "chair",
+      "confidence": 0.87,
       "markerPosition": [
-        -2.637,
-        0.3,
-        -3.317
+        -1.396,
+        0.599,
+        -1.782
       ]
     },
     {
       "slot": 2,
-      "object": "school_class_room_2",
+      "object": "chair",
       "detectedClass": "chair",
+      "confidence": 0.85,
       "markerPosition": [
-        1.944,
-        1.18,
-        3.476
+        -1.231,
+        0.564,
+        1.586
       ]
     },
     {
       "slot": 3,
-      "object": "school_class_room_3",
-      "detectedClass": "shelf",
+      "object": "dining table",
+      "detectedClass": "dining table",
+      "confidence": 0.79,
       "markerPosition": [
-        2.829,
-        1.355,
-        -1.652
+        -1.462,
+        0.648,
+        -0.198
       ]
     },
     {
       "slot": 4,
-      "object": "school_class_room_4",
-      "detectedClass": "cabinet",
+      "object": "chair",
+      "detectedClass": "chair",
+      "confidence": 0.8,
       "markerPosition": [
-        -2.829,
-        1.042,
-        1.68
+        -2.185,
+        0.601,
+        0.366
       ]
     },
     {
       "slot": 5,
-      "object": "school_class_room_5",
-      "detectedClass": "painting",
+      "object": "chair",
+      "detectedClass": "chair",
+      "confidence": 0.81,
       "markerPosition": [
-        0,
-        2.326,
-        0
+        0.737,
+        -0.335,
+        -0.846
       ]
     },
     {
       "slot": 6,
-      "object": "school_class_room_6",
-      "detectedClass": "plant",
+      "object": "window",
+      "detectedClass": "window",
+      "confidence": 0.87,
       "markerPosition": [
-        0.176,
-        1.24,
-        -3.451
+        2.817,
+        1.455,
+        -1.475
       ]
     },
     {
       "slot": 7,
-      "object": "school_class_room_7",
-      "detectedClass": "lamp",
+      "object": "window",
+      "detectedClass": "window",
+      "confidence": 0.76,
       "markerPosition": [
-        -1.819,
-        2.172,
-        -1.896
+        -2.815,
+        0.892,
+        -2.61
       ]
     },
     {
       "slot": 8,
-      "object": "school_class_room_8",
-      "detectedClass": "desk",
+      "object": "chair",
+      "detectedClass": "chair",
+      "confidence": 0.84,
       "markerPosition": [
-        -0.229,
-        0.3,
-        2.842
+        -1.993,
+        0.141,
+        -1.815
       ]
     },
     {
       "slot": 9,
-      "object": "school_class_room_9",
-      "detectedClass": "sofa",
+      "object": "dining table",
+      "detectedClass": "dining table",
+      "confidence": 0.82,
       "markerPosition": [
-        2.132,
-        0.543,
-        1.128
+        -1.474,
+        0.648,
+        -1.565
       ]
     },
     {
       "slot": 10,
-      "object": "school_class_room_10",
-      "detectedClass": "bench",
+      "object": "desk",
+      "detectedClass": "desk",
+      "confidence": 0.79,
       "markerPosition": [
-        0,
-        0.3,
-        0.069
+        -0.172,
+        0.389,
+        -2.928
       ]
     },
     {
       "slot": 11,
-      "object": "school_class_room_11",
-      "detectedClass": "vase",
+      "object": "desk",
+      "detectedClass": "desk",
+      "confidence": 0.78,
       "markerPosition": [
-        -2.204,
-        0.543,
-        -0.271
+        -0.5,
+        0.62,
+        -1.853
       ]
     },
     {
       "slot": 12,
-      "object": "school_class_room_12",
-      "detectedClass": "stand",
+      "object": "chair",
+      "detectedClass": "chair",
+      "confidence": 0.62,
       "markerPosition": [
-        2.2,
-        0.3,
-        -3.242
+        -0.505,
+        0.505,
+        -1.858
       ]
     },
     {
       "slot": 13,
-      "object": "school_class_room_13",
-      "detectedClass": "table",
+      "object": "chair",
+      "detectedClass": "chair",
+      "confidence": 0.82,
       "markerPosition": [
-        -1.944,
-        1.18,
-        3.476
+        -1.606,
+        0.257,
+        -0.787
       ]
     },
     {
       "slot": 14,
-      "object": "school_class_room_14",
+      "object": "chair",
       "detectedClass": "chair",
+      "confidence": 0.77,
       "markerPosition": [
-        -0.447,
-        0.543,
-        -1.685
+        2.898,
+        -0.724,
+        -0.915
       ]
     },
     {
       "slot": 15,
-      "object": "school_class_room_15",
-      "detectedClass": "shelf",
+      "object": "chair",
+      "detectedClass": "chair",
+      "confidence": 0.71,
       "markerPosition": [
-        1.819,
-        2.172,
-        -0.264
-      ]
-    },
-    {
-      "slot": 16,
-      "object": "school_class_room_16",
-      "detectedClass": "cabinet",
-      "markerPosition": [
-        -0.694,
-        1.866,
-        2.447
+        -0.383,
+        0.141,
+        -2.484
       ]
     }
   ]

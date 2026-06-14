@@ -1,126 +1,94 @@
 {
+  "roomId": "front_room_first_pass",
+  "generatedBy": "personal-room-scanner-3d (Azure AI Vision, headless)",
   "ordered": true,
-  "source": "geometry-derived",
-  "room": "front_room_first_pass",
   "hotspots": [
     {
       "slot": 1,
-      "object": "front_room_first_pass_1",
-      "detectedClass": "table",
+      "object": "chair",
+      "detectedClass": "chair",
+      "confidence": 0.8,
       "markerPosition": [
-        0,
-        1.975,
-        0
+        -1.694,
+        0.401,
+        -1.169
       ]
     },
     {
       "slot": 2,
-      "object": "front_room_first_pass_2",
-      "detectedClass": "chair",
+      "object": "sofa",
+      "detectedClass": "sofa",
+      "confidence": 0.79,
       "markerPosition": [
-        1.31,
-        1,
-        0
+        0.302,
+        0.51,
+        0.663
       ]
     },
     {
       "slot": 3,
-      "object": "front_room_first_pass_3",
-      "detectedClass": "shelf",
+      "object": "sofa",
+      "detectedClass": "sofa",
+      "confidence": 0.75,
       "markerPosition": [
-        -0.966,
-        1,
-        1.227
+        -0.384,
+        0.091,
+        1.272
       ]
     },
     {
       "slot": 4,
-      "object": "front_room_first_pass_4",
-      "detectedClass": "cabinet",
+      "object": "window",
+      "detectedClass": "window",
+      "confidence": 0.75,
       "markerPosition": [
-        0.115,
-        1,
-        -1.81
+        -2.301,
+        1.076,
+        -0.514
       ]
     },
     {
       "slot": 5,
-      "object": "front_room_first_pass_5",
-      "detectedClass": "painting",
+      "object": "window",
+      "detectedClass": "window",
+      "confidence": 0.75,
       "markerPosition": [
-        0.797,
-        1,
-        1.442
+        1.274,
+        1.046,
+        -2.758
       ]
     },
     {
       "slot": 6,
-      "object": "front_room_first_pass_6",
-      "detectedClass": "plant",
+      "object": "dining table",
+      "detectedClass": "dining table",
+      "confidence": 0.74,
       "markerPosition": [
-        -1.29,
-        1,
-        -0.316
+        -0.851,
+        0.788,
+        -0.392
       ]
     },
     {
       "slot": 7,
-      "object": "front_room_first_pass_7",
-      "detectedClass": "lamp",
+      "object": "chair",
+      "detectedClass": "chair",
+      "confidence": 0.72,
       "markerPosition": [
-        1.105,
-        1,
-        -0.975
+        -1.006,
+        0.36,
+        -0.14
       ]
     },
     {
       "slot": 8,
-      "object": "front_room_first_pass_8",
-      "detectedClass": "desk",
+      "object": "bookshelf",
+      "detectedClass": "bookshelf",
+      "confidence": 0.72,
       "markerPosition": [
-        -0.34,
-        1,
-        1.755
-      ]
-    },
-    {
-      "slot": 9,
-      "object": "front_room_first_pass_9",
-      "detectedClass": "sofa",
-      "markerPosition": [
-        -0.604,
-        1,
-        -1.612
-      ]
-    },
-    {
-      "slot": 10,
-      "object": "front_room_first_pass_10",
-      "detectedClass": "bench",
-      "markerPosition": [
-        1.23,
-        1,
-        0.623
-      ]
-    },
-    {
-      "slot": 11,
-      "object": "front_room_first_pass_11",
-      "detectedClass": "vase",
-      "markerPosition": [
-        -1.211,
-        1,
-        0.693
-      ]
-    },
-    {
-      "slot": 12,
-      "object": "front_room_first_pass_12",
-      "detectedClass": "stand",
-      "markerPosition": [
-        0.555,
-        1,
-        -1.646
+        -2.297,
+        1.125,
+        -0.59
       ]
     }
   ]

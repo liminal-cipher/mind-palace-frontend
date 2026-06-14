@@ -1,126 +1,116 @@
 {
+  "roomId": "modern_bedroom",
+  "generatedBy": "personal-room-scanner-3d (Azure AI Vision, headless)",
   "ordered": true,
-  "source": "geometry-derived",
-  "room": "modern_bedroom",
   "hotspots": [
     {
       "slot": 1,
-      "object": "modern_bedroom_1",
-      "detectedClass": "table",
+      "object": "window",
+      "detectedClass": "window",
+      "confidence": 0.7,
       "markerPosition": [
-        0,
-        1.538,
-        0
+        -3.516,
+        1.047,
+        -1.537
       ]
     },
     {
       "slot": 2,
-      "object": "modern_bedroom_2",
-      "detectedClass": "chair",
+      "object": "bed",
+      "detectedClass": "bed",
+      "confidence": 0.82,
       "markerPosition": [
-        -2.502,
-        0.401,
-        1.313
+        0.154,
+        0.4,
+        -0.33
       ]
     },
     {
       "slot": 3,
-      "object": "modern_bedroom_3",
-      "detectedClass": "shelf",
+      "object": "dining table",
+      "detectedClass": "dining table",
+      "confidence": 0.78,
       "markerPosition": [
-        1.018,
-        0.3,
-        1.95
+        -1.014,
+        0.458,
+        1.745
       ]
     },
     {
       "slot": 4,
-      "object": "modern_bedroom_4",
-      "detectedClass": "cabinet",
+      "object": "chair",
+      "detectedClass": "chair",
+      "confidence": 0.77,
       "markerPosition": [
-        -2.502,
-        1.749,
-        1.72
+        -2.968,
+        0.308,
+        0.113
       ]
     },
     {
       "slot": 5,
-      "object": "modern_bedroom_5",
-      "detectedClass": "painting",
+      "object": "bed",
+      "detectedClass": "bed",
+      "confidence": 0.74,
       "markerPosition": [
-        1.018,
-        0.3,
-        0.701
+        -1.915,
+        1.039,
+        -2.103
       ]
     },
     {
       "slot": 6,
-      "object": "modern_bedroom_6",
-      "detectedClass": "plant",
+      "object": "chair",
+      "detectedClass": "chair",
+      "confidence": 0.82,
       "markerPosition": [
-        -0.48,
-        1.538,
-        0.359
+        0.001,
+        0.383,
+        2.002
       ]
     },
     {
       "slot": 7,
-      "object": "modern_bedroom_7",
-      "detectedClass": "lamp",
+      "object": "chair",
+      "detectedClass": "chair",
+      "confidence": 0.73,
       "markerPosition": [
-        1.018,
-        0.511,
-        0.966
+        -2.544,
+        0.137,
+        2.476
       ]
     },
     {
       "slot": 8,
-      "object": "modern_bedroom_8",
-      "detectedClass": "desk",
+      "object": "chair",
+      "detectedClass": "chair",
+      "confidence": 0.72,
       "markerPosition": [
-        1.019,
-        0.709,
-        2.165
+        -2.376,
+        0.469,
+        1.109
       ]
     },
     {
       "slot": 9,
-      "object": "modern_bedroom_9",
+      "object": "sofa",
       "detectedClass": "sofa",
+      "confidence": 0.64,
       "markerPosition": [
-        1.934,
-        1,
-        0
+        0.08,
+        0.281,
+        0.413
       ]
     },
     {
       "slot": 10,
-      "object": "modern_bedroom_10",
-      "detectedClass": "bench",
+      "object": "window",
+      "detectedClass": "window",
+      "confidence": 0.54,
       "markerPosition": [
-        -1.426,
-        1,
-        1.003
-      ]
-    },
-    {
-      "slot": 11,
-      "object": "modern_bedroom_11",
-      "detectedClass": "vase",
-      "markerPosition": [
-        0.169,
-        1,
-        -1.479
-      ]
-    },
-    {
-      "slot": 12,
-      "object": "modern_bedroom_12",
-      "detectedClass": "stand",
-      "markerPosition": [
-        1.177,
-        1,
-        1.178
+        1.852,
+        1.259,
+        2.725
       ]
     }
   ]

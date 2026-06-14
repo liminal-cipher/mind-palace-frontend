@@ -1,166 +1,193 @@
 {
+  "roomId": "living_room",
+  "generatedBy": "personal-room-scanner-3d (Azure AI Vision, headless)",
   "ordered": true,
-  "source": "geometry-derived",
-  "room": "living_room",
   "hotspots": [
     {
       "slot": 1,
-      "object": "living_room_1",
-      "detectedClass": "table",
+      "object": "chair",
+      "detectedClass": "chair",
+      "confidence": 0.84,
       "markerPosition": [
-        0,
-        0.3,
-        0
+        1.449,
+        0.531,
+        -0.729
       ]
     },
     {
       "slot": 2,
-      "object": "living_room_2",
-      "detectedClass": "chair",
+      "object": "potted plant",
+      "detectedClass": "potted plant",
+      "confidence": 0.84,
       "markerPosition": [
-        -3.542,
-        2.483,
-        0
+        -3.092,
+        0.71,
+        0.943
       ]
     },
     {
       "slot": 3,
-      "object": "living_room_3",
-      "detectedClass": "shelf",
+      "object": "dining table",
+      "detectedClass": "dining table",
+      "confidence": 0.78,
       "markerPosition": [
-        3.542,
-        2.483,
-        0
+        -1.838,
+        0.483,
+        0.095
       ]
     },
     {
       "slot": 4,
-      "object": "living_room_4",
-      "detectedClass": "cabinet",
+      "object": "sofa",
+      "detectedClass": "sofa",
+      "confidence": 0.69,
       "markerPosition": [
-        2.858,
-        0.3,
-        -1.858
+        -0.882,
+        0.544,
+        -0.419
       ]
     },
     {
       "slot": 5,
-      "object": "living_room_5",
-      "detectedClass": "painting",
+      "object": "potted plant",
+      "detectedClass": "potted plant",
+      "confidence": 0.83,
       "markerPosition": [
-        0,
-        2.483,
-        -1.829
+        -1.07,
+        0.812,
+        1.226
       ]
     },
     {
       "slot": 6,
-      "object": "living_room_6",
-      "detectedClass": "plant",
+      "object": "potted plant",
+      "detectedClass": "potted plant",
+      "confidence": 0.8,
       "markerPosition": [
-        -0.03,
-        2.483,
-        1.575
+        2.659,
+        1.068,
+        1.026
       ]
     },
     {
       "slot": 7,
-      "object": "living_room_7",
-      "detectedClass": "lamp",
+      "object": "dining table",
+      "detectedClass": "dining table",
+      "confidence": 0.76,
       "markerPosition": [
-        -1.823,
-        0.3,
-        1.858
+        0.771,
+        0.616,
+        -0.21
       ]
     },
     {
       "slot": 8,
-      "object": "living_room_8",
-      "detectedClass": "desk",
+      "object": "window",
+      "detectedClass": "window",
+      "confidence": 0.76,
       "markerPosition": [
-        1.813,
-        0.3,
-        1.858
+        -3.402,
+        1.1,
+        -0.65
       ]
     },
     {
       "slot": 9,
-      "object": "living_room_9",
-      "detectedClass": "sofa",
+      "object": "chair",
+      "detectedClass": "chair",
+      "confidence": 0.74,
       "markerPosition": [
-        -1.974,
-        0.3,
-        -1.578
+        -2.865,
+        0.227,
+        0.802
       ]
     },
     {
       "slot": 10,
-      "object": "living_room_10",
-      "detectedClass": "bench",
+      "object": "kite",
+      "detectedClass": "kite",
+      "confidence": 0.66,
       "markerPosition": [
-        -1.33,
-        2.173,
-        -0.153
+        -2.916,
+        1,
+        1.246
       ]
     },
     {
       "slot": 11,
-      "object": "living_room_11",
-      "detectedClass": "vase",
+      "object": "window",
+      "detectedClass": "window",
+      "confidence": 0.79,
       "markerPosition": [
-        -3.513,
-        0.3,
-        -0.154
+        -1.889,
+        0.941,
+        -1.521
       ]
     },
     {
       "slot": 12,
-      "object": "living_room_12",
-      "detectedClass": "stand",
+      "object": "television",
+      "detectedClass": "television",
+      "confidence": 0.76,
       "markerPosition": [
-        0.53,
-        0.3,
-        -1.858
+        -1.989,
+        0.83,
+        -1.991
       ]
     },
     {
       "slot": 13,
-      "object": "living_room_13",
-      "detectedClass": "table",
+      "object": "chair",
+      "detectedClass": "chair",
+      "confidence": 0.67,
       "markerPosition": [
-        1.831,
-        2.483,
-        1.829
+        -1.798,
+        0.419,
+        0.961
       ]
     },
     {
       "slot": 14,
-      "object": "living_room_14",
-      "detectedClass": "chair",
+      "object": "picture frame",
+      "detectedClass": "picture frame",
+      "confidence": 0.62,
       "markerPosition": [
-        2.791,
-        0.628,
-        -0.079
+        3.454,
+        1.423,
+        -0.085
       ]
     },
     {
       "slot": 15,
-      "object": "living_room_15",
-      "detectedClass": "shelf",
+      "object": "window",
+      "detectedClass": "window",
+      "confidence": 0.61,
       "markerPosition": [
-        -1.678,
-        2.483,
-        1.829
+        -3.386,
+        1.088,
+        0.824
       ]
     },
     {
       "slot": 16,
-      "object": "living_room_16",
-      "detectedClass": "cabinet",
+      "object": "vase",
+      "detectedClass": "vase",
+      "confidence": 0.56,
       "markerPosition": [
-        1.74,
-        1.36,
-        -1.759
+        -3.003,
+        0.388,
+        1.114
+      ]
+    },
+    {
+      "slot": 17,
+      "object": "window",
+      "detectedClass": "window",
+      "confidence": 0.53,
+      "markerPosition": [
+        -3.095,
+        0.171,
+        -0.587
       ]
     }
   ]

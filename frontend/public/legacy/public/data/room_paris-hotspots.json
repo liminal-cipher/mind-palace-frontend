@@ -1,166 +1,138 @@
 {
+  "roomId": "room_paris",
+  "generatedBy": "personal-room-scanner-3d (Azure AI Vision, headless)",
   "ordered": true,
-  "source": "geometry-derived",
-  "room": "room_paris",
   "hotspots": [
     {
       "slot": 1,
-      "object": "room_paris_1",
-      "detectedClass": "table",
+      "object": "chair",
+      "detectedClass": "chair",
+      "confidence": 0.84,
       "markerPosition": [
-        2.368,
-        0.3,
-        3.393
+        0.409,
+        1.124,
+        2.571
       ]
     },
     {
       "slot": 2,
-      "object": "room_paris_2",
-      "detectedClass": "chair",
+      "object": "bed",
+      "detectedClass": "bed",
+      "confidence": 0.74,
       "markerPosition": [
-        -1.655,
-        1.334,
-        -3.565
+        0.335,
+        0.976,
+        -1.816
       ]
     },
     {
       "slot": 3,
-      "object": "room_paris_3",
-      "detectedClass": "shelf",
+      "object": "toilet",
+      "detectedClass": "toilet",
+      "confidence": 0.89,
       "markerPosition": [
-        -2.369,
-        0.3,
-        0.905
+        -0.785,
+        1.15,
+        -2.41
       ]
     },
     {
       "slot": 4,
-      "object": "room_paris_4",
-      "detectedClass": "cabinet",
+      "object": "desk",
+      "detectedClass": "desk",
+      "confidence": 0.71,
       "markerPosition": [
-        2.17,
-        0.3,
-        -2.298
+        -0.209,
+        0.632,
+        0.488
       ]
     },
     {
       "slot": 5,
-      "object": "room_paris_5",
-      "detectedClass": "painting",
+      "object": "lamp",
+      "detectedClass": "lamp",
+      "confidence": 0.67,
       "markerPosition": [
-        0,
-        1.716,
-        0.008
+        -1.665,
+        0.121,
+        -0.917
       ]
     },
     {
       "slot": 6,
-      "object": "room_paris_6",
-      "detectedClass": "plant",
+      "object": "dining table",
+      "detectedClass": "dining table",
+      "confidence": 0.71,
       "markerPosition": [
-        2.17,
-        0.3,
-        0.413
+        -1.096,
+        0.784,
+        -2.3
       ]
     },
     {
       "slot": 7,
-      "object": "room_paris_7",
-      "detectedClass": "lamp",
+      "object": "dining table",
+      "detectedClass": "dining table",
+      "confidence": 0.69,
       "markerPosition": [
-        2.378,
-        2.637,
-        2.776
+        -0.414,
+        0.751,
+        -1.019
       ]
     },
     {
       "slot": 8,
-      "object": "room_paris_8",
-      "detectedClass": "desk",
+      "object": "cabinet",
+      "detectedClass": "cabinet",
+      "confidence": 0.62,
       "markerPosition": [
-        -1.656,
-        0.3,
-        3.009
+        -0.745,
+        0.668,
+        -1.947
       ]
     },
     {
       "slot": 9,
-      "object": "room_paris_9",
-      "detectedClass": "sofa",
+      "object": "dining table",
+      "detectedClass": "dining table",
+      "confidence": 0.61,
       "markerPosition": [
-        -0.05,
-        0.3,
-        -2.298
+        -2,
+        0.673,
+        0.086
       ]
     },
     {
       "slot": 10,
-      "object": "room_paris_10",
-      "detectedClass": "bench",
+      "object": "bed",
+      "detectedClass": "bed",
+      "confidence": 0.65,
       "markerPosition": [
-        -2.04,
-        2.08,
-        -0.526
+        -1.494,
+        0.035,
+        -0.851
       ]
     },
     {
       "slot": 11,
-      "object": "room_paris_11",
-      "detectedClass": "vase",
+      "object": "sofa",
+      "detectedClass": "sofa",
+      "confidence": 0.58,
       "markerPosition": [
-        0.771,
-        1.112,
-        2.76
+        -0.194,
+        0.71,
+        -0.633
       ]
     },
     {
       "slot": 12,
-      "object": "room_paris_12",
-      "detectedClass": "stand",
+      "object": "dining table",
+      "detectedClass": "dining table",
+      "confidence": 0.52,
       "markerPosition": [
-        1.054,
-        0.338,
-        -0.943
-      ]
-    },
-    {
-      "slot": 13,
-      "object": "room_paris_13",
-      "detectedClass": "table",
-      "markerPosition": [
-        -0.05,
-        0.3,
-        0.413
-      ]
-    },
-    {
-      "slot": 14,
-      "object": "room_paris_14",
-      "detectedClass": "chair",
-      "markerPosition": [
-        -2.315,
-        0.3,
-        -0.445
-      ]
-    },
-    {
-      "slot": 15,
-      "object": "room_paris_15",
-      "detectedClass": "shelf",
-      "markerPosition": [
-        1.84,
-        0.653,
-        2.081
-      ]
-    },
-    {
-      "slot": 16,
-      "object": "room_paris_16",
-      "detectedClass": "cabinet",
-      "markerPosition": [
-        -1.567,
-        1.164,
-        2.228
+        0.899,
+        0.492,
+        2.473
       ]
     }
   ]

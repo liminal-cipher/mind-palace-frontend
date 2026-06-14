@@ -1,166 +1,160 @@
 {
+  "roomId": "office_room",
+  "generatedBy": "personal-room-scanner-3d (Azure AI Vision, headless)",
   "ordered": true,
-  "source": "geometry-derived",
-  "room": "office_room",
   "hotspots": [
     {
       "slot": 1,
-      "object": "office_room_1",
-      "detectedClass": "table",
+      "object": "dining table",
+      "detectedClass": "dining table",
+      "confidence": 0.85,
       "markerPosition": [
-        -1.095,
-        1.155,
-        2.949
+        -2.168,
+        0.865,
+        -0.116
       ]
     },
     {
       "slot": 2,
-      "object": "office_room_2",
+      "object": "chair",
       "detectedClass": "chair",
+      "confidence": 0.76,
       "markerPosition": [
-        -1.728,
-        0.595,
-        -2.487
-      ]
-    },
-    {
-      "slot": 3,
-      "object": "office_room_3",
-      "detectedClass": "shelf",
-      "markerPosition": [
-        2.825,
-        1.061,
-        -0.138
-      ]
-    },
-    {
-      "slot": 4,
-      "object": "office_room_4",
-      "detectedClass": "cabinet",
-      "markerPosition": [
-        0.02,
-        3.481,
-        -0.398
-      ]
-    },
-    {
-      "slot": 5,
-      "object": "office_room_5",
-      "detectedClass": "painting",
-      "markerPosition": [
-        -3.561,
-        1.761,
-        0.071
-      ]
-    },
-    {
-      "slot": 6,
-      "object": "office_room_6",
-      "detectedClass": "plant",
-      "markerPosition": [
-        1.886,
-        2.799,
-        2.509
-      ]
-    },
-    {
-      "slot": 7,
-      "object": "office_room_7",
-      "detectedClass": "lamp",
-      "markerPosition": [
-        -0.044,
-        0.3,
-        0.084
-      ]
-    },
-    {
-      "slot": 8,
-      "object": "office_room_8",
-      "detectedClass": "desk",
-      "markerPosition": [
-        1.536,
-        0.322,
-        2.216
-      ]
-    },
-    {
-      "slot": 9,
-      "object": "office_room_9",
-      "detectedClass": "sofa",
-      "markerPosition": [
-        -3.434,
-        0.493,
-        2.86
-      ]
-    },
-    {
-      "slot": 10,
-      "object": "office_room_10",
-      "detectedClass": "bench",
-      "markerPosition": [
-        -2.516,
-        0.307,
+        -2.562,
+        0.653,
         -0.698
       ]
     },
     {
-      "slot": 11,
-      "object": "office_room_11",
-      "detectedClass": "vase",
+      "slot": 3,
+      "object": "desk",
+      "detectedClass": "desk",
+      "confidence": 0.79,
       "markerPosition": [
-        0.02,
-        2.796,
-        2.516
+        -1.763,
+        0.708,
+        -0.478
+      ]
+    },
+    {
+      "slot": 4,
+      "object": "carpet",
+      "detectedClass": "carpet",
+      "confidence": 0.69,
+      "markerPosition": [
+        -1.395,
+        0.084,
+        0.353
+      ]
+    },
+    {
+      "slot": 5,
+      "object": "chair",
+      "detectedClass": "chair",
+      "confidence": 0.8,
+      "markerPosition": [
+        -0.218,
+        0.438,
+        2.892
+      ]
+    },
+    {
+      "slot": 6,
+      "object": "dining table",
+      "detectedClass": "dining table",
+      "confidence": 0.72,
+      "markerPosition": [
+        -2.535,
+        1.133,
+        -1.048
+      ]
+    },
+    {
+      "slot": 7,
+      "object": "sink",
+      "detectedClass": "sink",
+      "confidence": 0.69,
+      "markerPosition": [
+        -1.366,
+        0.754,
+        -2.231
+      ]
+    },
+    {
+      "slot": 8,
+      "object": "rug",
+      "detectedClass": "rug",
+      "confidence": 0.69,
+      "markerPosition": [
+        -1.419,
+        0.083,
+        -1.294
+      ]
+    },
+    {
+      "slot": 9,
+      "object": "desk",
+      "detectedClass": "desk",
+      "confidence": 0.65,
+      "markerPosition": [
+        -2.964,
+        0.93,
+        0.354
+      ]
+    },
+    {
+      "slot": 10,
+      "object": "chair",
+      "detectedClass": "chair",
+      "confidence": 0.61,
+      "markerPosition": [
+        -1.654,
+        0.628,
+        -2.454
+      ]
+    },
+    {
+      "slot": 11,
+      "object": "counter",
+      "detectedClass": "counter",
+      "confidence": 0.61,
+      "markerPosition": [
+        -0.702,
+        0.251,
+        1.322
       ]
     },
     {
       "slot": 12,
-      "object": "office_room_12",
-      "detectedClass": "stand",
+      "object": "window",
+      "detectedClass": "window",
+      "confidence": 0.59,
       "markerPosition": [
-        -1.464,
-        3.075,
-        0.446
+        -3.023,
+        1.256,
+        -2.119
       ]
     },
     {
       "slot": 13,
-      "object": "office_room_13",
-      "detectedClass": "table",
+      "object": "computer",
+      "detectedClass": "computer",
+      "confidence": 0.53,
       "markerPosition": [
-        -3.129,
-        0.343,
-        0.947
+        -2.118,
+        0.788,
+        -0.808
       ]
     },
     {
       "slot": 14,
-      "object": "office_room_14",
-      "detectedClass": "chair",
+      "object": "dining table",
+      "detectedClass": "dining table",
+      "confidence": 0.51,
       "markerPosition": [
-        -2.644,
-        1.992,
-        2.835
-      ]
-    },
-    {
-      "slot": 15,
-      "object": "office_room_15",
-      "detectedClass": "shelf",
-      "markerPosition": [
-        0.114,
-        0.96,
-        1.59
-      ]
-    },
-    {
-      "slot": 16,
-      "object": "office_room_16",
-      "detectedClass": "cabinet",
-      "markerPosition": [
-        -3.209,
-        1.319,
-        -1.697
+        -1.771,
+        0.628,
+        -2.524
       ]
     }
   ]
