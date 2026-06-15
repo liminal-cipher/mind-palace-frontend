@@ -16,7 +16,9 @@ from pydantic import BaseModel
 app = FastAPI(title="Mind Palace API", version="0.1.0")
 ROOT_DIR = Path(__file__).resolve().parents[2]
 FRONTEND_DIST = ROOT_DIR / "frontend" / "dist"
-LEGACY_DIR = ROOT_DIR / "frontend" / "public" / "legacy"
+LEGACY_PUBLIC_DIR = ROOT_DIR / "frontend" / "public" / "legacy"
+LEGACY_DIST_DIR = FRONTEND_DIST / "legacy"
+LEGACY_DIR = LEGACY_PUBLIC_DIR if LEGACY_PUBLIC_DIR.exists() else LEGACY_DIST_DIR
 
 app.add_middleware(
     CORSMiddleware,
