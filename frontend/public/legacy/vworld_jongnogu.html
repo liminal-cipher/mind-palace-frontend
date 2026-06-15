@@ -1782,7 +1782,8 @@
       const mkRoom = (glb, hot) => `memory-walk.html?glb=${ROOM_BLOB}${glb}&hotspots=public/data/${hot}`;
       const LANDMARK_ROOMS = {
         0: mkRoom("living_room.glb", "living_room-hotspots.json"),                  // 1 경복궁
-        1: mkRoom("dining_kitchen_baked.glb", "dining-hotspots.json"),              // 2 광화문
+        // 2 광화문 → 로컬 다이닝(어제 작업한 검증된 방). 나머지는 blob 사용.
+        1: "memory-walk.html?glb=public/assets/rooms/dining_kitchen_baked.glb&hotspots=public/data/dining-hotspots.json",
         2: mkRoom("loft.glb", "loft-hotspots.json"),                                // 3 청계광장
         3: mkRoom("room_paris.glb", "room_paris-hotspots.json"),                    // 4 덕수궁
         4: mkRoom("office_room.glb", "office_room-hotspots.json"),                  // 5 숭례문
@@ -1792,6 +1793,11 @@
         8: mkRoom("neusa_frois.glb", "neusa_frois-hotspots.json"),                  // 9 종묘
         9: mkRoom("front_room_first_pass.glb", "front_room_first_pass-hotspots.json"), // 10 흥인지문
       };
+      // 각 방이 자기 랜드마크 정체성(좌상단 아이콘·현판·전용 학습 콘텐츠)을 갖도록 &lm= 테마 자동 부착.
+      const LM_ID = { "경복궁":"gyeongbokgung","광화문":"gwanghwamun","청계광장":"cheonggye","덕수궁":"deoksugung",
+        "숭례문":"sungnyemun","보신각":"bosingak","남산서울타워":"namsan","창덕궁":"changdeokgung","종묘":"jongmyo","흥인지문":"heunginjimun" };
+      const roomFor = (i, name) => { const u = LANDMARK_ROOMS[i]; if (!u) return null;
+        return u.includes("lm=") ? u : u + (u.includes("?") ? "&" : "?") + "lm=" + (LM_ID[name] || ""); };
 
       // ── 대시보드/네비게이션용 10개 정거장(마커와 동일) ──
       const STOPS = LANDMARKS.map((m, i) => {
@@ -1808,7 +1814,7 @@
             heading: o.heading != null ? o.heading : 0,
             pitch: o.pitch != null ? o.pitch : -35,
           },
-          page: LANDMARK_ROOMS[i] || null, // 2·3번만 방 연결
+          page: roomFor(i, m.name), // 방 있는 곳만 입장(나머지는 null) + &lm 테마 부착
         };
       });
 
@@ -1870,7 +1876,7 @@
               scaleByDistance: new engine.NearFarScalar(300, 1.1, 9000, 0.5),
             },
           });
-          if (LANDMARK_ROOMS[i]) entityRoom.set(ent, LANDMARK_ROOMS[i]);
+          { const r = roomFor(i, m.name); if (r) entityRoom.set(ent, r); }   // &lm 테마 포함 링크로 입장
         });
 
         // 2·3번 핀을 클릭하면 연결된 방(memory-walk)으로 입장.
