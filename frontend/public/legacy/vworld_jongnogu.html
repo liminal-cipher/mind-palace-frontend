@@ -1791,7 +1791,8 @@
         6: mkRoom("ps1_phasmophobia.glb", "ps1_phasmophobia-hotspots.json"),        // 7 남산서울타워
         7: mkRoom("modern_bedroom.glb", "modern_bedroom-hotspots.json"),            // 8 창덕궁
         8: mkRoom("neusa_frois.glb", "neusa_frois-hotspots.json"),                  // 9 종묘
-        9: mkRoom("front_room_first_pass.glb", "front_room_first_pass-hotspots.json"), // 10 흥인지문
+        // 10 흥인지문 → hintze_hall(로컬, Draco 압축). front_room_first_pass에서 교체.
+        9: "memory-walk.html?glb=public/assets/rooms/hintze_hall.glb&hotspots=public/data/hintze_hall-hotspots.json",
       };
       // 각 방이 자기 랜드마크 정체성(좌상단 아이콘·현판·전용 학습 콘텐츠)을 갖도록 &lm= 테마 자동 부착.
       const LM_ID = { "경복궁":"gyeongbokgung","광화문":"gwanghwamun","청계광장":"cheonggye","덕수궁":"deoksugung",
