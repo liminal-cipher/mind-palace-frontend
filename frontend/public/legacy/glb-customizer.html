@@ -260,10 +260,11 @@
     DESIGNS.forEach(d => {
       const card = document.createElement("div");
       card.className = "gcard" + (cur===d.id ? " sel":"");
+      const hasThumb = !!(d.thumb && d.thumb.length);
       card.innerHTML =
         `<div class="ph"><span class="pick">선택됨</span>`+
-        `<img src="${esc(d.thumb)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">`+
-        `<span class="emoji" style="display:none">${esc(d.emoji)}</span></div>`+
+        (hasThumb ? `<img src="${esc(d.thumb)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">` : "")+
+        `<span class="emoji" style="display:${hasThumb?'none':'block'}">${esc(d.emoji)}</span></div>`+
         `<div class="cap"><div class="l">${esc(d.label)}</div><div class="s">${esc(d.style)} · ${esc(d.blurb)}</div></div>`;
       card.onclick = () => pickDesign(d);
       el.appendChild(card);

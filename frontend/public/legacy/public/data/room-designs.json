@@ -19,7 +19,7 @@
       "thumb": "public/assets/thumbs/office.jpeg", "blurb": "책상·수납·기기가 정돈된 사무 공간" },
     { "id": "classroom", "label": "학교 교실", "style": "교육", "emoji": "🏫",
       "glb": "BLOB:school_class_room.glb", "hotspots": "public/data/school_class_room-hotspots.json",
-      "thumb": "public/assets/thumbs/classroom.jpeg", "blurb": "칠판·교탁·책상이 줄지은 교실" },
+      "thumb": "", "blurb": "칠판·교탁·책상이 줄지은 교실" },
     { "id": "retro",     "label": "레트로 하우스", "style": "빈티지", "emoji": "📺",
       "glb": "BLOB:ps1_phasmophobia.glb", "hotspots": "public/data/ps1_phasmophobia-hotspots.json",
       "thumb": "public/assets/thumbs/retro.jpeg", "blurb": "오래된 가구가 가득한 복고풍 집" },
@@ -31,6 +31,6 @@
       "thumb": "public/assets/thumbs/lounge.jpeg", "blurb": "여러 가구가 배치된 넓은 라운지" },
     { "id": "hall",      "label": "박물관 대형 홀", "style": "전시", "emoji": "🏛",
       "glb": "public/assets/rooms/hintze_hall.glb", "hotspots": "public/data/hintze_hall-hotspots.json",
-      "thumb": "public/assets/thumbs/hall.jpeg", "blurb": "층고 높은 전시 홀 — 큰 스케일의 기억 공간" }
+      "thumb": "", "blurb": "층고 높은 전시 홀 — 큰 스케일의 기억 공간" }
   ]
 }
