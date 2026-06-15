@@ -55,6 +55,12 @@
   .pill{align-self:flex-start; padding:3px 9px; border-radius:999px; font-size:10.5px; font-weight:800;
     border:1px solid var(--line); color:var(--muted);}
   .box.ready .pill{color:var(--accent2); border-color:rgba(143,201,181,.4);}
+  .dashlinks{display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin:-12px 0 30px;}
+  .dashlinks .dl{display:inline-flex; align-items:center; gap:7px; padding:10px 16px; border:1px solid var(--line);
+    border-radius:999px; background:var(--panel); backdrop-filter:blur(12px); color:var(--text);
+    text-decoration:none; font-size:13px; font-weight:800; transition:transform .14s, border-color .14s, background .14s;}
+  .dashlinks .dl:hover{transform:translateY(-2px); border-color:rgba(169,216,200,.5); background:rgba(169,216,200,.14);}
+  .dashlinks .dl .di{font-size:15px;}
   .foot{margin-top:26px; color:var(--muted); font-size:12px; text-align:center;}
   .empty{color:var(--muted); text-align:center; padding:40px 0; display:none;}
 </style>
@@ -73,6 +79,11 @@
         <input id="q" type="search" placeholder="도시 이름으로 검색 (예: 부산, 전주, 제주)" autocomplete="off" />
       </label>
       <div class="stat"><b id="readyCount">0</b>개 도시 이용 가능 · 총 <span id="totalCount">0</span>개 준비 중</div>
+    </div>
+
+    <div class="dashlinks">
+      <a class="dl" href="room-shopping.html"><span class="di">🛍</span> 학습 내용으로 방 추천받기</a>
+      <a class="dl" href="glb-customizer.html"><span class="di">🧩</span> 방 GLB 커스터마이즈</a>
     </div>
 
     <div id="regions"></div>

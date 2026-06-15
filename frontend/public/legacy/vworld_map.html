@@ -837,6 +837,23 @@
     <div class="focus-mask"></div>
     <div id="mapLoader" aria-hidden="true"></div>
 
+    <!-- 대시보드 바로가기(3D 지도에서 언제든 이동) — 작은 아이콘 도크 -->
+    <style>
+      .dash-dock{position:absolute; top:14px; right:14px; z-index:6; display:flex; gap:8px;}
+      .dash-dock a{display:inline-flex; align-items:center; gap:6px; padding:8px 11px;
+        border:1px solid var(--line, rgba(220,230,222,.14)); border-radius:10px; text-decoration:none;
+        color:var(--ink,#f4f1ea); font-size:12.5px; font-weight:700;
+        background:var(--panel, rgba(16,20,18,.72)); backdrop-filter:blur(10px);
+        box-shadow:0 8px 22px rgba(0,0,0,.32); transition:transform .14s, border-color .14s, background .14s;}
+      .dash-dock a:hover{transform:translateY(-2px); border-color:rgba(169,216,200,.5); background:rgba(169,216,200,.16);}
+      .dash-dock a .di{font-size:14px;}
+      @media(max-width:980px){ .dash-dock a span.tx{display:none;} .dash-dock a{padding:9px;} }
+    </style>
+    <nav class="dash-dock" aria-label="대시보드 바로가기">
+      <a href="room-shopping.html" title="학습 내용에 어울리는 방 고르기"><span class="di">🛍</span><span class="tx">방 디자인</span></a>
+      <a href="glb-customizer.html" title="방 GLB 모델 커스터마이즈"><span class="di">🧩</span><span class="tx">GLB 커스텀</span></a>
+    </nav>
+
     <main class="palace-shell" aria-label="광화문 VWorld 기억궁전">
       <section class="route-rail" aria-label="기억궁전 외관 루트">
         <div class="route-head">
