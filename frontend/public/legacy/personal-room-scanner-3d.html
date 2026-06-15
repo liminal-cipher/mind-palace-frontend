@@ -1019,6 +1019,7 @@
           summary:h.summary, memoryCue:h.cue
         }))
       };
+      window.__exportPayload = payload;   // 자동화/디버그: 다운로드 없이도 결과를 읽을 수 있게 노출
       const a = document.createElement("a");
       a.href = URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)], {type:"application/json"}));
       a.download = "my-room-3d-hotspots.json"; a.click();
