@@ -223,6 +223,7 @@
     pendingSrc = url;
     $("mv").style.display="none"; $("sk").style.display="none";
     $("loadover").classList.remove("hide");
+    $("loadBtn").style.display="";
     $("loadName").textContent = url.split("/").pop().slice(0,46);
     $("loadProg").textContent = "대용량 모델은 클릭할 때만 받습니다(로딩 절약).";
     $("viewtools").style.display="none";
@@ -232,9 +233,9 @@
     if (!pendingSrc) return;
     const mv = $("mv");
     $("sk").style.display="none"; mv.style.display="block";
+    $("loadBtn").style.display="none";
     $("loadProg").textContent = "불러오는 중… 0%";
     mv.src = pendingSrc; previewGlb = pendingSrc;
-    setView("out");
   }
   function showModel(url){           // 직접 URL/파일 → 즉시 로드
     pendingSrc = url; previewGlb = url;
@@ -291,7 +292,12 @@
   $("btnOut").onclick = () => setView("out");
   $("mv").addEventListener("progress", e => {
     const p = Math.round((e.detail.totalProgress||0)*100);
-    $("loadProg").textContent = p<100 ? `불러오는 중… ${p}%` : "완료 — 드래그로 둘러보기 · '내부 진입'으로 방 안쪽 보기";
+    if (p < 100) $("loadProg").textContent = `불러오는 중… ${p}%`;
+  });
+  $("mv").addEventListener("load", () => {     // 모델 디코드 완료 → 오버레이 제거 + 뷰 도구 노출
+    $("loadover").classList.add("hide");
+    $("viewtools").style.display="flex";
+    setView("out");
   });
   $("assignBtn").onclick = () => {
     if (!sel) { msg("왼쪽에서 랜드마크를 먼저 선택하세요."); return; }
