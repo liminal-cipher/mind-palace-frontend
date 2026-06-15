@@ -154,8 +154,11 @@
       const ctr = CENTERS[c.slug];
       if (!ctr) return;
       const m = L.marker([ctr.lat, ctr.lon], { icon: pinIcon(!!c.ready), title: c.name, riseOnHover:true });
+      const studioHref = `glb-customizer.html?city=${encodeURIComponent(c.slug)}`;
       const body = c.ready
-        ? `<b>${esc(c.name)}</b><br><span style="color:var(--muted)">${esc(c.region)}</span><br><a href="${cityHref(c.slug)}">기억궁전 입장 →</a>`
+        ? `<b>${esc(c.name)}</b><br><span style="color:var(--muted)">${esc(c.region)}</span><br>`
+          + `<a href="${studioHref}">🛍 방 디자인 고르기 →</a><br>`
+          + `<a href="${cityHref(c.slug)}" style="color:var(--muted)">🗺 3D 지도 바로가기 →</a>`
         : `<b>${esc(c.name)}</b><br><span style="color:var(--muted)">${esc(c.region)} · 준비 중</span>`;
       m.bindPopup(body);
       if (c.ready) m.on("click", () => { /* 팝업 후 바로 입장은 팝업 링크로 */ });
