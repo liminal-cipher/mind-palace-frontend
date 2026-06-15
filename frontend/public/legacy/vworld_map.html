@@ -1884,22 +1884,22 @@
         // 빨간 번호 핀 아이콘 생성(원형 머리 + 아래 꼭지 + 흰 숫자) — 사진 모양.
         const makeNumberPin = (num) => {
           const S = 3; // 슈퍼샘플 배율 → 고해상도 텍스처로 선명하게(작게 줄여 표시)
-          const W = 56 * S, H = 74 * S, cx = 28 * S, cyc = 27 * S, rad = 23 * S;
+          const W = 42 * S, H = 56 * S, cx = 21 * S, cyc = 20 * S, rad = 17 * S;
           const cv = document.createElement("canvas");
           cv.width = W; cv.height = H;
           const g = cv.getContext("2d");
           g.beginPath();                       // 아래 꼬리(삼각형)
           g.moveTo(cx, H - 1);
-          g.lineTo(cx - 13 * S, cyc + 13 * S);
-          g.lineTo(cx + 13 * S, cyc + 13 * S);
+          g.lineTo(cx - 10 * S, cyc + 10 * S);
+          g.lineTo(cx + 10 * S, cyc + 10 * S);
           g.closePath();
           g.fillStyle = "#e23b3b"; g.fill();
           g.beginPath();                       // 머리(원)
           g.arc(cx, cyc, rad, 0, Math.PI * 2);
           g.fillStyle = "#e23b3b"; g.fill();
-          g.lineWidth = 3 * S; g.strokeStyle = "#ffffff"; g.stroke();
+          g.lineWidth = 2.4 * S; g.strokeStyle = "#ffffff"; g.stroke();
           g.fillStyle = "#ffffff";             // 흰 숫자
-          g.font = `bold ${30 * S}px 'Malgun Gothic', Arial`;
+          g.font = `bold ${22 * S}px 'Malgun Gothic', Arial`;
           g.textAlign = "center"; g.textBaseline = "middle";
           g.fillText(String(num), cx, cyc + 1 * S);
           return cv;
@@ -1914,26 +1914,26 @@
             billboard: {
               image: makeNumberPin(i + 1),
               verticalOrigin: engine.VerticalOrigin.BOTTOM, // 핀 꼭지가 위치에 닿게
-              scale: 0.7,
+              scale: 0.5,
               heightReference: engine.HeightReference.RELATIVE_TO_GROUND,
               disableDepthTestDistance: Number.POSITIVE_INFINITY, // 항상 보이게
-              scaleByDistance: new engine.NearFarScalar(300, 0.85, 9000, 0.32),
+              scaleByDistance: new engine.NearFarScalar(300, 0.6, 9000, 0.2),
             },
             label: {
               text: m.name, // 이름(번호는 핀 안에)
-              font: "bold 13px 'Malgun Gothic', sans-serif",
+              font: "bold 11px 'Malgun Gothic', sans-serif",
               fillColor: engine.Color.fromCssColorString("#f6f2e8"),
               outlineColor: engine.Color.fromCssColorString("#0c0e0d"),
               outlineWidth: 3,
               style: engine.LabelStyle.FILL_AND_OUTLINE,
               verticalOrigin: engine.VerticalOrigin.TOP, // 핀 아래에 이름표
-              pixelOffset: new engine.Cartesian2(0, 4),
+              pixelOffset: new engine.Cartesian2(0, 3),
               showBackground: true,
               backgroundColor: engine.Color.fromCssColorString("rgba(7,10,11,0.78)"),
-              backgroundPadding: new engine.Cartesian2(8, 5),
+              backgroundPadding: new engine.Cartesian2(6, 4),
               heightReference: engine.HeightReference.RELATIVE_TO_GROUND,
               disableDepthTestDistance: Number.POSITIVE_INFINITY,
-              scaleByDistance: new engine.NearFarScalar(300, 1.1, 9000, 0.5),
+              scaleByDistance: new engine.NearFarScalar(300, 0.9, 9000, 0.38),
             },
           });
           { const r = roomFor(i, m.name); if (r) entityRoom.set(ent, r); }   // &lm 테마 포함 링크로 입장
