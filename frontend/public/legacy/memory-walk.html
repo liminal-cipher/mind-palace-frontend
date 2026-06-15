@@ -614,16 +614,15 @@
         arr.forEach(f => { const base = `${f.depth<=dMed?"앞":"뒤"} ${f.lat<lMed?"왼쪽":"오른쪽"} ${furnKO(c)}`;
           seen[base] = (seen[base]||0)+1; f.a.disp = seen[base]>1 ? `${base}${seen[base]}` : base; });
       }
-      // ④ 순서: 깊이 밴드 + 지그재그, 정면 고정물은 첫 밴드로
-      const ds = picked.map(f=>f.depth), dlo = Math.min(...ds), dhi = Math.max(...ds);
-      const N = Math.min(4, Math.max(2, Math.round(picked.length/4)));
-      picked.forEach(f => { f._fix = FIXTURE_RE.test(clsOf(f)) ? 1 : 0;
-        f._band = Math.min(N-1, Math.floor(((f.depth-dlo)/((dhi-dlo)||1))*N));
-        if (f._fix && f.depth <= dlo + (dhi-dlo)*0.5) f._band = 0; });   // 앞쪽 고정물 끌어올림
-      picked.sort((x,y) => {
-        if (x._band !== y._band) return x._band - y._band;              // 가까운 밴드 먼저
-        if (x._fix !== y._fix) return y._fix - x._fix;                  // 같은 밴드 내 고정물 먼저
-        return (x.lat - y.lat) * (x._band % 2 === 0 ? 1 : -1);          // 짝수 밴드 좌→우, 홀수 우→좌(지그재그)
+      // ④ 순서: 부채꼴(fan) 시야 스윕 — 시점에서 좌→우로 "각도" 순서.
+      //    카메라가 머리를 돌리듯 한 방향으로 부드럽게 팬(왔다갔다 지그재그 없음).
+      //    같은 각도대(거의 같은 방향)는 가까운 것 → 먼 것 순(그 방향으로 걸어 들어가듯).
+      //    → 모서리 끝 항목은 스윕의 양 끝에서 순서대로 밟힌다.
+      picked.forEach(f => { f._ang = Math.atan2(f.lat, Math.max(f.depth, 0.05)); });
+      const SECTOR = 0.20;   // ~11°: 이 안쪽이면 같은 방향으로 보고 가까운 것 우선
+      picked.sort((x, y) => {
+        if (Math.abs(x._ang - y._ang) > SECTOR) return x._ang - y._ang; // 좌→우 각도 순
+        return x.depth - y.depth;                                       // 같은 방향이면 가까운 것 먼저
       });
       return picked.map(f=>f.a);
     }
