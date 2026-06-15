@@ -611,8 +611,8 @@
         // 커버리지 전용: Azure 콜은 비용이므로, 방을 빠짐없이 보는 데 필요한 만큼만 촬영하고
         // 같은 사물을 반복 촬영하지 않는다. 위치는 각 사물의 "베스트샷"에서 GLB 레이캐스트로
         // 1샷에 구한다(우리는 3D 형상을 이미 가졌으므로 사진 재구성용 다중촬영이 불필요).
-        const MAX_SHOTS = USE_AZURE ? 16 : 30;
-        const PASS1_MAX = Math.max(4, Math.ceil(MAX_SHOTS * 0.6));   // 1차(커버리지)에 예산 60%, 나머지는 2차(조준)
+        let MAX_SHOTS = USE_AZURE ? 16 : 30;                        // 셀 수에 따라 아래에서 방 크기 비례로 재설정
+        let PASS1_MAX = Math.max(4, Math.ceil(MAX_SHOTS * 0.6));    // 1차(커버리지)에 예산 60%, 나머지는 2차(조준)
         let used = 0;
         const candidates = [];
 
@@ -640,21 +640,33 @@
         //   (상세: docs/SCAN_GEOMETRY_BASIS.md)
         const aimFloor = (px, pz, a, R) => new THREE.Vector3(px + Math.sin(a)*R, floorY + 0.25, pz - Math.cos(a)*R);
         const DIRS = [0, Math.PI/2, Math.PI, -Math.PI/2];
-        const shots = [];
-        for (let x = min.x + 0.9; x <= max.x - 0.9 + 1e-6; x += 1.8)   // 1.8m 격자(위 근거)
+        // 1) 유효 시점(열린 공간) 셀 수집 — 1.8m 눈높이 격자(위 근거)
+        const cells = [];
+        for (let x = min.x + 0.9; x <= max.x - 0.9 + 1e-6; x += 1.8)
           for (let z = min.z + 0.9; z <= max.z - 0.9 + 1e-6; z += 1.8) {
             const v = new THREE.Vector3(x, eyeY, z);
-            if (!isVantageValid(v)) continue;
-            for (const a of DIRS) shots.push({ pos: v, target: aimFloor(x, z, a, 2.5) });
+            if (isVantageValid(v)) cells.push(v);
           }
-        // 단일 방(격자가 거의 안 잡힘)이면 중앙 오비트 링 8방향으로 보강.
-        if (shots.length < 4) {
-          for (let i = 0; i < 8; i++) {
-            const a = i/8 * Math.PI * 2;
-            shots.push({ pos: new THREE.Vector3(center.x + Math.cos(a)*ringR, eyeY, center.z + Math.sin(a)*ringR),
-                         target: new THREE.Vector3(center.x, floorY + 0.5, center.z) });
-          }
+        // 단일 방(격자가 거의 안 잡힘)이면 중앙 오비트 링으로 셀 보강.
+        if (cells.length < 2)
+          for (let i = 0; i < 6; i++) { const a = i/6 * Math.PI * 2;
+            cells.push(new THREE.Vector3(center.x + Math.cos(a)*ringR, eyeY, center.z + Math.sin(a)*ringR)); }
+        // 2) ★ 최원점 샘플링(farthest-point): 중앙에서 시작해 "가장 먼 셀"을 차례로 → 예산이 적어도
+        //    한쪽(왼쪽)에 쏠리지 않고 방 전체를 고루 커버. (기존 x순차 → 왼쪽 열만 찍히던 버그 수정)
+        const ordered = [], rem = cells.slice();
+        if (rem.length) {
+          let cur = rem.reduce((b, p) => p.distanceTo(center) < b.distanceTo(center) ? p : b, rem[0]);
+          ordered.push(cur); rem.splice(rem.indexOf(cur), 1);
+          while (rem.length) { let bi = 0, bd = -1;
+            rem.forEach((p, i) => { let m = Infinity; ordered.forEach(o => { const d = o.distanceTo(p); if (d < m) m = d; }); if (m > bd) { bd = m; bi = i; } });
+            ordered.push(rem.splice(bi, 1)[0]); }
         }
+        // 3) ★ 예산을 방 크기(유효 셀 수)에 비례해 확장 → 큰 방(교실)도 오른쪽 끝까지 촬영.
+        MAX_SHOTS = USE_AZURE ? Math.min(40, Math.max(16, cells.length * 3)) : Math.min(64, Math.max(30, cells.length * 4));
+        PASS1_MAX = Math.max(4, Math.ceil(MAX_SHOTS * 0.6));
+        // 4) 촬영 목록: 퍼진 셀 순서대로, 각 셀 4방향.
+        const shots = [];
+        ordered.forEach(v => DIRS.forEach(a => shots.push({ pos: v, target: aimFloor(v.x, v.z, a, 2.5) })));
         // ===== 1차: 커버리지 촬영 (대략 위치 파악) — 예산 60%(PASS1_MAX)까지만 =====
         for (const sh of shots) {
           if (used >= PASS1_MAX) break;
