@@ -33,6 +33,18 @@ jobs:
           cp -r frontend/dist package/frontend/dist
           cp -r frontend/public package/frontend/public
           cp requirements.txt startup.sh package/
+          test -f package/frontend/public/legacy/data/cities.json
+          test -d package/frontend/public/legacy/data/cities
+          echo "Packaged city files: $(find package/frontend/public/legacy/data/cities -name '*.json' | wc -l)"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Python dependencies into package
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --target package/.python_packages/lib/site-packages -r requirements.txt
 
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
