@@ -84,10 +84,36 @@
   .learn .chline{font-size:12px; color:var(--muted); margin-bottom:9px;}
   .learn .chline b{color:var(--text);}
   .learn .items{display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:8px;}
-  .learn .it{border:1px solid var(--line); border-radius:9px; padding:8px 10px; background:rgba(51,46,40,.05);}
+  .learn .it{position:relative; border:1px solid var(--line); border-radius:9px; padding:8px 10px 8px 28px; background:rgba(51,46,40,.05); cursor:pointer; transition:border-color .15s, box-shadow .15s, opacity .12s;}
+  .learn .it:hover{border-color:color-mix(in srgb,var(--accent) 45%,var(--line)); box-shadow:0 4px 14px rgba(40,34,26,.10);}
   .learn .it .t{font-size:12px; font-weight:700;}
   .learn .it .ty{font-size:10.5px; color:var(--gold); margin-top:2px;}
+  .learn .it .seq{position:absolute; left:7px; top:50%; transform:translateY(-50%); width:16px; height:16px; border-radius:50%; background:var(--accent); color:#fff; font-size:9px; font-weight:700; display:flex; align-items:center; justify-content:center; cursor:grab;}
+  .learn .it .imk{position:absolute; right:8px; top:7px; font-size:11px; opacity:.55;}
+  .learn .it.drag{opacity:.4;}
+  .learn .it.over{border-color:var(--accent); box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 40%,transparent);}
   .learn .none{font-size:12px; color:var(--muted);}
+  .learn .rhint{color:var(--muted); font-weight:400; font-size:11px;}
+  /* 학습 항목 미리보기 모달 */
+  .itmodal{position:fixed; inset:0; background:rgba(20,16,12,.46); display:none; align-items:center; justify-content:center; z-index:60; padding:18px;}
+  .itmodal.show{display:flex;}
+  .itmodal .box{position:relative; background:var(--panel); border:1px solid var(--line); border-radius:16px; max-width:440px; width:100%; box-shadow:var(--shadow); overflow:hidden;}
+  .itmodal .ph{width:100%; aspect-ratio:16/9; object-fit:cover; display:block; background:rgba(51,46,40,.06);}
+  .itmodal .bd{padding:15px 17px 17px;}
+  .itmodal .bd .ty{display:inline-block; font-size:10.5px; color:var(--gold); border:1px solid var(--line); border-radius:999px; padding:1px 9px; margin-bottom:7px;}
+  .itmodal .bd h4{margin:0 0 7px; font-size:17px; color:var(--text);}
+  .itmodal .bd p{margin:0 0 11px; font-size:13px; line-height:1.62; color:var(--muted);}
+  .itmodal .rk{font-size:11px; color:var(--muted); margin-bottom:5px;}
+  .itmodal .rel{display:flex; flex-wrap:wrap; gap:5px;}
+  .itmodal .rel span{font-size:10.5px; color:var(--accent); background:color-mix(in srgb,var(--accent) 12%,transparent); border-radius:999px; padding:2px 9px;}
+  .itmodal .x{position:absolute; top:12px; right:13px; border:none; background:rgba(0,0,0,.4); color:#fff; width:28px; height:28px; border-radius:50%; cursor:pointer; font-size:13px; line-height:1;}
+  /* 방 2D 대시보드 임베드 */
+  .dashbox{border:1px solid var(--line); border-radius:12px; padding:13px 15px; background:var(--panel); margin-top:12px;}
+  .dashbar{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+  .dashbar .dh{font-size:13px; color:var(--accent); font-weight:700; flex:1; min-width:220px;}
+  .dashframe{margin-top:11px; border:1px solid var(--line); border-radius:10px; overflow:hidden;}
+  .dashframe iframe{width:100%; height:560px; border:0; display:block; background:var(--bg);}
+  .dashnote{font-size:11.5px; color:var(--muted); margin:8px 0 0;}
   /* 고급(접이) */
   details.adv{border:1px solid var(--line); border-radius:12px; background:var(--panel); padding:6px 14px;}
   details.adv summary{cursor:pointer; font-size:12.5px; color:var(--muted); padding:6px 0;}
@@ -104,7 +130,7 @@
   <div class="top">
     <a class="home" href="region-select.html">← 지역</a>
     <a class="home" id="mapLink" href="vworld_map.html">🗺 3D 지도</a>
-    <a class="home" id="shopLink" href="room-shopping.html">🛍 추천</a>
+    <a class="home" id="shopLink" href="compose.html">🛍 구성</a>
     <div><div class="kicker">Memory Palace · 방 디자인 스튜디오</div><h1 id="title">방 디자인 스튜디오</h1></div>
     <label class="palacebtn">📂 학습 JSON 바꾸기<input id="palaceFile" type="file" accept=".json,application/json" hidden /></label>
   </div>
@@ -144,10 +170,35 @@
         <span class="msg" id="msg"></span>
       </div>
 
+      <div class="dashbox" id="dashBox">
+        <div class="dashbar">
+          <span class="dh">🗺 방 2D 대시보드 — 마커·순서·캡션 편집 (방과 실시간 공유)</span>
+          <button class="btn" id="dashToggle">대시보드 열기</button>
+          <button class="btn" id="dashReload" style="display:none">↻ 새로고침</button>
+        </div>
+        <div class="dashframe" id="dashFrame" style="display:none">
+          <iframe id="dashIframe" title="방 2D 평면도·마커 대시보드" loading="lazy" referrerpolicy="no-referrer"></iframe>
+        </div>
+        <p class="dashnote" id="dashNote" style="display:none">여기서 바꾼 마커 위치·순서·캡션은 같은 브라우저로 이 방에 입장할 때 그대로 반영됩니다.</p>
+      </div>
+
       <div class="learn" id="learn">
         <h3>📖 이 방에 배정된 학습 내용 (자동 매칭)</h3>
         <div class="chline" id="learnChap">학습 콘텐츠를 불러오면 각 방에 어울리는 챕터가 자동 배정됩니다.</div>
         <div class="items" id="learnItems"></div>
+      </div>
+
+      <div class="itmodal" id="itModal" aria-hidden="true">
+        <div class="box">
+          <img class="ph" id="itmImg" alt="" referrerpolicy="no-referrer" />
+          <div class="bd">
+            <span class="ty" id="itmTy"></span>
+            <h4 id="itmTitle"></h4>
+            <p id="itmDesc"></p>
+            <div id="itmRelWrap"><div class="rk">관련 개념</div><div class="rel" id="itmRel"></div></div>
+          </div>
+          <button class="x" id="itmClose" aria-label="닫기">✕</button>
+        </div>
       </div>
 
       <details class="adv">
@@ -307,23 +358,110 @@
   }
   function updateLinks(){
     $("mapLink").href = `vworld_map.html?city=${encodeURIComponent(CITY)}`;
-    $("shopLink").href = `room-shopping.html?city=${encodeURIComponent(CITY)}`;
+    $("shopLink").href = `compose.html?city=${encodeURIComponent(CITY)}`;
     const url = sel ? entryUrl(sel) : null;
     $("enterBtn").href = url || "#";
     $("markerEditBtn").href = url ? (url + "&edit=1") : "#";
+    updateDash();
   }
 
+  // 방 2D 대시보드 임베드 — 같은 origin이라 편집(localStorage)이 방 입장에 그대로 반영
+  let dashOpen = false, dashCurSrc = "";
+  function dashSrc(){ const u = sel ? entryUrl(sel) : null; return u ? (u + "&dash=1&lite=1") : ""; }
+  function openDash(){
+    const src = dashSrc(); if (!src){ msg("먼저 랜드마크와 방 디자인을 고르세요."); return; }
+    $("dashIframe").src = src; dashCurSrc = src;
+    $("dashFrame").style.display = "block"; $("dashNote").style.display = "block";
+    $("dashReload").style.display = ""; $("dashToggle").textContent = "대시보드 닫기"; dashOpen = true;
+  }
+  function closeDash(){
+    $("dashFrame").style.display = "none"; $("dashNote").style.display = "none";
+    $("dashReload").style.display = "none"; $("dashToggle").textContent = "대시보드 열기"; dashOpen = false;
+  }
+  function updateDash(){ if (dashOpen){ const src = dashSrc(); if (src && src !== dashCurSrc){ $("dashIframe").src = src; dashCurSrc = src; } } }
+  $("dashToggle").onclick = () => dashOpen ? closeDash() : openDash();
+  $("dashReload").onclick = () => { if (dashOpen){ const f = $("dashIframe"), s = f.src; f.src = "about:blank"; setTimeout(() => { f.src = s; }, 60); } };
+
+  let CURKEPT = [], CUR_CH = null;
+  const imgUrl = v => !v ? "" : (typeof v === "string" ? v : (v.url||v.src||v.image||v.thumb||""));
+  function fromImages(coll, k){
+    if (!coll) return "";
+    if (Array.isArray(coll)){ const f = coll.find(x => x && (x.id===k.id || x.id===k.title || x.title===k.title)); return f ? imgUrl(f) : ""; }
+    return imgUrl(coll[k.id] || coll[k.title]);
+  }
+  // 학습 항목 이미지 해석 — 항목 자체/팔레스 이미지맵(맵·배열 모두 대응)
+  function itemImage(k){
+    return imgUrl(k.image || k.img || (Array.isArray(k.images)&&k.images[0]) || k.thumb)
+      || fromImages(PAL && PAL.palace && PAL.palace.images, k)
+      || fromImages(PAL && PAL.images, k) || "";
+  }
+  // 사용자가 바꾼 순서 저장/적용 — memory-walk과 공유하는 키(mw_itemorder:<city>:<roomId>)
+  const orderKey = ch => `mw_itemorder:${CITY}:${(ch && (ch.id||ch.name))||""}`;
+  function applyItemOrder(ch, kept){
+    let saved = null; try { saved = JSON.parse(localStorage.getItem(orderKey(ch))||"null"); } catch {}
+    if (!Array.isArray(saved) || !saved.length) return kept;
+    const by = new Map(kept.map(k => [k.id||k.title, k]));
+    const out = []; saved.forEach(id => { if (by.has(id)){ out.push(by.get(id)); by.delete(id); } });
+    by.forEach(v => out.push(v));   // 저장 후 추가된 항목은 뒤로
+    return out;
+  }
+  function saveItemOrder(ch, kept){ try { localStorage.setItem(orderKey(ch), JSON.stringify(kept.map(k => k.id||k.title))); } catch {} }
+
+  function itemsHtml(kept){
+    return kept.length
+      ? kept.map((k,i) => `<div class="it" draggable="true" data-idx="${i}">`
+          + `<div class="seq" title="드래그하여 순서 변경">${i+1}</div>`
+          + `<div class="t">${esc(k.title||k.id||"")}</div>`
+          + (k.type?`<div class="ty">${esc(k.type)}</div>`:"")
+          + (itemImage(k)?`<div class="imk" title="이미지 있음">🖼</div>`:"")
+          + `</div>`).join("")
+      : `<div class="none">이 챕터에 등록된 학습 항목이 없습니다.</div>`;
+  }
   function renderLearn(lm){
     const a = ASSIGN[lmKey(lm)];
     const chEl = $("learnChap"), itEl = $("learnItems");
-    if (!a){ chEl.innerHTML = `<span style="color:var(--muted)">이 랜드마크에는 배정된 학습 챕터가 없습니다(학습 항목 수보다 랜드마크가 많음).</span>`; itEl.innerHTML=""; return; }
-    const ch = a.chapter, kept = ch.kept || [];
-    chEl.innerHTML = `<b>챕터 ${a.idx+1} · ${esc(ch.name)}</b> — 학습 항목 ${kept.length}개. ${esc(ch.summary||"")}`;
-    itEl.innerHTML = kept.length
-      ? kept.slice(0,8).map(k => `<div class="it"><div class="t">${esc(k.title||k.id||"")}</div>${k.type?`<div class="ty">${esc(k.type)}</div>`:""}</div>`).join("")
-        + (kept.length>8?`<div class="it" style="display:flex;align-items:center;justify-content:center;color:var(--muted)">+${kept.length-8}개 더</div>`:"")
-      : `<div class="none">이 챕터에 등록된 학습 항목이 없습니다.</div>`;
+    if (!a){ chEl.innerHTML = `<span style="color:var(--muted)">이 랜드마크에는 배정된 학습 챕터가 없습니다(학습 항목 수보다 랜드마크가 많음).</span>`; itEl.innerHTML=""; CURKEPT=[]; CUR_CH=null; return; }
+    const ch = a.chapter; CUR_CH = ch;
+    CURKEPT = applyItemOrder(ch, (ch.kept||[]).slice());
+    chEl.innerHTML = `<b>챕터 ${a.idx+1} · ${esc(ch.name)}</b> — 학습 항목 ${CURKEPT.length}개. ${esc(ch.summary||"")} <span class="rhint">· 카드 클릭=미리보기, 드래그=순서 변경</span>`;
+    itEl.innerHTML = itemsHtml(CURKEPT);
   }
+  function rerenderItems(){ $("learnItems").innerHTML = itemsHtml(CURKEPT); }
+
+  // 학습 항목 미리보기(캡션·이미지·관련 개념)
+  function openItemPrev(k){
+    const img = itemImage(k);
+    const im = $("itmImg"); im.style.display = img?"block":"none"; if (img) im.src = img;
+    const ty = $("itmTy"); ty.style.display = k.type?"inline-block":"none"; ty.textContent = k.type||"";
+    $("itmTitle").textContent = k.title || k.id || "";
+    $("itmDesc").textContent = k.description || k.summary || k.caption || "(설명 없음)";
+    const rel = (k.related||[]).map(r => String(r).replace(/^ent_/,""));
+    $("itmRelWrap").style.display = rel.length?"block":"none";
+    $("itmRel").innerHTML = rel.map(r => `<span>${esc(r)}</span>`).join("");
+    $("itModal").classList.add("show");
+  }
+
+  // 학습 항목: 클릭=미리보기, 드래그=순서 변경 (한 번만 바인딩)
+  (function bindLearnItems(){
+    const host = $("learnItems"); let dragIdx = null;
+    host.addEventListener("click", e => { const it = e.target.closest(".it"); if (!it) return; const k = CURKEPT[+it.dataset.idx]; if (k) openItemPrev(k); });
+    host.addEventListener("dragstart", e => { const it = e.target.closest(".it"); if (!it) return; dragIdx = +it.dataset.idx; it.classList.add("drag"); e.dataTransfer.effectAllowed = "move"; });
+    host.addEventListener("dragend", () => { dragIdx = null; host.querySelectorAll(".it").forEach(x => x.classList.remove("drag","over")); });
+    host.addEventListener("dragover", e => { e.preventDefault(); const it = e.target.closest(".it"); if (!it) return; host.querySelectorAll(".it.over").forEach(x => x.classList.remove("over")); it.classList.add("over"); });
+    host.addEventListener("drop", e => {
+      e.preventDefault(); const it = e.target.closest(".it"); if (!it || dragIdx==null) return;
+      const to = +it.dataset.idx;
+      host.querySelectorAll(".it.over").forEach(x => x.classList.remove("over"));
+      if (to === dragIdx) return;
+      const arr = CURKEPT.slice(); const [m] = arr.splice(dragIdx,1); arr.splice(to,0,m); CURKEPT = arr;
+      saveItemOrder(CUR_CH, arr); rerenderItems();
+      msg("순서 변경됨 — 입장 시 이 순서로 기억 동선이 구성됩니다.");
+    });
+    const close = () => $("itModal").classList.remove("show");
+    $("itmClose").onclick = close;
+    $("itModal").addEventListener("click", e => { if (e.target === $("itModal")) close(); });
+    document.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
+  })();
 
   // ── 미리보기(클릭 로드 + 외부/내부) ──
   function showLoadPrompt(url, label){

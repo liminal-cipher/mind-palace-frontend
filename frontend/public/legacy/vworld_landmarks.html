@@ -4,12 +4,12 @@
 <meta charset="utf-8" />
 <title>이동 중… — 종로 기억궁전</title>
 <script>
-  // 이 파일은 옛 종로 지도(구버전)였음. 정본(region-select → vworld_jongnogu)으로 통합되어
-  // 정본 종로 지도로 리다이렉트함. ?key= 등 쿼리스트링은 그대로 넘김.
-  location.replace("vworld_jongnogu.html" + location.search + location.hash);
+  // 옛 종로 지도(구버전) 호환 리다이렉트. 통합 3D 지도(vworld_map)로 이동. ?key= 등 쿼리스트링 유지.
+  var s = location.search ? location.search.replace(/^\?/, "&") : "";
+  location.replace("vworld_map.html?city=jongno" + s + location.hash);
 </script>
 </head>
 <body style="margin:0;background:#080a09;color:#cfe;display:flex;align-items:center;justify-content:center;height:100vh;font-family:system-ui,sans-serif">
-  <p>정본 종로 지도로 이동 중… 자동으로 넘어가지 않으면 <a style="color:#9fd" href="vworld_jongnogu.html">여기</a>를 누르세요.</p>
+  <p>통합 3D 지도로 이동 중… 자동으로 넘어가지 않으면 <a style="color:#9fd" href="vworld_map.html?city=jongno">여기</a>를 누르세요.</p>
 </body>
 </html>
