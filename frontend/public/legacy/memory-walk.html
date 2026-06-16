@@ -38,15 +38,19 @@
     .lmicon[hidden]{display:none;}
     .cimg{width:100%;max-height:172px;object-fit:cover;border-radius:10px;margin:8px 0 4px;display:block;border:1px solid var(--line);}
     .cimg[hidden]{display:none;}
-    .roommenu{position:fixed;top:58px;left:14px;z-index:60;width:236px;max-height:72vh;overflow:auto;
-      background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:13px;padding:6px;
+    .roommenu{position:fixed;top:58px;left:14px;z-index:60;width:min(330px,calc(100vw - 28px));max-height:78vh;overflow:auto;
+      background:rgba(255,255,255,.97);border:1px solid var(--line);border-radius:13px;padding:6px;
       backdrop-filter:blur(10px);box-shadow:0 16px 40px rgba(30,50,42,.16);}
     .roommenu .rmhd{font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);padding:6px 10px 4px;}
-    .roomrow{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;cursor:pointer;font-size:13px;color:var(--text);}
+    .roomrow{display:flex;align-items:flex-start;gap:10px;padding:8px 10px;border-radius:9px;cursor:pointer;font-size:13px;color:var(--text);}
     .roomrow:hover{background:rgba(47,143,118,.12);}
-    .roomrow.cur{opacity:.5;cursor:default;}
-    .roomrow .ic{flex:0 0 26px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;color:var(--gold);border:1px solid var(--line);border-radius:8px;}
+    .roomrow.cur{opacity:.55;cursor:default;}
+    .roomrow .ic{flex:0 0 26px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;color:var(--gold);border:1px solid var(--line);border-radius:8px;margin-top:1px;}
     .roomrow .ic svg{width:18px;height:18px;}
+    .roomrow .rmtext{min-width:0;}
+    .roomrow .rmname{font-weight:700;}
+    .roomrow .rmconcept{font-size:10.5px;color:var(--muted);margin-top:2px;line-height:1.45;}
+    .roomrow .rmconcept .b{color:var(--accent);font-weight:800;}
     /* 상단 타이틀 */
     .top{top:16px;left:16px;width:min(320px,calc(100vw - 32px));padding:13px 16px;}
     .top .backbtn{display:inline-flex;align-items:center;gap:5px;margin-bottom:9px;border:1px solid var(--line);
@@ -76,14 +80,16 @@
           color:var(--text);font:inherit;font-size:11.5px;font-weight:600;padding:5px 11px;cursor:pointer;transition:.15s;}
     .chip:hover{border-color:var(--accent);background:rgba(47,143,118,.12);transform:translateY(-1px);}
     /* 하단 내비게이션 */
-    .nav{left:50%;transform:translateX(-50%);bottom:18px;padding:9px 11px;display:flex;gap:11px;align-items:center;}
-    .nav .btn{border:1px solid var(--line);border-radius:12px;background:rgba(26,44,36,.05);
-              color:var(--text);font:inherit;font-weight:800;font-size:13px;padding:9px 15px;cursor:pointer;transition:.15s;}
+    /* 비율 유지 반응형: 화면이 좁아지면 줄바꿈/겹침 대신 같이 작아짐(clamp) + 버튼 텍스트 세로줄 방지 */
+    .nav{left:50%;transform:translateX(-50%);bottom:18px;padding:clamp(6px,1vw,9px) clamp(7px,1.1vw,11px);display:flex;
+         gap:clamp(5px,1.1vw,11px);align-items:center;max-width:calc(100vw - 16px);flex-wrap:nowrap;}
+    .nav .btn{border:1px solid var(--line);border-radius:12px;background:rgba(26,44,36,.05);white-space:nowrap;flex:0 0 auto;
+              color:var(--text);font:inherit;font-weight:800;font-size:clamp(11px,1.4vw,13px);padding:clamp(7px,1.1vw,9px) clamp(9px,1.5vw,15px);cursor:pointer;transition:.15s;}
     .nav .btn:hover{border-color:var(--accent);background:rgba(47,143,118,.12);}
     .nav .btn.primary{background:linear-gradient(180deg,var(--accent),var(--accent2));color:#091210;border-color:transparent;}
     .nav .btn.primary:hover{filter:brightness(1.08);}
     .nav .btn.ghost{color:var(--muted);padding:9px 12px;}
-    .dots{display:flex;gap:6px;align-items:center;padding:0 4px;}
+    .dots{display:flex;gap:clamp(4px,0.7vw,6px);align-items:center;padding:0 4px;min-width:0;flex-wrap:nowrap;}
     .dots i{width:7px;height:7px;border-radius:50%;background:rgba(30,42,36,.22);transition:.2s;cursor:pointer;}
     .dots i.done{background:rgba(47,143,118,.5);}
     .dots i.on{background:var(--accent);width:22px;border-radius:4px;}
@@ -157,6 +163,8 @@
   <div id="scene"></div>
   <section class="panel top">
     <button class="backbtn" id="backBtn">← 광화문 지도로</button>
+    <button class="backbtn" id="mapBtn" style="margin-left:6px" title="이 도시의 3D 지도로">🗺 지도</button>
+    <a class="backbtn" id="firstBtn" href="region-select.html" style="margin-left:6px;text-decoration:none" title="처음(지역 선택)으로">🏠 처음</a>
     <button class="backbtn" id="nextRoomBtn" style="display:none;margin-left:6px">다음 방 ⏭</button>
     <button class="backbtn" id="liteToggle" style="margin-left:6px" title="저사양 모드: 그림자 끔·픽셀비 1.0·마커 캔버스 축소">⚡</button>
     <script>
@@ -758,8 +766,11 @@
         if (h) near = Math.min(near, h.distance);
       });
       if (near < 0.7) { overviewCam(instant); return; }         // 정면이 0.7m 안에서 막힘 = 카메라 박힘 → 조망
-      const p = eye.clone();
-      const tgt = new THREE.Vector3(p.x + fwd.x * 0.3, p.y - 0.18, p.z + fwd.z * 0.3); // 정면 + 살짝 아래
+      // 첫 화면 = "한번에 많은 정보" 설정샷: 입장 지점에서 시선을 살짝 높이고 방 중심을 내려다봐 여러 핫스팟·가구가 한눈에.
+      const c0 = bounds.getCenter(new THREE.Vector3());
+      const sz0 = bounds.getSize(new THREE.Vector3());
+      const p = new THREE.Vector3(eye.x, bounds.min.y + Math.min(Math.max(sz0.y * 0.55, 1.7), 2.1), eye.z);
+      const tgt = new THREE.Vector3(c0.x, bounds.min.y + sz0.y * 0.32, c0.z);   // 방 중심을 살짝 내려다봄
       const settle = () => { fpsReady = false; enterFPS(); };
       if (instant){ camera.position.copy(p); controls.target.copy(tgt); controls.update(); settle(); }
       else flyTo(p, tgt, 700, settle);
@@ -964,6 +975,8 @@
       if (history.length > 1 && document.referrer) history.back();
       else location.href = THEME ? "vworld_landmarks.html" : "vworld_jongnogu.html";
     };
+    // 🗺 지도 — 히스토리와 무관하게 항상 이 도시의 3D 지도로(좌상단 상시 이동).
+    $("mapBtn").onclick = () => { const city = P.get("city") || "jongno"; location.href = "vworld_map.html?city=" + encodeURIComponent(city); };
     // ⌂ 홈 — 미리 잡아둔 "모든 핫스팟이 가장 잘 보이는" 전체 조망으로.
     $("homeBtn").onclick = () => { activeIdx = -1; renderDots(-1); $("card").style.display = "none"; roomEntryView(false); };
 
@@ -987,18 +1000,55 @@
       btn.style.display = "inline-flex";
       btn.innerHTML = "⏭ 방 이동 ▾";
       btn.title = "다른 랜드마크 방으로 이동";
-      menu.innerHTML = `<div class="rmhd">랜드마크 방 선택</div>`;
+      menu.innerHTML = `<div class="rmhd">랜드마크 방 선택 · 지식 개념</div>`;
+      const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+      const rowByLm = {};
       LANDMARK_ROOMS.forEach(r => {
         const th = LM_THEMES[r.lm], nm = th ? th.name : r.lm, isCur = (LM === r.lm);
         const row = document.createElement("div");
         row.className = "roomrow" + (isCur ? " cur" : "");
-        row.innerHTML = `<span class="ic">${landmarkIcon(th)}</span><span>${nm}${isCur ? " · 현재" : ""}</span>`;
+        row.innerHTML = `<span class="ic">${landmarkIcon(th)}</span><span class="rmtext">`+
+          `<span class="rmname">${esc(nm)}${isCur ? " · 현재" : ""}</span>`+
+          `<span class="rmconcept" data-concept>학습 개념 불러오는 중…</span></span>`;
         if (!isCur) row.onclick = () => location.href = `memory-walk.html?glb=${r.glb}&hotspots=${r.hot}&lm=${r.lm}`;
-        menu.appendChild(row);
+        menu.appendChild(row); rowByLm[r.lm] = row;
       });
       btn.onclick = (e) => { e.stopPropagation(); menu.style.display = (menu.style.display === "none" ? "block" : "none"); };
       menu.addEventListener("click", e => e.stopPropagation());
       document.addEventListener("click", () => { menu.style.display = "none"; });
+
+      // 각 방의 "지식 개념"을 함께 표시 — 학습 팰리스(korean_history) 챕터를 규칙기반으로 랜드마크에 배정해
+      //   방마다 배정 챕터명 + 대표 개념 몇 개를 드롭다운에 보여준다(어떤 지식을 담은 방인지 보고 고르게).
+      (async function enrichConcepts(){
+        try {
+          const [lib, pal] = await Promise.all([
+            fetch("public/data/landmarks.json").then(r=>r.json()),
+            fetch("public/data/korean_history.palace.json").then(r=>r.ok?r.json():null)
+          ]);
+          if (!lib || !pal) throw 0;
+          const corpus = (pal.palace?.source?.corpus) || pal.palace?.title || "";
+          const chapters = pal.rooms || []; const used = new Set(); const byLm = {};
+          const score = (text, lm) => { const h = text.toLowerCase(); let s = 0;
+            (lm.tags||[]).forEach(t => { if (h.includes(String(t).toLowerCase())) s += 2; });
+            if (h.includes((lm.name||"").toLowerCase())) s += 3; return s; };
+          chapters.forEach((ch, i) => {
+            const text = `${ch.name} ${ch.summary||""} ${corpus}`;
+            const ranked = (lib.landmarks||[]).map(lm => ({ lm, s: score(text, lm) })).sort((a,b)=>b.s-a.s);
+            const pick = ranked.find(x => !used.has(x.lm.id)) || ranked[0];
+            if (pick) { used.add(pick.lm.id); byLm[pick.lm.id] = { ch, i }; }
+          });
+          LANDMARK_ROOMS.forEach(r => {
+            const el = rowByLm[r.lm] && rowByLm[r.lm].querySelector("[data-concept]");
+            if (!el) return;
+            const a = byLm[r.lm];
+            if (!a) { el.textContent = "배정된 학습 챕터 없음"; return; }
+            const items = (a.ch.kept||[]).slice(0,3).map(k => k.title || k.id).filter(Boolean).join(" · ");
+            el.innerHTML = `<span class="b">챕터 ${a.i+1} · ${esc(a.ch.name)}</span>` + (items ? `<br>${esc(items)}` : "");
+          });
+        } catch(e) {
+          Object.values(rowByLm).forEach(row => { const el = row.querySelector("[data-concept]"); if (el) el.remove(); });
+        }
+      })();
     })();
 
     // ════════════ 2D 평면도(미니맵 + 편집 대시보드) ════════════
