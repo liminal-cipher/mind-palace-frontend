@@ -3422,7 +3422,8 @@ end of keeper CSS */
 
     <div class="explore-actions">
       <button type="button" id="exploreFullscreenBtn" hidden>전체 화면으로 보기</button>
-      <a href="https://3d-mindpalace-ai-fxf8dyfqega3hvbp.canadacentral-01.azurewebsites.net/legacy/vworld_landmarks.html?lite=0" target="_blank" rel="noopener">새 탭에서 열기 ↗</a>
+      <a href="region-select.html" class="explore-primary" style="font-weight:800">🗺 어디에 지을지 둘러보기 (84개 도시) →</a>
+      <a href="https://3d-mindpalace-ai-fxf8dyfqega3hvbp.canadacentral-01.azurewebsites.net/legacy/vworld_map.html?city=jongno&lite=0" target="_blank" rel="noopener">종로 3D 지도 새 탭 ↗</a>
     </div>
   </div>
 </section>
@@ -3449,6 +3450,7 @@ end of keeper CSS */
         <p class="scroll-line">지금 첫 방을 열어보세요.</p>
       </div>
       <a class="cta-btn" href="#upload">시작하기 →</a>
+      <a class="cta-sub" href="region-select.html" style="display:block;margin-top:14px;color:inherit;opacity:.82;font-size:14px;text-decoration:underline">또는, 어디에 지을지 먼저 둘러보기 →</a>
     </div>
     <div class="scroll-rod scroll-rod--bottom"></div>
     <div class="footer-note">記憶宮殿 · Memory Palace, Seoul</div>
@@ -4407,7 +4409,7 @@ end of keeper CSS */
   syncPerfToggle(PERF.lite);
 
   /* ═══════ 3D 둘러보기: 클릭 시에만 iframe 로드 ═══════ */
-  const EXPLORE_URL = 'https://3d-mindpalace-ai-fxf8dyfqega3hvbp.canadacentral-01.azurewebsites.net/legacy/vworld_landmarks.html?lite=0';
+  const EXPLORE_URL = 'https://3d-mindpalace-ai-fxf8dyfqega3hvbp.canadacentral-01.azurewebsites.net/legacy/vworld_map.html?city=jongno&lite=0';
   const exploreStage = document.getElementById('exploreStage');
   const explorePlaceholder = document.getElementById('explorePlaceholder');
   const exploreLoadBtn = document.getElementById('exploreLoadBtn');
@@ -4603,7 +4605,7 @@ end of keeper CSS */
       setTimeout(go,1000);
     }
   }, true);
-  document.querySelectorAll('a.nav-cta[href="#explore"]').forEach(function(a){ a.setAttribute("href","region-select.html"); });
+  /* 둘러보기 입구는 #explore 섹션과 푸터의 region-select 링크로 노출(과거 no-op 제거) */
 })();
 </script>
 
