@@ -61,7 +61,8 @@
       <h1 id="title">학습 콘텐츠에 어울리는 방을 고르세요</h1>
       <div class="sub" id="sub">학습 내용을 불러오면 챕터마다 가장 어울리는 방을 추천하고, 다른 방으로 바꿔볼 수 있어요.</div>
     </div>
-    <label class="filebtn" style="margin-left:auto;">📂 다른 학습 JSON<input id="file" type="file" accept=".json,application/json" hidden /></label>
+    <label class="filebtn" style="margin-left:auto;">🏙 도시<select id="citySel" style="width:auto;min-width:128px;margin-left:7px"></select></label>
+    <label class="filebtn">📂 다른 학습 JSON<input id="file" type="file" accept=".json,application/json" hidden /></label>
   </div>
 
   <div class="wrap" id="list"></div>
@@ -94,16 +95,49 @@
     return { s, hit };
   }
 
-  let LIB = null, PAL = null;
+  const CITY = P.get("city") || "jongno";
+  let LIB = null, PAL = null, DESIGNS = [], DESIGN_BLOB = "";
+  const designByGlb = g => { const f = String(g||"").split("/").pop().replace("BLOB:",""); if(!f) return null;
+    return DESIGNS.find(d => String(d.glb).split("/").pop().replace("BLOB:","") === f) || null; };
+
+  // 비종로 도시: cities/{slug}.json 랜드마크에 방 디자인을 순서대로 배정 → 입장 가능 + 썸네일.
+  function buildLibFromCity(cd){
+    if (!cd) return { blobBase: DESIGN_BLOB, landmarks: [] };
+    const lms = (cd.landmarks||[]).map((m, i) => {
+      const d = DESIGNS[i % Math.max(DESIGNS.length,1)] || {};
+      return { id: "lm"+i, name: m.name, region: cd.name||"", tags: [], desc: m.desc||"",
+               glb: d.glb||"", hotspots: d.hotspots||"", thumb: d.thumb||"" };
+    });
+    return { blobBase: DESIGN_BLOB, landmarks: lms };
+  }
+  function populateCitySel(cities){
+    const selEl = document.getElementById("citySel"); if (!selEl) return;
+    const all = cities ? (cities.regions||[]).flatMap(r => (r.cities||[]).filter(c=>c.ready)) : [];
+    selEl.innerHTML = all.map(c => `<option value="${esc(c.slug)}">${esc(c.name)}</option>`).join("");
+    if (!all.some(c=>c.slug===CITY)) { const o=document.createElement("option"); o.value=CITY; o.textContent=CITY; selEl.insertBefore(o, selEl.firstChild); }
+    selEl.value = CITY;
+    selEl.onchange = () => { const u = new URL(location.href); u.searchParams.set("city", selEl.value); location.href = u.toString(); };
+  }
 
   async function boot(file){
-    const lib = await (await fetch("public/data/landmarks.json")).json();
-    LIB = lib;
+    const [designs, cities] = await Promise.all([
+      fetch("public/data/room-designs.json").then(r=>r.ok?r.json():{designs:[]}).catch(()=>({designs:[]})),
+      fetch("data/cities.json").then(r=>r.ok?r.json():null).catch(()=>null)
+    ]);
+    DESIGNS = designs.designs||[]; DESIGN_BLOB = designs.blobBase||"";
+    populateCitySel(cities);
+    if (CITY === "jongno") LIB = await (await fetch("public/data/landmarks.json")).json();
+    else { const cd = await fetch(`public/data/cities/${encodeURIComponent(CITY)}.json`).then(r=>r.ok?r.json():null).catch(()=>null); LIB = buildLibFromCity(cd); }
+    // 썸네일: 각 랜드마크의 glb를 방 디자인 썸네일에 매핑(없으면 아이콘 폴백)
+    (LIB.landmarks||[]).forEach(lm => { const d = designByGlb(lm.glb); if (d) lm.thumb = d.thumb || ""; });
+    // 상단 네비 링크도 도시 반영
+    const q = "?city=" + encodeURIComponent(CITY);
+    const mapA = document.querySelector('a.home[href="vworld_map.html"]'); if (mapA) mapA.href = "vworld_map.html"+q;
+    const cusA = document.querySelector('a.home[href="glb-customizer.html"]'); if (cusA) cusA.href = "glb-customizer.html"+q;
     let pal;
     if (file) pal = JSON.parse(await file.text());
     else pal = await (await fetch(PALACE_URL)).json();
-    PAL = pal;
-    render();
+    PAL = pal; render();
   }
 
   function render(){
@@ -157,7 +191,7 @@
           ? `어울리는 점: ` + r.hit.slice(0,4).map(t=>`<span class="tag">${esc(t)}</span>`).join("")
           : `<span style="color:var(--muted)">직접 고른 방</span>`;
         const glb = resolveGlb(LIB, lm.glb);
-        const url = `memory-walk.html?glb=${encodeURIComponent(glb)}&hotspots=${encodeURIComponent(lm.hotspots)}&lm=${lm.id}&palace=${encodeURIComponent(PALACE_URL)}&room=${encodeURIComponent(ch.id)}`;
+        const url = `memory-walk.html?glb=${encodeURIComponent(glb)}&hotspots=${encodeURIComponent(lm.hotspots)}&lm=${encodeURIComponent(lm.id)}&lmName=${encodeURIComponent(lm.name)}${lm.desc?`&lmDesc=${encodeURIComponent(lm.desc)}`:""}&palace=${encodeURIComponent(PALACE_URL)}&room=${encodeURIComponent(ch.id)}&city=${encodeURIComponent(CITY)}`;
         card.querySelector("[data-go]").href = url;
         card.dataset.url = url;
       };
