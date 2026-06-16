@@ -14,26 +14,26 @@
     font-family:"Pretendard","Malgun Gothic",system-ui,sans-serif; color:var(--text); background:var(--bg);}
   .top{display:flex; align-items:center; gap:10px; padding:12px 18px; border-bottom:1px solid var(--line); background:rgba(255,255,255,.92); flex-wrap:wrap;}
   .top a.home{padding:7px 11px; border:1px solid var(--line); border-radius:8px; color:var(--text); text-decoration:none; font-size:12.5px;}
-  .top a.home:hover{background:rgba(44,122,99,.12);}
+  .top a.home:hover{background:color-mix(in srgb, var(--accent) 12%, transparent);}
   .kicker{color:var(--gold); font-size:10.5px; font-weight:800; letter-spacing:.13em; text-transform:uppercase;}
   .top h1{font-size:17px; margin:0;}
   .top .palacebtn{margin-left:auto; display:inline-flex; align-items:center; gap:6px; padding:7px 11px; border:1px solid var(--line);
     border-radius:8px; font-size:12px; cursor:pointer; background:rgba(51,46,40,.05);}
-  .top .palacebtn:hover{background:rgba(44,122,99,.12);}
+  .top .palacebtn:hover{background:color-mix(in srgb, var(--accent) 12%, transparent);}
   .main{flex:1; display:grid; grid-template-columns:248px 1fr; min-height:0;}
   /* 좌측: 지역 랜드마크 인덱스 */
   .side{border-right:1px solid var(--line); overflow:auto; padding:10px;}
   .side .hd{font-size:10.5px; font-weight:800; letter-spacing:.1em; color:var(--gold); text-transform:uppercase; padding:6px 8px;}
   .side .regionName{font-size:12px; color:var(--muted); padding:0 8px 8px;}
   .lmrow{display:flex; align-items:center; gap:10px; padding:9px 10px; border-radius:9px; cursor:pointer; border:1px solid transparent;}
-  .lmrow:hover{background:rgba(44,122,99,.12);}
-  .lmrow.sel{background:rgba(44,122,99,.18); border-color:rgba(44,122,99,.4);}
+  .lmrow:hover{background:color-mix(in srgb, var(--accent) 12%, transparent);}
+  .lmrow.sel{background:color-mix(in srgb, var(--accent) 18%, transparent); border-color:rgba(44,122,99,.4);}
   .lmrow .ic{flex:0 0 30px; width:30px; height:30px; display:flex; align-items:center; justify-content:center;
     color:var(--gold); border:1px solid var(--line); border-radius:8px; font-size:16px;}
   .lmrow .ic svg{width:20px;height:20px;}
   .lmrow .nm{font-weight:700; font-size:13.5px;}
   .lmrow .meta{font-size:10.5px; color:var(--muted); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:170px;}
-  .lmrow .meta .b{display:inline-block; background:rgba(44,122,99,.18); border-radius:5px; padding:0 5px; margin-right:4px; font-weight:800; color:var(--accent);}
+  .lmrow .meta .b{display:inline-block; background:color-mix(in srgb, var(--accent) 18%, transparent); border-radius:5px; padding:0 5px; margin-right:4px; font-weight:800; color:var(--accent);}
   .lmrow .meta .nopick{color:var(--gold);}
   /* 가운데 */
   .center{display:flex; flex-direction:column; min-width:0; padding:14px 18px; overflow:auto; gap:14px;}
@@ -62,21 +62,21 @@
   .vlabel{position:absolute; top:10px; left:12px; font-size:12px; background:rgba(255,255,255,.92); padding:5px 10px; border-radius:8px; border:1px solid var(--line); z-index:3;}
   .viewtools{position:absolute; top:10px; right:12px; display:flex; gap:6px; z-index:3;}
   .viewtools button{padding:6px 10px; font-size:11.5px; border:1px solid var(--line); border-radius:8px; cursor:pointer; background:rgba(255,255,255,.92); color:var(--text);}
-  .viewtools button:hover{background:rgba(44,122,99,.12);}
-  .viewtools button.on{background:rgba(44,122,99,.18); border-color:rgba(44,122,99,.5);}
+  .viewtools button:hover{background:color-mix(in srgb, var(--accent) 12%, transparent);}
+  .viewtools button.on{background:color-mix(in srgb, var(--accent) 18%, transparent); border-color:rgba(44,122,99,.5);}
   .loadover{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
-    background:radial-gradient(60% 60% at 50% 40%, rgba(44,122,99,.08), #eee9df); z-index:2;}
+    background:radial-gradient(60% 60% at 50% 40%, color-mix(in srgb, var(--accent) 8%, transparent), #eee9df); z-index:2;}
   .loadover.hide{display:none;}
   .loadover .glbnm{font-size:12.5px; color:var(--muted);}
-  .loadover .loadbtn{padding:11px 20px; border-radius:10px; background:#2c7a63; color:#ffffff; font-weight:900; border:0; cursor:pointer; font-size:14px;}
+  .loadover .loadbtn{padding:11px 20px; border-radius:10px; background:var(--accent); color:#ffffff; font-weight:900; border:0; cursor:pointer; font-size:14px;}
   .loadover .loadbtn:hover{filter:brightness(1.08);}
   .loadover .prog{font-size:12px; color:var(--accent); min-height:16px;}
   .actionbar{display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
   .btn{display:inline-flex; align-items:center; gap:6px; cursor:pointer; border:1px solid var(--line); background:rgba(51,46,40,.05);
     color:var(--text); border-radius:9px; padding:9px 13px; font-size:12.5px; text-decoration:none;}
-  .btn:hover{background:rgba(44,122,99,.12);}
-  .btn.primary{background:#2c7a63; border-color:#2c7a63; color:#ffffff; font-weight:800;}
-  .btn.go{background:rgba(44,122,99,.18); border-color:rgba(44,122,99,.4); font-weight:800;}
+  .btn:hover{background:color-mix(in srgb, var(--accent) 12%, transparent);}
+  .btn.primary{background:var(--accent); border-color:var(--accent); color:#ffffff; font-weight:800;}
+  .btn.go{background:color-mix(in srgb, var(--accent) 18%, transparent); border-color:rgba(44,122,99,.4); font-weight:800;}
   .msg{font-size:12px; color:var(--gold); min-height:16px;}
   /* 학습 패널 */
   .learn{border:1px solid var(--line); border-radius:12px; padding:13px 15px; background:var(--panel);}
@@ -413,9 +413,14 @@
     return fetch(themeUrl).then(r=>r.ok?r.json():null).catch(()=>null).then(pal => {
       PAL = pal; computeAssign();
       renderList(); renderGallery(); updateLinks();
-      if (regionLms[0]) selectLm(regionLms[0]);
+      // 구성(compose) 드릴다운에서 넘어온 ?lm/?lmName 이 있으면 그 랜드마크를 미리 선택
+      const want = P.get("lm"), wantName = P.get("lmName");
+      const pre = (want && regionLms.find(l => l._lmId === want || l.name === want))
+               || (wantName && regionLms.find(l => l.name === wantName)) || regionLms[0];
+      if (pre) selectLm(pre);
     });
   }).catch(e => { $("lmlist").innerHTML = `<p style="color:#8a8170;padding:10px">로드 실패: ${esc(e.message)}</p>`; });
 </script>
+<script src="assistant.js" defer></script>
 </body>
 </html>

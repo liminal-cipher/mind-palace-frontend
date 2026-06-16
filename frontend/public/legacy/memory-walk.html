@@ -43,7 +43,7 @@
       backdrop-filter:blur(10px);box-shadow:0 16px 40px rgba(40,34,26,.16);}
     .roommenu .rmhd{font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);padding:6px 10px 4px;}
     .roomrow{display:flex;align-items:flex-start;gap:10px;padding:8px 10px;border-radius:9px;cursor:pointer;font-size:13px;color:var(--text);}
-    .roomrow:hover{background:rgba(44,122,99,.12);}
+    .roomrow:hover{background:color-mix(in srgb, var(--accent) 12%, transparent);}
     .roomrow.cur{opacity:.55;cursor:default;}
     .roomrow .ic{flex:0 0 26px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;color:var(--gold);border:1px solid var(--line);border-radius:8px;margin-top:1px;}
     .roomrow .ic svg{width:18px;height:18px;}
@@ -56,7 +56,7 @@
     .top .backbtn{display:inline-flex;align-items:center;gap:5px;margin-bottom:9px;border:1px solid var(--line);
       border-radius:10px;background:rgba(51,46,40,.05);color:var(--text);font:inherit;font-weight:800;
       font-size:12px;padding:7px 12px;cursor:pointer;transition:.15s;}
-    .top .backbtn:hover{border-color:var(--accent);background:rgba(44,122,99,.12);}
+    .top .backbtn:hover{border-color:var(--accent);background:color-mix(in srgb, var(--accent) 12%, transparent);}
     .top h1{margin:6px 0 5px;font-size:clamp(15px,2vw,19px);font-weight:800;letter-spacing:-.01em;}
     .top p{margin:0;color:var(--muted);font-size:12px;line-height:1.55;}
     /* 엔티티 카드(우측) */
@@ -78,14 +78,14 @@
     .card .rel .lab{font-size:11px;color:var(--muted);margin-right:2px;}
     .chip{border:1px solid var(--line);border-radius:999px;background:rgba(51,46,40,.05);
           color:var(--text);font:inherit;font-size:11.5px;font-weight:600;padding:5px 11px;cursor:pointer;transition:.15s;}
-    .chip:hover{border-color:var(--accent);background:rgba(44,122,99,.12);transform:translateY(-1px);}
+    .chip:hover{border-color:var(--accent);background:color-mix(in srgb, var(--accent) 12%, transparent);transform:translateY(-1px);}
     /* 하단 내비게이션 */
     /* 비율 유지 반응형: 화면이 좁아지면 줄바꿈/겹침 대신 같이 작아짐(clamp) + 버튼 텍스트 세로줄 방지 */
     .nav{left:50%;transform:translateX(-50%);bottom:18px;padding:clamp(6px,1vw,9px) clamp(7px,1.1vw,11px);display:flex;
          gap:clamp(5px,1.1vw,11px);align-items:center;max-width:calc(100vw - 16px);flex-wrap:nowrap;}
     .nav .btn{border:1px solid var(--line);border-radius:12px;background:rgba(51,46,40,.05);white-space:nowrap;flex:0 0 auto;
               color:var(--text);font:inherit;font-weight:800;font-size:clamp(11px,1.4vw,13px);padding:clamp(7px,1.1vw,9px) clamp(9px,1.5vw,15px);cursor:pointer;transition:.15s;}
-    .nav .btn:hover{border-color:var(--accent);background:rgba(44,122,99,.12);}
+    .nav .btn:hover{border-color:var(--accent);background:color-mix(in srgb, var(--accent) 12%, transparent);}
     .nav .btn.primary{background:linear-gradient(180deg,var(--accent),var(--accent2));color:#ffffff;border-color:transparent;}
     .nav .btn.primary:hover{filter:brightness(1.08);}
     .nav .btn.ghost{color:var(--muted);padding:9px 12px;}
@@ -145,12 +145,16 @@
     #mlist{overflow:auto;padding:4px 14px 16px;}
     .mrow{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;
           padding:9px 12px;border:1px solid var(--line);border-radius:10px;margin-bottom:6px;cursor:pointer;transition:.12s;}
-    .mrow:hover{border-color:var(--accent);background:rgba(44,122,99,.12);}
+    .mrow:hover{border-color:var(--accent);background:color-mix(in srgb, var(--accent) 12%, transparent);}
     .mrow .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);}
     .mrow .fn{font-weight:700;font-size:13.5px;}
     .mrow .ent{font-size:11.5px;color:var(--gold);font-weight:700;}
     .mrow .ent.none{color:var(--muted);font-weight:400;}
     @media(max-width:620px){ .top,.card{width:calc(100vw - 24px);} .card{top:auto;bottom:126px;left:12px;right:12px;} .hint{display:none;} .fab{bottom:84px;} .mini{display:none !important;} }
+  
+    /* 첫 화면: '다음' 버튼이 둥실둥실 — 눌러보라는 유도(첫 상호작용 시 해제) */
+    @keyframes mpBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+    #nextBtn.invite{animation:mpBob 1.3s ease-in-out infinite;box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 24%, transparent),0 10px 22px color-mix(in srgb,var(--accent) 32%, transparent);}
   </style>
   <script type="importmap">
     { "imports":{
@@ -732,7 +736,7 @@
         h.eye.y = Math.min(Math.max(base + 0.18, floor + 0.2), bounds.max.y - 0.12);
       });
       window.__mw = { route, anchors, ordered };   // 디버그
-      $("listBtn").style.display = "inline-flex"; $("listCount").textContent = anchors.length; buildObjectList();
+      $("listBtn").style.display = "inline-flex"; $("listCount").textContent = route.length; buildObjectList();   // 실제 배치된 지점 수(디클러스터 반영) = 목록·마커와 일치
       $("cmapBtn").style.display = "inline-flex"; $("cmapBtn").onclick = openEditor;
       buildMarkers(); buildRouteLine(spawn); buildRelations();
       spawnAt(spawn);
@@ -794,11 +798,11 @@
     function numberSprite(n, active) {
       const S=_spriteSize,c=S/2,cv=document.createElement("canvas"); cv.width=cv.height=S;
       const g=cv.getContext("2d");
-      g.beginPath();g.arc(c,c,c*0.6,0,7);g.fillStyle=active?"rgba(138,129,112,.25)":"rgba(44,122,99,.16)";g.fill();
+      g.beginPath();g.arc(c,c,c*0.6,0,7);g.fillStyle=active?"rgba(138,129,112,.25)":"color-mix(in srgb, var(--accent) 16%, transparent)";g.fill();
       g.beginPath();g.arc(c,c,c*0.44,0,7);
       const gr=g.createLinearGradient(0,c*0.5,0,c*1.5);gr.addColorStop(0,"rgba(18,24,21,.96)");gr.addColorStop(1,"rgba(9,12,11,.96)");
       g.fillStyle=gr;g.fill();
-      g.lineWidth=S*0.03;g.strokeStyle=active?"#8a8170":"#2c7a63";g.stroke();
+      g.lineWidth=S*0.03;g.strokeStyle=active?"#8a8170":"var(--accent)";g.stroke();
       g.fillStyle="#fffaf0";g.font=`900 ${S*0.36}px 'Malgun Gothic',Arial`;g.textAlign="center";g.textBaseline="middle";
       g.fillText(String(n),c,c+S*0.015);
       const tex=new THREE.CanvasTexture(cv);
@@ -889,7 +893,7 @@
       route.forEach((h, i) => {
         const row = document.createElement("div"); row.className = "mrow";
         const study = !!h.entity;
-        const dot = document.createElement("span"); dot.className = "dot"; dot.style.background = study ? "#8a8170" : "#2c7a63";
+        const dot = document.createElement("span"); dot.className = "dot"; dot.style.background = study ? "#8a8170" : "var(--accent)";
         const fn = document.createElement("span"); fn.className = "fn";
         fn.textContent = `${h.number}. ` + dispName(h);
         const ent = document.createElement("span"); ent.className = "ent" + (study ? "" : " none");
@@ -1116,7 +1120,7 @@
         const [x, z] = px(h.pos.x, h.pos.z);
         const cur = i === activeIdx;
         g.beginPath(); g.arc(x, z, cur ? 6.5 : (h.entity ? 5.5 : 3.5), 0, 7);   // 지식 점은 크게
-        g.fillStyle = h.entity ? "#8a8170" : "#2c7a63"; g.fill();
+        g.fillStyle = h.entity ? "#8a8170" : "var(--accent)"; g.fill();
         if (cur) { g.strokeStyle = "#2a241d"; g.lineWidth = 1.6; g.stroke(); }
         g.fillStyle = "#fff"; g.font = "700 7px Arial"; g.textAlign = "center"; g.textBaseline = "middle";
         g.fillText(String(h.number), x, z + 0.5);
@@ -1179,7 +1183,7 @@
       g.strokeStyle = "rgba(51,46,40,.45)"; g.lineWidth = 2;
       const [bx, bz] = e2c(bounds.min.x, bounds.min.z);
       g.strokeRect(bx, bz, (bounds.max.x - bounds.min.x) * eScale, (bounds.max.z - bounds.min.z) * eScale);
-      g.fillStyle = "rgba(44,122,99,.10)"; g.strokeStyle = "rgba(44,122,99,.26)"; g.lineWidth = 1;
+      g.fillStyle = "color-mix(in srgb, var(--accent) 10%, transparent)"; g.strokeStyle = "rgba(44,122,99,.26)"; g.lineWidth = 1;
       furnRects.forEach(r => { const [x, z] = e2c(r.x1, r.z1);
         g.fillRect(x, z, (r.x2 - r.x1) * eScale, (r.z2 - r.z1) * eScale); g.strokeRect(x, z, (r.x2 - r.x1) * eScale, (r.z2 - r.z1) * eScale); });
       // ② 노드 표시 위치 계산 — 서로 밀어내 겹침 해소(드래그 중인 노드는 고정)
@@ -1223,7 +1227,7 @@
       // ⑤ 사물 노드(작게·차분) → ⑥ 개념 노드(크게·금색) 순서로, 지식이 항상 위에
       eNodes.filter(n => !n.h.ent).forEach(n => {
         g.beginPath(); g.arc(n.dx, n.dz, 8, 0, 7);
-        g.fillStyle = n.i === dragIdx ? "#348a72" : "rgba(44,122,99,.8)"; g.fill();
+        g.fillStyle = n.i === dragIdx ? "var(--accent2)" : "rgba(44,122,99,.8)"; g.fill();
         g.strokeStyle = "#2a241d"; g.lineWidth = 1.6; g.stroke();
         g.fillStyle = "#fff"; g.font = "800 8.5px Arial"; g.textAlign = "center"; g.textBaseline = "middle";
         g.fillText(String(n.i + 1), n.dx, n.dz + 0.5);
@@ -1586,5 +1590,19 @@
     requestAnimationFrame(tick);
     addEventListener("resize",()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
   </script>
+<script src="assistant.js" defer></script>
+
+<script>
+/* 첫 화면 '다음' 유도 애니메이션: 방 진입 후 살짝 띄우고, 첫 네비 상호작용 시 해제 */
+window.addEventListener('load', function(){
+  setTimeout(function(){
+    var nb=document.getElementById('nextBtn'); if(!nb) return;
+    nb.classList.add('invite');
+    var clear=function(){ nb.classList.remove('invite'); };
+    nb.addEventListener('click', clear, {once:true});
+    ['prevBtn','homeBtn','tourBtn'].forEach(function(id){ var b=document.getElementById(id); if(b) b.addEventListener('click', clear, {once:true}); });
+  }, 1500);
+});
+</script>
 </body>
 </html>

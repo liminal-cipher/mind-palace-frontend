@@ -1,0 +1,66 @@
+{
+  "note": "랜드마크 대표 사진(위키미디어 커먼즈/위키백과 대표 이미지). 대부분 CC-BY-SA 또는 퍼블릭도메인. 사용 시 출처 표기 권장.",
+  "source": "Wikimedia / Wikipedia REST summary",
+  "photos": {
+    "gwanghwamun": {
+      "title": "광화문",
+      "thumb": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Gwanghwamun_20240413.jpg/330px-Gwanghwamun_20240413.jpg",
+      "full": "https://upload.wikimedia.org/wikipedia/commons/2/2f/Gwanghwamun_20240413.jpg",
+      "wiki": "https://ko.wikipedia.org/wiki/%EA%B4%91%ED%99%94%EB%AC%B8"
+    },
+    "gyeongbokgung": {
+      "title": "경복궁",
+      "thumb": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9B%94%EB%8C%80.jpg/330px-%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9B%94%EB%8C%80.jpg",
+      "full": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9B%94%EB%8C%80.jpg/3840px-%EA%B4%91%ED%99%94%EB%AC%B8_%EC%9B%94%EB%8C%80.jpg",
+      "wiki": "https://ko.wikipedia.org/wiki/%EA%B2%BD%EB%B3%B5%EA%B6%81"
+    },
+    "cheonggye": {
+      "title": "청계천",
+      "thumb": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Seoul_Cheonggyecheon_night.jpg/330px-Seoul_Cheonggyecheon_night.jpg",
+      "full": "https://upload.wikimedia.org/wikipedia/commons/b/b8/Seoul_Cheonggyecheon_night.jpg",
+      "wiki": "https://ko.wikipedia.org/wiki/%EC%B2%AD%EA%B3%84%EC%B2%9C"
+    },
+    "deoksugung": {
+      "title": "덕수궁",
+      "thumb": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/%EB%8D%95%EC%88%98%EA%B6%81_%EC%A0%84%EA%B2%BD_%282013%29.jpg/330px-%EB%8D%95%EC%88%98%EA%B6%81_%EC%A0%84%EA%B2%BD_%282013%29.jpg",
+      "full": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/%EB%8D%95%EC%88%98%EA%B6%81_%EC%A0%84%EA%B2%BD_%282013%29.jpg/3840px-%EB%8D%95%EC%88%98%EA%B6%81_%EC%A0%84%EA%B2%BD_%282013%29.jpg",
+      "wiki": "https://ko.wikipedia.org/wiki/%EB%8D%95%EC%88%98%EA%B6%81"
+    },
+    "sungnyemun": {
+      "title": "숭례문",
+      "thumb": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/%EC%84%9C%EC%9A%B8_%EC%88%AD%EB%A1%80%EB%AC%B8_%EC%B8%A1%EB%A9%B4_%EC%A0%84%EA%B2%BD_%282015%EB%85%84%29.jpg/330px-%EC%84%9C%EC%9A%B8_%EC%88%AD%EB%A1%80%EB%AC%B8_%EC%B8%A1%EB%A9%B4_%EC%A0%84%EA%B2%BD_%282015%EB%85%84%29.jpg",
+      "full": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/%EC%84%9C%EC%9A%B8_%EC%88%AD%EB%A1%80%EB%AC%B8_%EC%B8%A1%EB%A9%B4_%EC%A0%84%EA%B2%BD_%282015%EB%85%84%29.jpg/3840px-%EC%84%9C%EC%9A%B8_%EC%88%AD%EB%A1%80%EB%AC%B8_%EC%B8%A1%EB%A9%B4_%EC%A0%84%EA%B2%BD_%282015%EB%85%84%29.jpg",
+      "wiki": "https://ko.wikipedia.org/wiki/%EC%88%AD%EB%A1%80%EB%AC%B8"
+    },
+    "bosingak": {
+      "title": "보신각",
+      "thumb": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Bosingak%2820240413%29.jpg/330px-Bosingak%2820240413%29.jpg",
+      "full": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Bosingak%2820240413%29.jpg/3840px-Bosingak%2820240413%29.jpg",
+      "wiki": "https://ko.wikipedia.org/wiki/%EB%B3%B4%EC%8B%A0%EA%B0%81"
+    },
+    "namsan": {
+      "title": "N서울타워",
+      "thumb": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Seoul_Tower_%284394893276%29.jpg/330px-Seoul_Tower_%284394893276%29.jpg",
+      "full": "https://upload.wikimedia.org/wikipedia/commons/b/ba/Seoul_Tower_%284394893276%29.jpg",
+      "wiki": "https://ko.wikipedia.org/wiki/YTN%EC%84%9C%EC%9A%B8%ED%83%80%EC%9B%8C"
+    },
+    "changdeokgung": {
+      "title": "창덕궁",
+      "thumb": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/%EC%B0%BD%EB%8D%95%EA%B6%81_%EC%A0%84%EA%B2%BD_%282012%29.jpg/330px-%EC%B0%BD%EB%8D%95%EA%B6%81_%EC%A0%84%EA%B2%BD_%282012%29.jpg",
+      "full": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/%EC%B0%BD%EB%8D%95%EA%B6%81_%EC%A0%84%EA%B2%BD_%282012%29.jpg/3840px-%EC%B0%BD%EB%8D%95%EA%B6%81_%EC%A0%84%EA%B2%BD_%282012%29.jpg",
+      "wiki": "https://ko.wikipedia.org/wiki/%EC%B0%BD%EB%8D%95%EA%B6%81"
+    },
+    "jongmyo": {
+      "title": "종묘",
+      "thumb": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Jeongjeon%2C_Jongmyo_%28Summer%2C_2013%29.jpg/330px-Jeongjeon%2C_Jongmyo_%28Summer%2C_2013%29.jpg",
+      "full": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Jeongjeon%2C_Jongmyo_%28Summer%2C_2013%29.jpg/3840px-Jeongjeon%2C_Jongmyo_%28Summer%2C_2013%29.jpg",
+      "wiki": "https://ko.wikipedia.org/wiki/%EC%A2%85%EB%AC%98"
+    },
+    "heunginjimun": {
+      "title": "흥인지문",
+      "thumb": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/%EC%84%9C%EC%9A%B8_%ED%9D%A5%EC%9D%B8%EC%A7%80%EB%AC%B8_%EC%95%BC%EA%B2%BD.jpg/330px-%EC%84%9C%EC%9A%B8_%ED%9D%A5%EC%9D%B8%EC%A7%80%EB%AC%B8_%EC%95%BC%EA%B2%BD.jpg",
+      "full": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/%EC%84%9C%EC%9A%B8_%ED%9D%A5%EC%9D%B8%EC%A7%80%EB%AC%B8_%EC%95%BC%EA%B2%BD.jpg/3840px-%EC%84%9C%EC%9A%B8_%ED%9D%A5%EC%9D%B8%EC%A7%80%EB%AC%B8_%EC%95%BC%EA%B2%BD.jpg",
+      "wiki": "https://ko.wikipedia.org/wiki/%ED%9D%A5%EC%9D%B8%EC%A7%80%EB%AC%B8"
+    }
+  }
+}
