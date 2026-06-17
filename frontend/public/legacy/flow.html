@@ -106,23 +106,31 @@
       <div class="node key"><div class="nm">🛍 구성</div><div class="file">compose.html</div>
         <div class="ds">활성 학습자료의 챕터마다 어울리는 <b>장소(랜드마크)</b>와 <b>방 디자인</b>을 자동 추천 + 수동 조정.
           도시 바꿔도 자료 유지(localStorage).</div>
-        <div class="branch"><span class="pill">🧩 스튜디오</span><span class="pill">🗺 3D 지도</span><span class="pill a">▶ 입장</span></div></div>
+        <div class="branch"><span class="pill">🧩 스튜디오 (선택)</span><span class="pill a">▶ 입장 → 3D 지도(그 랜드마크)</span></div></div>
     </div>
     <div class="row" style="margin-top:12px;">
-      <div class="node"><div class="nm">🧩 스튜디오 <span style="font-size:10px;color:var(--muted)">(선택 분기)</span></div><div class="file">glb-customizer.html</div>
+      <div class="node"><div class="nm">🧩 스튜디오 <span style="font-size:10px;color:var(--muted)">(선택 분기 — 원하면)</span></div><div class="file">glb-customizer.html</div>
         <div class="ds">방 디자인 23종 고르기 + 방의 <b>2D 개념지도 대시보드</b> 임베드(마커·순서·캡션 편집, 입장에 반영). 같은 자료 유지.</div></div>
-      <div class="node"><div class="nm">🗺 3D 지도</div><div class="file">vworld_map.html</div>
-        <div class="ds">도시 3D 지도에 명소 마커. 우측 패널 = <b>도시+학습자료+그 명소의 챕터</b>. '건물 입장'으로 <b>구성한 방</b>에 들어감.</div></div>
-      <div class="node"><div class="nm">▶ 입장</div><div class="file">memory-walk.html</div>
-        <div class="ds">1인칭으로 방을 걸으며 외움.</div></div>
+    </div>
+  </div>
+
+  <div class="down">▼ <span style="font-size:11px;color:var(--muted);font-weight:700">입장 누르면</span></div>
+
+  <!-- ④ 장소로 이동 (3D 지도) -->
+  <div class="stage">
+    <div class="st-h"><span class="st-n">4</span><span class="st-t">그 장소로 이동 (3D 지도)</span><span class="st-d">'입장' = 그 랜드마크로</span></div>
+    <div class="row">
+      <div class="node key"><div class="nm">🗺 3D 지도</div><div class="file">vworld_map.html?focus=…</div>
+        <div class="ds">'입장'을 누르면 그 챕터의 <b>랜드마크로 날아가</b> 선택됩니다(선택 분기 아님, 입장 경로). 우측 패널 = <b>도시 · 학습자료(PDF) · 그 명소의 챕터·학습항목</b>. 마커는 선명한 핀+이름표.</div>
+        <div class="branch"><span class="pill a">▶ 건물 입장 → 구성한 방</span></div></div>
     </div>
   </div>
 
   <div class="down">▼</div>
 
-  <!-- ④ 체험 -->
+  <!-- ⑤ 체험 -->
   <div class="stage">
-    <div class="st-h"><span class="st-n">4</span><span class="st-t">체험 (방 안)</span><span class="st-d">장소법으로 기억</span></div>
+    <div class="st-h"><span class="st-n">5</span><span class="st-t">체험 (방 안)</span><span class="st-d">장소법으로 기억</span></div>
     <div class="row">
       <div class="node key"><div class="nm">🚶 1인칭 워크스루</div><div class="file">memory-walk.html</div>
         <div class="ds">방 GLB를 WASD로 걷고, 가구·지점(핫스팟)에 학습 개념이 얹힘. 🧠 개념지도(2D 대시보드)로 배치 편집. 좌상단 처음/지도/뒤로.</div>

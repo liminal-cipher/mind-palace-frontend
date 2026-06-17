@@ -192,6 +192,13 @@
     if(lm.icon||CITY==="jongno") p.set("lm", lm.id); else { p.set("lmName", lm.name); if(lm.desc) p.set("lmDesc", lm.desc); }
     return "memory-walk.html?"+p.toString();
   }
+  // '입장'은 그 챕터의 랜드마크가 있는 3D 지도로 → 거기서 '건물 입장'으로 방에 들어감
+  function mapUrl(ci){
+    const st=chapState[ci]; const lm=(LIB.landmarks||[]).find(l=>l.id===st.lmId);
+    const p=new URLSearchParams(); p.set("city", CITY);
+    if(lm) p.set("focus", lm.name||lm.id);
+    return "vworld_map.html?"+p.toString();
+  }
 
   function renderCard(ci){
     const ch=PAL.rooms[ci]; const st=chapState[ci];
@@ -239,7 +246,7 @@
       dic.innerHTML = d2.thumb ? `<img src="${esc(d2.thumb)}" alt="" onerror="this.parentNode.textContent='${d2.emoji}'">` : `<span style="font-size:22px">${d2.emoji}</span>`;
       card.querySelector("[data-dnm]").textContent=d2.label;
       card.querySelector("[data-drg]").textContent=d2.style||"";
-      card.querySelector("[data-enter]").href=entryUrl(ci);
+      card.querySelector("[data-enter]").href=mapUrl(ci);
       const sd=card.querySelector("[data-studio]");
       if(sd) sd.href=`glb-customizer.html?city=${encodeURIComponent(CITY)}&lm=${encodeURIComponent(lm2.id||"")}&lmName=${encodeURIComponent(lm2.name||"")}&room=${encodeURIComponent(ch.id||"")}&design=${encodeURIComponent(st.designId||"")}`;
     };
@@ -251,7 +258,7 @@
   }
 
   function updateStart(){
-    const first=PAL.rooms&&PAL.rooms.length?entryUrl(0):"#";
+    const first=PAL.rooms&&PAL.rooms.length?mapUrl(0):"#";
     $("startBtn").href=first;
     $("mapLink").href=$("mapLink2").href=`vworld_map.html?city=${encodeURIComponent(CITY)}`;
   }
