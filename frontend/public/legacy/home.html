@@ -4570,16 +4570,16 @@ end of keeper CSS */
 
 
 <script>
-/* 일방통행 파이프라인 통합: PDF 업로드 -> (외부 GraphRAG = palace.json) -> 구성(compose) */
+/* 일방통행 파이프라인: PDF 업로드 -> (외부 GraphRAG = palace.json) -> 도시 선택 허브 -> 구성(compose) */
 (function(){
-  var COMPOSE = "compose.html";
+  var NEXT = "region-select.html";   // 업로드 후 도시 선택 허브로(갤러리·지도·AI 추천) → 거기서 구성으로
   var inp = document.getElementById("pdfFileInput");
   if (inp) inp.setAttribute("accept", ".pdf,.json,application/pdf,application/json");
   if (inp) inp.addEventListener("change", function(){
     var f = inp.files && inp.files[0];
     var btn = document.getElementById("uploadPdfBtn");
     if (f && btn){ btn.disabled = false;
-      var st=document.getElementById("uploadStatus"); if(st){ st.className="upload-status-text success"; st.innerHTML="<strong>"+f.name+"</strong> 준비됨 — '업로드 시작'을 누르면 구성으로 이동합니다."; }
+      var st=document.getElementById("uploadStatus"); if(st){ st.className="upload-status-text success"; st.innerHTML="<strong>"+f.name+"</strong> 준비됨 — '업로드 시작'을 누르면 도시 선택으로 이동합니다."; }
       var bs=document.getElementById("backendState"); if(bs) bs.textContent="파일 선택됨";
       var vs=document.getElementById("uploadVisibleStatus"); if(vs){ vs.className="upload-visible-status success"; vs.textContent=f.name+" 준비됨"; }
     }
@@ -4589,12 +4589,12 @@ end of keeper CSS */
     e.preventDefault(); e.stopImmediatePropagation();
     var f = inp && inp.files && inp.files[0];
     try {
-      var st=document.getElementById("uploadStatus"); if(st){ st.className="upload-status-text success"; st.innerHTML="학습 자료를 기억의 궁전으로 구성하는 중…"; }
-      var bs=document.getElementById("backendState"); if(bs) bs.textContent="구성 준비";
+      var st=document.getElementById("uploadStatus"); if(st){ st.className="upload-status-text success"; st.innerHTML="학습 자료를 기억의 궁전으로 준비하는 중…"; }
+      var bs=document.getElementById("backendState"); if(bs) bs.textContent="도시 선택 준비";
       var pg=document.getElementById("uploadProgress"); if(pg) pg.style.width="100%";
-      var vs=document.getElementById("uploadVisibleStatus"); if(vs){ vs.className="upload-visible-status success"; vs.textContent="구성 화면으로 이동합니다…"; }
+      var vs=document.getElementById("uploadVisibleStatus"); if(vs){ vs.className="upload-visible-status success"; vs.textContent="도시 선택으로 이동합니다…"; }
     } catch(_){}
-    var go=function(){ location.href=COMPOSE; };
+    var go=function(){ location.href=NEXT; };
     if (f && /\.json$/i.test(f.name)){
       var rd=new FileReader();
       rd.onload=function(){ try{ sessionStorage.setItem("mp_palace", rd.result); localStorage.setItem("mp_palace", rd.result); }catch(_){} setTimeout(go,650); };

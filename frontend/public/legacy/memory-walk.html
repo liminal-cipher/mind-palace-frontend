@@ -4,6 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>기억 궁전 워크스루 — 1인칭 WASD 동선</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/static/pretendard.min.css" />
   <!--
     memory-walk.html — 1인칭(WASD)으로 방을 걸으며 "기억 궁전"을 체험하는 뷰어.
       입력 = GLB 방(가구 분리) + 팰리스 JSON(암기 엔티티: 측우기·이순신 …).
@@ -73,7 +75,7 @@
     .card .furn{margin:8px 0 0;font-size:12px;font-weight:700;color:var(--gold);
                 display:inline-block;border:1px solid rgba(138,129,112,.35);border-radius:8px;padding:4px 9px;}
     .card .cap{color:var(--accent);font-size:13px;font-weight:700;margin:9px 0 0;}
-    .card .desc{color:var(--muted);font-size:13px;line-height:1.66;margin:10px 0 0;}
+    .card .desc{color:var(--muted);font-size:13px;line-height:1.66;margin:10px 0 0;white-space:pre-line;}
     .card .rel{margin-top:14px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
     .card .rel .lab{font-size:11px;color:var(--muted);margin-right:2px;}
     .card .cardacts{margin-top:14px;display:flex;gap:8px;}
@@ -135,6 +137,52 @@
     .erow .btn.danger:hover{border-color:#e08c8c;color:#e08c8c;}
     .enote{color:var(--muted);font-size:11.5px;line-height:1.55;margin:0;}
     .enote b{color:var(--accent);}
+    /* 개념 지도 상세 패널 — 노드 클릭 시 이미지·캡션·설명 + 이름수정·삭제 */
+    .edetail{position:absolute;top:52px;right:16px;width:min(290px,calc(100% - 32px));z-index:6;
+      background:var(--panel2);border:1px solid var(--line);border-radius:14px;overflow:hidden;
+      box-shadow:0 16px 44px rgba(40,34,26,.2);display:none;}
+    .edetail.on{display:block;}
+    .edetail .bar{display:block;height:3px;background:linear-gradient(90deg,var(--gold),var(--accent));}
+    .edetail .eclose{position:absolute;top:7px;right:11px;background:none;border:none;color:var(--muted);font-size:16px;line-height:1;cursor:pointer;}
+    .edetail .eclose:hover{color:var(--text);}
+    .edetail .eb{padding:13px 15px 15px;}
+    .edetail .ehd{display:flex;align-items:center;gap:9px;}
+    .edetail .enum{flex:none;width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+      background:radial-gradient(circle at 30% 25%,rgba(44,122,99,.22),rgba(44,122,99,.06));border:1.5px solid var(--accent);font-weight:800;font-size:13px;}
+    .edetail .etype{font-size:10px;font-weight:800;letter-spacing:.05em;color:var(--gold);border:1px solid rgba(138,129,112,.4);border-radius:999px;padding:2px 9px;}
+    .edetail h3{margin:11px 0 0;font-size:18px;font-weight:800;letter-spacing:-.01em;}
+    .edetail .efurn{margin:7px 0 0;font-size:11.5px;font-weight:700;color:var(--gold);display:inline-block;border:1px solid rgba(138,129,112,.35);border-radius:8px;padding:3px 8px;}
+    .edetail .eimg{width:100%;max-height:150px;object-fit:cover;border-radius:10px;margin:9px 0 2px;display:block;border:1px solid var(--line);}
+    .edetail .eimg[hidden]{display:none;}
+    .edetail .ecap{color:var(--accent);font-size:12.5px;font-weight:700;margin:8px 0 0;}
+    .edetail .edesc{color:var(--muted);font-size:12.5px;line-height:1.65;margin:8px 0 0;white-space:pre-line;}
+    .edetail .eacts{margin-top:13px;display:flex;gap:7px;}
+    .edetail .ea{flex:1;border:1px solid var(--line);border-radius:9px;background:rgba(51,46,40,.05);color:var(--text);font:inherit;font-size:12px;font-weight:700;padding:7px 9px;cursor:pointer;transition:border-color .15s,background .15s,color .15s;}
+    .edetail .ea:hover{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);}
+    .edetail .ea.danger:hover{border-color:#c0463e;color:#c0463e;background:rgba(192,70,62,.1);}
+    /* 첫 입장 학습 가이드(튜토리얼) */
+    .tutsheet{width:min(460px,calc(100vw - 28px));max-height:90vh;padding:0;overflow:hidden;display:flex;flex-direction:column;}
+    .tuthd{padding:20px 22px 14px;border-bottom:1px solid var(--line);}
+    .tuthd h2{margin:8px 0 4px;font-size:21px;font-weight:800;letter-spacing:-.01em;}
+    .tuthd p{margin:0;color:var(--muted);font-size:12.5px;line-height:1.5;}
+    .tutbody{padding:16px 22px;overflow:auto;display:flex;flex-direction:column;gap:14px;}
+    .tutsteps{margin:0;padding:0;list-style:none;counter-reset:ts;display:flex;flex-direction:column;gap:11px;}
+    .tutsteps li{position:relative;padding:2px 0 0 38px;font-size:13.5px;line-height:1.6;color:var(--text);counter-increment:ts;}
+    .tutsteps li::before{content:counter(ts);position:absolute;left:0;top:0;width:26px;height:26px;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:#fff;background:linear-gradient(180deg,var(--accent),var(--accent2));}
+    .tutsteps li b{color:var(--accent);}
+    .tutorder-wrap{background:rgba(51,46,40,.04);border:1px solid var(--line);border-radius:12px;padding:12px 14px;}
+    .tutorder-h{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;}
+    .tutorder{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px;}
+    .tutorder li{font-size:12.5px;font-weight:700;color:var(--text);background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px 11px;}
+    .tutorder li b{color:var(--accent);margin-right:4px;}
+    .tuttip{margin:0;font-size:12.5px;color:var(--muted);line-height:1.55;background:color-mix(in srgb,var(--gold) 12%,transparent);border-radius:10px;padding:10px 12px;}
+    .tuttip b{color:var(--gold);}
+    .tutfoot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 22px 18px;border-top:1px solid var(--line);}
+    .tutdont{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--muted);cursor:pointer;user-select:none;}
+    .tutdont input{width:15px;height:15px;accent-color:var(--accent);cursor:pointer;}
+    .tutfoot .btn{border:none;border-radius:11px;background:linear-gradient(180deg,var(--accent),var(--accent2));color:#fff;font:inherit;font-weight:800;font-size:13.5px;padding:10px 20px;cursor:pointer;transition:.15s;}
+    .tutfoot .btn:hover{filter:brightness(1.08);}
     /* 인식 가구 목록(팝업) — 미니맵 위로 */
     .fab{position:fixed;right:16px;bottom:206px;padding:9px 14px;border-radius:12px;color:var(--text);
          font:inherit;font-weight:800;font-size:12.5px;cursor:pointer;display:none;align-items:center;gap:6px;}
@@ -231,12 +279,54 @@
   <canvas class="mini" id="miniCv" width="176" height="176" title="개념 지도 보기 — 사물·개념의 실제 배치"></canvas>
 
   <!-- 개념 지도 — 사물과 개념(공부 항목)의 실제 위치를 닮은 2D 지도 + 편집 -->
+  <div class="modal" id="tutModal">
+    <div class="panel tutsheet">
+      <div class="tuthd">
+        <span class="kicker">기억궁전 학습법</span>
+        <h2 id="tutTitle">학습 시작 가이드</h2>
+        <p id="tutSub"></p>
+      </div>
+      <div class="tutbody">
+        <ol class="tutsteps">
+          <li><b>둘러보기</b> — 방을 한 바퀴 둘러보세요. 가구 하나하나가 개념을 거는 <b>못(고리)</b>이 됩니다.</li>
+          <li><b>순서대로 걷기</b> — 아래 <b>다음 →</b>으로 1번부터 끝까지. 매번 <b>같은 길</b>로 걸어야 순서가 기억에 박힙니다.</li>
+          <li><b>연결해 외우기</b> — 각 지점에서 멈춰 <b>가구 ↔ 개념</b>을 한 문장 이야기로 엮으세요. 금색 점선은 개념 간 연결입니다.</li>
+        </ol>
+        <div class="tutorder-wrap">
+          <div class="tutorder-h">오늘의 동선 — 개념 순서</div>
+          <ol class="tutorder" id="tutOrder"></ol>
+        </div>
+        <p class="tuttip">💡 같은 길을 <b>3번</b> 걸으면 순서가 손에 익습니다. 처음엔 천천히 의미를 새기고, 두 번째부터는 빠르게 훑으세요.</p>
+      </div>
+      <div class="tutfoot">
+        <label class="tutdont"><input type="checkbox" id="tutDont" /> 다시 보지 않기</label>
+        <button class="btn" id="tutStart">시작하기 →</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal" id="editModal">
     <div class="panel esheet">
       <div class="ehead">
         <span class="kicker">개념 지도 — 사물·개념의 실제 배치</span>
         <button class="mx" id="editClose">✕</button>
       </div>
+      <aside class="edetail" id="eDetail">
+        <span class="bar"></span>
+        <button class="eclose" id="eDetClose" title="닫기">✕</button>
+        <div class="eb">
+          <div class="ehd"><span class="enum" id="eDetNum">1</span><span class="etype" id="eDetType"></span></div>
+          <h3 id="eDetTitle"></h3>
+          <span class="efurn" id="eDetFurn"></span>
+          <img class="eimg" id="eDetImg" hidden alt="" />
+          <div class="ecap" id="eDetCap"></div>
+          <div class="edesc" id="eDetDesc"></div>
+          <div class="eacts">
+            <button class="ea" id="eDetRename">✎ 이름수정</button>
+            <button class="ea danger" id="eDetDel">🗑 삭제</button>
+          </div>
+        </div>
+      </aside>
       <div class="ebody">
         <p class="enote"><b>금색=개념</b> · 점선=연결 · 빨강=내 위치·시선 · <b>휠=줌</b>(확대하면 개념 설명 펼침) ·
            빈 곳 드래그=지도 이동 · <b>점 드래그</b>=핫스팟 이동 · 빈 곳 클릭=추가 · 더블클릭=삭제</p>
@@ -491,8 +581,8 @@
         if (/floor|wall|house|ceiling|structure|\broom\b/i.test(c.name||"")) hasOwnRoom = true;
         if (c.name && FURN_RE.test(c.name) && !/^None/i.test(c.name)) {
           const b = new THREE.Box3().setFromObject(c);
-          if (!b.isEmpty()) anchors.push({ pos: b.getCenter(new THREE.Vector3()), name: c.name,
-            label: (c.name.match(FURN_RE) || ["object"])[0].toLowerCase() });
+          if (!b.isEmpty()) { const lb = (c.name.match(FURN_RE) || ["object"])[0].toLowerCase();
+            anchors.push({ pos: b.getCenter(new THREE.Vector3()), name: c.name, label: lb, ko: furnKO(lb) }); }
         }
       });
       // 가구 인식: 이름표(FURN_RE) 앵커 + 메쉬 지오메트리(바운딩박스 중심)로 실제 가구를 추가 검출.
@@ -508,14 +598,16 @@
           const b = new THREE.Box3().setFromObject(c); if (b.isEmpty()) return;
           const s = b.getSize(new THREE.Vector3()), maxd = Math.max(s.x, s.y, s.z);
           if (maxd < roomMax * 0.03 || maxd > roomMax * 0.92) return; // 소품(너무 작음)·구조물(너무 큼) 제외
-          cand.push({ pos: b.getCenter(new THREE.Vector3()), name: c.name || "object", vol: s.x * s.y * s.z });
+          cand.push({ pos: b.getCenter(new THREE.Vector3()), name: c.name || "object", vol: s.x * s.y * s.z,
+            ko: (() => { const k = inferFurnLabel(c); return k ? furnKO(k) : null; })() }); // 계층 이름에서 가구명 추론
         });
         cand.sort((a, b) => b.vol - a.vol); // 큰 가구 우선
         const MINSEP = roomMax * 0.07;      // ≈0.5m: 가까운 분할 메쉬는 하나로(공간 디클러스터)
-        let gi = 0;
+        let gi = 0, un = 0;                  // gi=고유 내부라벨 카운터 · un=이름 추론 실패한 무명 가구 번호
         for (const c of cand) {
           if (anchors.length >= TARGET) break;
-          if (anchors.every(a => a.pos.distanceTo(c.pos) > MINSEP)) anchors.push({ pos: c.pos, name: c.name, label: "obj" + (gi++) }); // 고유 라벨 → 후속 mergeAnchors에 안 뭉침
+          // label=고유("obj"+i, 병합/다양성 파이프라인용) · ko=표시용 한글명(추론 성공=실제 가구명, 실패="가구 N")
+          if (anchors.every(a => a.pos.distanceTo(c.pos) > MINSEP)) anchors.push({ pos: c.pos, name: c.name, label: "obj" + (gi++), ko: c.ko || ("가구 " + (++un)) });
         }
       }
       scene.add(model);
@@ -576,7 +668,7 @@
       if (ov && ov.length) {
         anchors = ov.map(h => ({ pos: new THREE.Vector3(...h.markerPosition),
           label: String(h.detectedClass || h.object || "object").toLowerCase(), name: h.object || "",
-          entityId: h.entityId || null }));
+          ko: h.ko || furnKO(h.detectedClass || h.object || ""), entityId: h.entityId || null }));
         anchorsPreOrdered = true;   // 저장된 슬롯 순서 = 사용자가 정한 동선
         setStatus(`✎ 사용자 편집 핫스팟 ${anchors.length}개 적용 (개념 지도 클릭=편집)`);
         loadPalaceThenBuild();
@@ -589,7 +681,7 @@
           if (hs.length) {
             anchors = hs.map(h => ({ pos: new THREE.Vector3(...h.markerPosition),
               label: String(h.detectedClass || h.object || "object").toLowerCase(), name: h.object || "",
-              conf: (typeof h.confidence === "number" ? h.confidence : 0.5) }));
+              ko: furnKO(h.detectedClass || h.object || ""), conf: (typeof h.confidence === "number" ? h.confidence : 0.5) }));
             if (j.manualOrder) anchorsPreOrdered = true;   // manualOrder만 수동 순서 존중(그 외엔 동선 설계 파이프라인)
             setStatus(`스캐너 핫스팟 ${anchors.length}개로 동선 구성${j.manualOrder ? " (수동 순서)" : " (자동 동선)"}`);
           }
@@ -624,6 +716,28 @@
       buildRoute(entities);
     }
 
+    // 첫 입장 학습 가이드 — 업로드한 PDF/학습자료의 개념을 동선 순서로 보여주고 기억궁전 공부법을 안내.
+    //   전역 "다시 보지 않기"(localStorage) 전까지 노출. 한 방은 세션당 1회만(반복 새로고침 시 재노출 방지).
+    function maybeTutorial(route) {
+      try { if (localStorage.getItem("mw_tut_off") === "1") return; } catch(_) {}
+      const seenKey = "mw_tut_seen:" + ROOM_GLB;
+      try { if (sessionStorage.getItem(seenKey) === "1") return; } catch(_) {}
+      const concepts = route.filter(h => h.entity).map(h => h.entity.title);
+      if (!concepts.length) return;   // 학습 항목이 없으면(가구만) 가이드 생략
+      const palaceT = ($("palaceTitle").textContent || "기억 궁전").trim();
+      const roomT = (THEME && THEME.name) || palaceT;
+      $("tutTitle").textContent = roomT + " · 학습 시작 가이드";
+      $("tutSub").textContent = `${palaceT} — 오늘 외울 개념 ${concepts.length}개를 동선을 따라 익힙니다.`;
+      $("tutOrder").innerHTML = concepts.map((c, i) => `<li><b>${i + 1}</b>${c}</li>`).join("");
+      try { sessionStorage.setItem(seenKey, "1"); } catch(_) {}
+      $("tutModal").classList.add("open");
+    }
+    $("tutStart").onclick = () => {
+      if ($("tutDont").checked) { try { localStorage.setItem("mw_tut_off", "1"); } catch(_) {} }
+      $("tutModal").classList.remove("open");
+    };
+    $("tutModal").addEventListener("click", e => { if (e.target === $("tutModal")) $("tutModal").classList.remove("open"); });
+
     // 스튜디오에서 사용자가 바꾼 학습 항목 순서(localStorage 공유 키)를 동선에 반영
     function applyStudioOrder(room, entities){
       try {
@@ -646,7 +760,9 @@
       return s.length ? (s.length%2 ? s[m] : (s[m-1]+s[m])/2) : 0; };
     // 정면 고정물(먼저 보게 됨) — 칠판·교탁·스크린·창문·문·수납/사물함·싱크/냉장고 등
     const FIXTURE_RE = /board|chalk|white\s*board|black\s*board|screen|tv|projector|podium|teacher|window|door|cabinet|locker|shelf|sink|fridge|refriger|stove|oven|counter|칠판|교탁|스크린|창|문|수납|사물함|선반|싱크|냉장고|가스|오븐/i;
-    function dispName(h){ return (h && h.disp) || furnKO(h.label); }   // 중복엔 시점 기준 라벨, 아니면 클래스명
+    function dispName(h){ return (h && (h.disp || h.ko)) || furnKO(h && h.label); }   // 중복엔 시점 라벨 > 한글 가구명(ko) > 클래스명
+    // 문장 단위 줄바꿈 — 마침표/물음표/느낌표 뒤에서 줄을 나눠 설명문을 단락화(가독성↑). 표시 요소엔 CSS white-space:pre-line 필요.
+    function paraBreak(t){ return String(t||"").replace(/\s+/g," ").trim().replace(/([.!?…。])\s+/g, "$1\n"); }
 
     // ── 전역 공간 디클러스터링 ──
     //   클래스가 달라도 한 사물/구역(책상 위 의자·컵·모니터 등)에 마커가 몰리는 문제 해결.
@@ -756,7 +872,7 @@
               const x = bounds.min.x + pad + (s0.x - 2 * pad) * (cols > 1 ? c / (cols - 1) : 0.5);
               const z = bounds.min.z + pad + (s0.z - 2 * pad) * (rows > 1 ? r / (rows - 1) : 0.5);
               if (anchors.every(a => Math.hypot(a.pos.x - x, a.pos.z - z) > minSep))
-                anchors.push({ pos: new THREE.Vector3(x, yy, z), name: "기억 지점", label: "spot" });
+                anchors.push({ pos: new THREE.Vector3(x, yy, z), name: "기억 지점", label: "spot", ko: "기억 지점" });
             }
         }
       }
@@ -789,7 +905,7 @@
       //     공중에 떠 사물과 분리돼 보였음. → 폐기)
       route = ordered.map((a, i) => {
         const p = a.pos.clone();
-        return { pos: p, label: a.label, name: a.name, disp: a.disp || null, entity: entOf.get(a) || null, number: i+1, eye: p.clone() };
+        return { pos: p, label: a.label, name: a.name, ko: a.ko || null, disp: a.disp || null, entity: entOf.get(a) || null, number: i+1, eye: p.clone() };
       });
       // 겹쳐 보이는 마커(같은 XZ 0.4m 내)만 황금각 나선으로 x,z 살짝 흩음.
       const _cl = [];
@@ -828,6 +944,7 @@
       setStatus(`동선 ${route.length}개 지점 · 학습 ${mapped}개 배치 · <b>다음 →</b>으로 투어 시작`);
       activeIdx = -1; renderDots(-1); roomEntryView(true);   // 첫 화면 = 방 안 눈높이(정면 광화문·마커, 다음 →으로 투어)
       if (DASH) { try { openEditor(); } catch(e){ console.warn("dash openEditor 실패", e); } }   // 임베드 모드: 2D 대시보드 자동 표시
+      else maybeTutorial(route);   // 첫 입장 학습 가이드(공부법·순서) — "다시 보지 않기" 전까지
     }
     // 방 전체가 한눈에 들어오는 넓은 조망(첫 화면·둘러보기). 방 안 모서리·천장 바로 아래에서
     //   반대편을 내려다본다 → 천장이 닫힌 방(cozy)도 내부가 다 보인다. instant=true면 즉시.
@@ -959,14 +1076,42 @@
       if (msg) setStatus(msg);
     }
 
-    // 가구 라벨 → 한글(공부 항목이 "어느 가구"에 매칭됐는지 카드에 명시)
-    const FURN_KO = { "dining table":"식탁", table:"식탁", desk:"책상", chair:"의자", seat:"의자", sofa:"소파", couch:"소파",
-      cabinet:"수납장", shelf:"선반", bookcase:"책장", bookshelf:"책장", bed:"침대", lamp:"조명", lighting:"조명",
-      "potted plant":"화분", plant:"화분", vase:"꽃병", jar:"병", bowl:"그릇", candle:"촛대", window:"창문",
-      sink:"싱크대", painting:"그림", carpet:"러그", rug:"러그", bench:"벤치", stool:"스툴", mirror:"거울",
-      wardrobe:"옷장", nightstand:"협탁", stand:"거치대", pillow:"쿠션", cushion:"쿠션",
-      stove:"가스레인지", oven:"오븐", refrigerator:"냉장고", television:"TV", cup:"컵", clock:"시계" };
+    // 가구 라벨 → 한글(공부 항목이 "어느 가구"에 매칭됐는지 카드에 명시).
+    //   includes()로 부분일치 → 구체 키(coffee table)를 일반 키(table)보다 먼저 둬 우선 매칭되게 함.
+    const FURN_KO = {
+      "dining table":"식탁", "coffee table":"커피테이블", "side table":"사이드테이블",
+      "tv stand":"TV장", "tv cabinet":"TV장", "night stand":"협탁", "nightstand":"협탁",
+      "book case":"책장", "bookcase":"책장", "book shelf":"책장", "bookshelf":"책장",
+      "armchair":"안락의자", "arm chair":"안락의자", "office chair":"의자",
+      "bar stool":"바스툴", "barstool":"바스툴", "loveseat":"2인소파", "ottoman":"오토만",
+      "wardrobe":"옷장", "dresser":"서랍장", "drawer":"서랍장", "chest":"수납장",
+      "console":"콘솔장", "sideboard":"수납장", "counter":"카운터",
+      "refrigerator":"냉장고", "refriger":"냉장고", "fridge":"냉장고", "microwave":"전자레인지",
+      "stove":"가스레인지", "oven":"오븐", "sink":"싱크대",
+      "toilet":"변기", "bathtub":"욕조", "bath tub":"욕조", "shower":"샤워부스",
+      "floor lamp":"플로어램프", "table lamp":"테이블램프", "ceiling lamp":"천장조명",
+      "pendant":"펜던트조명", "chandelier":"샹들리에", "lamp":"조명", "lighting":"조명", "light":"조명",
+      "sofa":"소파", "couch":"소파", "bench":"벤치", "stool":"스툴",
+      "chair":"의자", "seat":"의자", "bed":"침대", "desk":"책상", "table":"테이블",
+      "cabinet":"수납장", "shelf":"선반", "rack":"선반", "stand":"거치대",
+      "potted plant":"화분", "plant":"화분", "vase":"꽃병", "jar":"항아리", "bowl":"그릇", "candle":"촛대",
+      "window":"창문", "curtain":"커튼", "mirror":"거울",
+      "painting":"그림", "picture":"그림", "frame":"액자", "poster":"포스터", "clock":"시계",
+      "carpet":"러그", "rug":"러그", "pillow":"쿠션", "cushion":"쿠션", "blanket":"담요",
+      "television":"TV", "monitor":"모니터", "laptop":"노트북", "computer":"컴퓨터", "speaker":"스피커",
+      "piano":"피아노", "guitar":"기타", "trash":"휴지통", "cup":"컵", "book":"책" };
     const furnKO = label => { const l = String(label||"").toLowerCase(); for (const k in FURN_KO) if (l.includes(k)) return FURN_KO[k]; return label || "가구"; };
+    // 노드 이름이 가구 종류를 안 담아도(예: "Object_12"), 부모 그룹·조상 이름까지 훑어 종류를 추론.
+    //   3D-FRONT·DiffuScene·Sketchfab GLB는 부모 노드/그룹명에 "Sofa_01" 같은 종류가 흔히 들어있음.
+    //   머티리얼명("Material","Wood")은 오탐이 많아 제외. 매칭=영문 키 반환(→furnKO로 한글화), 실패=null.
+    function inferFurnLabel(node){
+      let s = " " + (node.name || "");
+      let p = node.parent, hops = 0;
+      while (p && hops < 4) { if (p.name) s += " " + p.name; p = p.parent; hops++; }
+      s = s.toLowerCase().replace(/[_\-.]+/g, " ");
+      for (const k in FURN_KO) if (s.includes(k)) return k;
+      return null;
+    }
 
     // 인식된 모든 가구 팝업 — 걷는 순번(1·2·3…)대로. 클릭=이동+개념 카드, ☰ 드래그=순서 변경.
     let dragRow = null;
@@ -1023,7 +1168,7 @@
         $("cFurn").textContent = `📍 ${dispName(h)}에 배치`;
         setCardImage(e.image || (THEME && THEME.cardImage) || "");   // 엔티티별 이미지 우선, 없으면 랜드마크 공통
         $("cCap").textContent = e.caption || "";
-        $("cDesc").textContent = e.description || "";
+        $("cDesc").textContent = paraBreak(e.description || "");
         if ((e.related||[]).length) {
           const lab = document.createElement("span"); lab.className="lab"; lab.textContent = "연결:"; rel.appendChild(lab);
           e.related.forEach(rid => {
@@ -1244,8 +1389,13 @@
     function c2e(cx, cz) { return [(cx - eOx) / eScale, (cz - eOz) / eScale]; }
     let eFit = 1;   // 방 전체가 들어오는 기준 배율(휠 줌의 기준점)
     function openEditor() {
-      editList = route.map(h => ({ label: h.label, name: h.name || "", x: h.pos.x, y: h.pos.y, z: h.pos.z,
+      editList = route.map(h => ({ label: h.label, name: h.name || "", ko: h.ko || null, disp: h.disp || null,
+        x: h.pos.x, y: h.pos.y, z: h.pos.z,
         ent: h.entity ? h.entity.title : null, entId: h.entity ? h.entity.id : null,
+        type: h.entity ? (h.entity.type || "") : "",
+        img: h.entity ? (h.entity.image || (THEME && THEME.cardImage) || "") : "",
+        cap: h.entity ? (h.entity.caption || "") : "",
+        desc: h.entity ? (h.entity.description || "") : "",
         capt: h.entity ? (h.entity.caption || h.entity.description || "") : null,
         rel: h.entity ? (h.entity.related || []) : [] }));
       const sz = bounds.getSize(new THREE.Vector3());
@@ -1254,6 +1404,7 @@
       eFit = eScale;
       const c = bounds.getCenter(new THREE.Vector3());
       eOx = Wc/2 - c.x * eScale; eOz = Hc/2 - c.z * eScale;
+      selENodeIdx = -1; $("eDetail").classList.remove("on");
       drawEditor();
       $("editModal").classList.add("open");
     }
@@ -1367,6 +1518,9 @@
           }
         }
       });
+      // 선택 강조 — 상세 패널이 열린 노드에 초록 링
+      if (selENodeIdx >= 0) { const sn = eNodes.find(n => n.i === selENodeIdx);
+        if (sn) { g.strokeStyle = "#2c7a63"; g.lineWidth = 2.5; g.beginPath(); g.arc(sn.dx, sn.dz, sn.r + 6, 0, 7); g.stroke(); } }
       // ⑦ 나 — 현재 위치 + 시선 방향
       const [mx, mz] = e2c(camera.position.x, camera.position.z);
       const fwd = new THREE.Vector3(); camera.getWorldDirection(fwd);
@@ -1419,14 +1573,18 @@
         const h = editList[dragIdx];
         h.y = snapY(h.x, h.z);            // 표면 스냅 — 그 자리 가구 위 높이로
         setStatusE(`#${dragIdx + 1} 이동 → 표면 높이 ${h.y.toFixed(2)}m 스냅`);
+        selectENode(dragIdx);
+      } else if (dragIdx >= 0 && !dragMovedE) {
+        selectENode(dragIdx);            // 노드 클릭 = 상세(이미지·캡션·설명) 보기 + 편집
       } else if (dragIdx < 0 && !dragMovedE) {
         // 빈 곳 클릭 = 추가
         const [cx, cz] = evPos(ev);
         let [wx, wz] = c2e(cx, cz);
         if (wx > bounds.min.x && wx < bounds.max.x && wz > bounds.min.z && wz < bounds.max.z) {
           const nm = ($("newName").value || "기억 지점").trim();
-          editList.push({ label: nm, name: nm, x: wx, y: snapY(wx, wz), z: wz });
+          editList.push({ label: nm, name: nm, ko: nm, x: wx, y: snapY(wx, wz), z: wz });
           setStatusE(`+ "${nm}" 추가 (${editList.length}개)`);
+          selectENode(editList.length - 1);   // 추가 즉시 선택 → 상세 패널에서 바로 편집
         }
       }
       dragIdx = -1; panLast = null; drawEditor();
@@ -1434,14 +1592,55 @@
     editCv.addEventListener("dblclick", ev => {
       const [cx, cz] = evPos(ev);
       const i = hitIdx(cx, cz);
-      if (i >= 0) { const nm = furnKO(editList[i].label); editList.splice(i, 1); setStatusE(`− "${nm}" 삭제`); drawEditor(); }
+      if (i >= 0) { const nm = dispName(editList[i]); editList.splice(i, 1); setStatusE(`− "${nm}" 삭제`);
+        if (selENodeIdx === i) closeEDetail(); else { if (selENodeIdx > i) selENodeIdx--; drawEditor(); } }
     });
     function setStatusE(t) { setStatus("✎ " + t); }
+    // 개념 지도 상세 패널 — 노드를 클릭하면 이미지·캡션·설명을 보여주고 이름수정·삭제 제공.
+    let selENodeIdx = -1;
+    function selectENode(i) {
+      const h = editList[i]; if (!h) { closeEDetail(); return; }
+      selENodeIdx = i;
+      $("eDetNum").textContent = i + 1;
+      if (h.ent) {
+        $("eDetType").textContent = h.type || "개념";
+        $("eDetTitle").textContent = h.ent;
+        $("eDetFurn").textContent = `📍 ${dispName(h)}에 배치`;
+        setEImg(h.img);
+        $("eDetCap").textContent = h.cap || "";
+        $("eDetDesc").textContent = paraBreak(h.desc || h.cap || "");
+      } else {
+        $("eDetType").textContent = "가구";
+        $("eDetTitle").textContent = dispName(h);
+        $("eDetFurn").textContent = `📍 ${i + 1}번째 지점 · 학습 항목 미배치`;
+        setEImg("");
+        $("eDetCap").textContent = "";
+        $("eDetDesc").textContent = "이 자리에 기억을 배치할 수 있어요.\n빈 곳을 클릭해 새 지점을 추가하고, 점을 끌어 옮기고, 아래 🗑로 삭제하세요.";
+      }
+      $("eDetail").classList.add("on");
+      drawEditor();
+    }
+    function setEImg(src) { const im = $("eDetImg"); if (src) { im.src = src; im.hidden = false; } else { im.hidden = true; im.removeAttribute("src"); } }
+    function closeEDetail() { selENodeIdx = -1; $("eDetail").classList.remove("on"); drawEditor(); }
+    $("eDetClose").onclick = closeEDetail;
+    $("eDetRename").onclick = () => {
+      if (selENodeIdx < 0) return; const h = editList[selENodeIdx];
+      const v = prompt("이 지점에 표시할 이름(가구·사물명):", h.ko || h.name || dispName(h));
+      if (v == null) return; const nm = v.trim(); if (!nm) return;
+      h.ko = nm; h.name = nm; h.disp = null;
+      setStatusE(`#${selENodeIdx + 1} 이름 → "${nm}"`);
+      selectENode(selENodeIdx);
+    };
+    $("eDetDel").onclick = () => {
+      if (selENodeIdx < 0) return; const nm = dispName(editList[selENodeIdx]);
+      editList.splice(selENodeIdx, 1); setStatusE(`− "${nm}" 삭제 (${editList.length}개)`);
+      closeEDetail();
+    };
     // 저장 = localStorage 오버라이드(스캐너 JSON과 동일 형식) → 리로드로 동선 재구성
     function editJSON() {
       return { source: "memory-walk manual edit", glb: ROOM_GLB,
         hotspots: editList.map((h, i) => ({ slot: i + 1, object: h.name || h.label, detectedClass: h.label,
-          confidence: 1, markerPosition: [ +h.x.toFixed(3), +h.y.toFixed(3), +h.z.toFixed(3) ],
+          ko: h.ko || dispName(h), confidence: 1, markerPosition: [ +h.x.toFixed(3), +h.y.toFixed(3), +h.z.toFixed(3) ],
           posMethod: "manual-edit", entityId: h.entId || null })) };
     }
     $("editSave").onclick = () => {
