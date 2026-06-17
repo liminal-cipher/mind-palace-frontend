@@ -76,6 +76,11 @@
     .card .desc{color:var(--muted);font-size:13px;line-height:1.66;margin:10px 0 0;}
     .card .rel{margin-top:14px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
     .card .rel .lab{font-size:11px;color:var(--muted);margin-right:2px;}
+    .card .cardacts{margin-top:14px;display:flex;gap:8px;}
+    .card .cact{flex:1;border:1px solid var(--line);border-radius:9px;background:rgba(51,46,40,.05);color:var(--text);font-size:12.5px;font-weight:700;padding:8px 10px;cursor:pointer;transition:border-color .15s,background .15s,color .15s;}
+    .card .cact:hover{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);}
+    .card .cact.on{border-color:var(--gold);color:var(--gold);background:color-mix(in srgb,var(--gold) 14%,transparent);}
+    .card .cact.danger:hover{border-color:#c0463e;color:#c0463e;background:rgba(192,70,62,.1);}
     .chip{border:1px solid var(--line);border-radius:999px;background:rgba(51,46,40,.05);
           color:var(--text);font:inherit;font-size:11.5px;font-weight:600;padding:5px 11px;cursor:pointer;transition:.15s;}
     .chip:hover{border-color:var(--accent);background:color-mix(in srgb, var(--accent) 12%, transparent);transform:translateY(-1px);}
@@ -202,6 +207,10 @@
       <div class="cap" id="cCap"></div>
       <div class="desc" id="cDesc"></div>
       <div class="rel" id="cRel"></div>
+      <div class="cardacts">
+        <button class="cact" id="cMove" title="이 마커를 화면에서 클릭한 자리로 옮기기">✥ 옮기기</button>
+        <button class="cact danger" id="cDel" title="이 마커를 삭제">🗑 삭제</button>
+      </div>
     </div>
   </aside>
 
@@ -1098,6 +1107,18 @@
           const lms = (cityData && cityData.landmarks) || [];
           const chapters = (pal && pal.rooms) || [];
           const jongnoRoom = {}; LANDMARK_ROOMS.forEach(r => jongnoRoom[r.lm] = r);   // jongno 큐레이트 방 매핑
+          // 타 도시: 그 랜드마크의 방(디자인)으로 직접 입장 — studio_designs > 랜드마크 room glb 추론 > 기본
+          const rd = await fetch("public/data/room-designs.json").then(r=>r.ok?r.json():null).catch(()=>null);
+          const DESIGNS = (rd&&rd.designs)||[], DBLOB = (rd&&rd.blobBase)||"";
+          const resolveGlb = g => g && g.indexOf("BLOB:")===0 ? (DBLOB+g.slice(5)) : g;
+          let STUDIO = {}; try { STUDIO = JSON.parse(localStorage.getItem("studio_designs")||"{}")[CUR_CITY]||{}; } catch(_){}
+          const designById = id => DESIGNS.find(d=>d.id===id);
+          const designForLm = (lm) => {
+            const a = STUDIO[lm.name]; if (a && designById(a)) return designById(a);
+            if (lm.room){ try { const u=new URLSearchParams(lm.room.split("?")[1]||""); const file=(u.get("glb")||"").split("/").pop();
+              const d=DESIGNS.find(d=>resolveGlb(d.glb).split("/").pop()===file||(d.glb||"").split("/").pop()===file); if(d) return d; } catch(_){} }
+            return DESIGNS[0]||null;
+          };
           menu.innerHTML = `<div class="rmhd">${esc((cityData && cityData.name) || CUR_CITY)} · 방 선택 · 지식 개념</div>`;
           if (!lms.length) { menu.innerHTML += `<div class="roomrow"><span class="rmtext"><span class="rmconcept">이 도시의 랜드마크 데이터가 없습니다.</span></span></div>`; return; }
           lms.slice(0, 12).forEach((lm, i) => {
@@ -1111,10 +1132,21 @@
               `<span class="rmname">${esc(lm.name||lmId)}${isCur ? " · 현재" : ""}</span>`+
               `<span class="rmconcept">${ch ? `<span class="b">챕터 ${i+1} · ${esc(ch.name)}</span>` + (items?`<br>${esc(items)}`:"") : "배정된 챕터 없음"}</span></span>`;
             if (!isCur) {
-              const jr = isJongno && jongnoRoom[lmId];
               const roomQ = ch && ch.id ? `&room=${encodeURIComponent(ch.id)}` : "";
-              if (jr) row.onclick = () => location.href = `memory-walk.html?glb=${jr.glb}&hotspots=${jr.hot}&lm=${lmId}&city=${encodeURIComponent(CUR_CITY)}${roomQ}`;
-              else    row.onclick = () => location.href = `vworld_map.html?city=${encodeURIComponent(CUR_CITY)}&focus=${encodeURIComponent(lm.name||lmId)}`; // 타 도시: 지도 경유(컨텍스트 정확)
+              const jr = isJongno && jongnoRoom[lmId];
+              if (jr) { row.onclick = () => location.href = `memory-walk.html?glb=${jr.glb}&hotspots=${jr.hot}&lm=${lmId}&city=${encodeURIComponent(CUR_CITY)}${roomQ}`; }
+              else {
+                const d = designForLm(lm);   // 타 도시도 그 방으로 직접 입장
+                if (d && d.glb) {
+                  const p = new URLSearchParams();
+                  p.set("glb", resolveGlb(d.glb)); if (d.hotspots) p.set("hotspots", d.hotspots);
+                  p.set("city", CUR_CITY); if (ch && ch.id) p.set("room", ch.id);
+                  if (lm.lmId) p.set("lm", lm.lmId); else { p.set("lmName", lm.name); if (lm.desc) p.set("lmDesc", lm.desc); }
+                  row.onclick = () => location.href = "memory-walk.html?" + p.toString();
+                } else {
+                  row.onclick = () => location.href = `vworld_map.html?city=${encodeURIComponent(CUR_CITY)}&focus=${encodeURIComponent(lm.name||lmId)}`;
+                }
+              }
             }
             menu.appendChild(row);
           });
@@ -1457,6 +1489,10 @@
       if (addMode) $("addBtn").onclick();
       if (moveMode) $("moveBtn").onclick();
     });
+
+    // 우측 개념 카드의 마커 옮기기/삭제 — 현재 선택(activeIdx) 마커에 적용
+    $("cMove").onclick = (e) => { e.stopPropagation(); $("moveBtn").onclick(); $("cMove").classList.toggle("on", moveMode); };
+    $("cDel").onclick = (e) => { e.stopPropagation(); if (activeIdx >= 0) deleteHotspot(activeIdx); };
 
     // ↶ 되돌리기 — 이동·추가·삭제·순서변경 직전 상태를 쌓아두고 마지막 변경을 취소.
     const undoStack = [];

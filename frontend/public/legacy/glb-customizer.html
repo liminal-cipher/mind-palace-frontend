@@ -732,7 +732,11 @@
       const want = P.get("lm"), wantName = P.get("lmName");
       const pre = (want && regionLms.find(l => l._lmId === want || l.name === want))
                || (wantName && regionLms.find(l => l.name === wantName)) || regionLms[0];
-      if (pre) selectLm(pre);
+      if (pre) {
+        const presetDesign = P.get("design");
+        if (presetDesign && designById(presetDesign) && !(loadAssign()[CITY]||{})[lmKey(pre)]) setDesignFor(pre, presetDesign); // compose에서 넘어온 방 seed(스튜디오 선택 있으면 보존)
+        selectLm(pre);
+      }
     });
   }).catch(e => { $("lmlist").innerHTML = `<p style="color:#8a8170;padding:10px">로드 실패: ${esc(e.message)}</p>`; });
 </script>

@@ -208,6 +208,11 @@
     if(st.designId) p.set("design", st.designId);
     return "glb-customizer.html?"+p.toString();
   }
+  // 방(디자인) 선택을 studio_designs(스튜디오·3D지도가 읽는 같은 키)에 저장/복원 → 어느 경로로 가도 방이 적용됨
+  function loadStudioMap(){ try { return JSON.parse(localStorage.getItem("studio_designs")||"{}")[CITY]||{}; } catch(_){ return {}; } }
+  function saveStudioDesign(name, designId){ if(!name||!designId) return; try { const o=JSON.parse(localStorage.getItem("studio_designs")||"{}"); (o[CITY]=o[CITY]||{})[name]=designId; localStorage.setItem("studio_designs", JSON.stringify(o)); } catch(_){} }
+  function lmNameOf(lmId){ const lm=(LIB.landmarks||[]).find(l=>l.id===lmId); return lm?lm.name:""; }
+  function restoreStudioDesigns(){ const o=loadStudioMap(); chapState.forEach(st=>{ const lm=(LIB.landmarks||[]).find(l=>l.id===st.lmId); if(lm&&o[lm.name]) st.designId=o[lm.name]; }); }
 
   function renderCard(ci){
     const ch=PAL.rooms[ci]; const st=chapState[ci];
@@ -257,8 +262,9 @@
       card.querySelector("[data-enter]").href=studioUrl(ci);
     };
     lmSel.addEventListener("change",()=>{ st.lmId=lmSel.value; const nlm=(LIB.landmarks||[]).find(l=>l.id===st.lmId);
-      st.designId=defaultDesignFor(nlm); dSel.value=st.designId; paint(); updateStart(); });
-    dSel.addEventListener("change",()=>{ st.designId=dSel.value; paint(); updateStart(); });
+      const saved=loadStudioMap()[nlm?nlm.name:""]; st.designId = saved || defaultDesignFor(nlm); dSel.value=st.designId;
+      saveStudioDesign(nlm?nlm.name:"", st.designId); paint(); updateStart(); });
+    dSel.addEventListener("change",()=>{ st.designId=dSel.value; saveStudioDesign(lmNameOf(st.lmId), st.designId); paint(); updateStart(); });
     paint();
     return card;
   }
@@ -308,7 +314,7 @@
       if (s) { try { PAL = JSON.parse(s); try { localStorage.setItem("mp_palace", s); } catch(_){} $("msg").textContent = "업로드한 학습자료로 구성했습니다."; } catch(_) { PAL = null; } }
       if (!PAL) PAL = await fetch(PALACE_URL).then(r=>r.json());
     }
-    computeAssign(); render();
+    computeAssign(); restoreStudioDesigns(); render();
     if(palaceFile) $("msg").textContent="학습자료 교체됨 — 구성 갱신.";
   }
 
