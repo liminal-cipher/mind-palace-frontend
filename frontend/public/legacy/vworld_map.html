@@ -891,8 +891,8 @@
       @media(max-width:980px){ .dash-dock a span.tx{display:none;} .dash-dock a{padding:9px;} }
     </style>
     <nav class="dash-dock" aria-label="대시보드 바로가기">
-      <a href="compose.html" title="학습 내용에 어울리는 방 고르기"><span class="di">🛍</span><span class="tx">방 디자인</span></a>
-      <a href="glb-customizer.html" title="방 GLB 모델 커스터마이즈"><span class="di">🧩</span><span class="tx">GLB 커스텀</span></a>
+      <a id="dashCompose" href="compose.html" title="학습 내용에 어울리는 방 고르기"><span class="di">🛍</span><span class="tx">방 디자인</span></a>
+      <a id="dashStudio" href="glb-customizer.html" title="방 GLB 모델 커스터마이즈"><span class="di">🧩</span><span class="tx">GLB 커스텀</span></a>
     </nav>
 
     <main class="palace-shell" aria-label="광화문 VWorld 기억궁전">
@@ -1435,7 +1435,7 @@
           lookDragging = true;
           lookLastX = e.position.x;
           lookLastY = e.position.y;
-        }, SSE.LEFT_DOWN);
+        }, SSE.RIGHT_DOWN);   // 시점 회전 = 우클릭 드래그(좌클릭은 마커 선택)
         lookHandler.setInputAction((e) => {
           if (!lookDragging) return;
           const dx = e.endPosition.x - lookLastX;
@@ -1450,7 +1450,8 @@
           cam.setView({ orientation: { heading, pitch, roll: 0 } });
           requestRender();
         }, SSE.MOUSE_MOVE);
-        lookHandler.setInputAction(() => { lookDragging = false; }, SSE.LEFT_UP);
+        lookHandler.setInputAction(() => { lookDragging = false; }, SSE.RIGHT_UP);
+        viewer.scene.canvas.addEventListener("contextmenu", (e) => e.preventDefault()); // 우드래그 회전 시 컨텍스트 메뉴 차단
 
         // 위쪽 시야각 한계만 유지(조작 종료 시 안전망) — 위치 경계 제한은 제거(지도 전체 탐색)
         viewer.camera.moveEnd.addEventListener(() => {
@@ -1719,6 +1720,11 @@
           card.innerHTML = `<strong>${escapeHtml(term)}</strong><span>${escapeHtml(description)}</span>`;
           list.appendChild(card);
         });
+
+        // 대시보드 링크(방 디자인/GLB 커스텀)가 현재 도시·선택 명소를 달고 가게 — 종로 강제 링크 제거
+        const _dc = qs("dashCompose"), _ds = qs("dashStudio");
+        if (_dc) _dc.href = "compose.html?city=" + encodeURIComponent(CITY_SLUG);
+        if (_ds) _ds.href = "glb-customizer.html?city=" + encodeURIComponent(CITY_SLUG) + (stop && stop.title ? "&lmName=" + encodeURIComponent(stop.title) : "");
 
         document.body.classList.toggle("labels-hidden", labelsHidden);
         qs("labelBtn").classList.toggle("active", labelsHidden);

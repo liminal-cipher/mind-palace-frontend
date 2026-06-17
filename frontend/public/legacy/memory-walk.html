@@ -173,7 +173,7 @@
 <body>
   <div id="scene"></div>
   <section class="panel top">
-    <button class="backbtn" id="backBtn">← 광화문 지도로</button>
+    <button class="backbtn" id="backBtn" title="이전 화면으로 돌아가기">← 돌아가기</button>
     <button class="backbtn" id="mapBtn" style="margin-left:6px" title="이 도시의 3D 지도로">🗺 지도</button>
     <a class="backbtn" id="firstBtn" href="home.html" style="margin-left:6px;text-decoration:none" title="처음 화면(시작)으로">🏠 처음</a>
     <button class="backbtn" id="nextRoomBtn" style="display:none;margin-left:6px">다음 방 ⏭</button>
@@ -245,7 +245,7 @@
     </div>
   </div>
 
-  <div class="hint">드래그=둘러보기 · <b>WASD=걷기</b> · Shift=달리기 · 마커/칩=이동 · <b>다음 →</b>=가이드 투어 · <b>🧠 개념 지도</b>=지식 배치 한눈에(우하단)</div>
+  <div class="hint"><b>우클릭 드래그</b>=둘러보기 · <b>WASD=걷기</b> · Shift=달리기 · 마커/칩=이동 · <b>다음 →</b>=가이드 투어 · <b>🧠 개념 지도</b>=지식 배치 한눈에(우하단)</div>
 
   <button class="panel fab" id="cmapBtn" style="bottom:248px">🧠 개념 지도</button>
   <button class="panel fab" id="listBtn">🪑 인식 가구 <span id="listCount"></span></button>
@@ -428,6 +428,9 @@
     controls.enableZoom = false;                                // 휠 줌(달리) 금지 — 방 안 고정, 이동은 WASD
     controls.minPolarAngle = THREE.MathUtils.degToRad(50);      // 위로 ~40°까지(하늘·랜드마크 상부)
     controls.maxPolarAngle = THREE.MathUtils.degToRad(135);     // 아래로 ~45°까지(바닥 마커) — 바닥 밑·천장 위로 못 넘어감
+    // 시점 회전 = 우클릭 드래그(좌클릭은 마커·UI 선택용). 우클릭 컨텍스트 메뉴 차단.
+    controls.mouseButtons = { LEFT: null, MIDDLE: null, RIGHT: THREE.MOUSE.ROTATE };
+    renderer.domElement.addEventListener("contextmenu", e => e.preventDefault());
 
     const loader = new GLTFLoader();
     const draco = new DRACOLoader();
@@ -483,10 +486,11 @@
             label: (c.name.match(FURN_RE) || ["object"])[0].toLowerCase() });
         }
       });
-      // 폴백: 가구 이름(FURN_RE) 앵커가 거의 없으면, 메쉬 지오메트리(바운딩박스 중심)에서 좌표를 자동 추출.
-      //  → 이름표 없는/명명규칙 다른 GLB(머지된 신규 방 등)도 Claude 개입 없이 런타임에 핫스팟 부착.
-      if (anchors.length < 3) {
-        const STRUCT_RE = /floor|wall|ceiling|house|structure|\broom\b|backdrop|background|skybox|stair|door\b/i;
+      // 가구 인식: 이름표(FURN_RE) 앵커 + 메쉬 지오메트리(바운딩박스 중심)로 실제 가구를 추가 검출.
+      //  → 어떤 GLB든(이름표 없거나 명명규칙 달라도) 정확도를 유지하며 최대 ~22개까지 인식. Claude 개입 불필요.
+      {
+        const TARGET = 22;   // 실제 메쉬 기반 인식 상한(노드 수 보장은 buildRoute의 합성이 별도 처리)
+        const STRUCT_RE = /floor|wall|ceiling|house|structure|\broom\b|backdrop|background|skybox|stair|door\b|curtain|window/i;
         const roomMax = 7.2; // 모델은 가로 7.2로 정규화됨(스캐너 좌표 호환)
         const cand = [];
         model.traverse(c => {
@@ -494,12 +498,16 @@
           if (STRUCT_RE.test(c.name || "")) return;
           const b = new THREE.Box3().setFromObject(c); if (b.isEmpty()) return;
           const s = b.getSize(new THREE.Vector3()), maxd = Math.max(s.x, s.y, s.z);
-          if (maxd < roomMax * 0.04 || maxd > roomMax * 0.9) return; // 소품·구조물 제외
-          cand.push({ pos: b.getCenter(new THREE.Vector3()), name: c.name || "object", label: "object", vol: s.x * s.y * s.z });
+          if (maxd < roomMax * 0.03 || maxd > roomMax * 0.92) return; // 소품(너무 작음)·구조물(너무 큼) 제외
+          cand.push({ pos: b.getCenter(new THREE.Vector3()), name: c.name || "object", vol: s.x * s.y * s.z });
         });
         cand.sort((a, b) => b.vol - a.vol); // 큰 가구 우선
-        const MINSEP = roomMax * 0.10;
-        cand.forEach(c => { if (anchors.every(a => a.pos.distanceTo(c.pos) > MINSEP)) anchors.push({ pos: c.pos, name: c.name, label: c.label }); });
+        const MINSEP = roomMax * 0.07;      // ≈0.5m: 가까운 분할 메쉬는 하나로(공간 디클러스터)
+        let gi = 0;
+        for (const c of cand) {
+          if (anchors.length >= TARGET) break;
+          if (anchors.every(a => a.pos.distanceTo(c.pos) > MINSEP)) anchors.push({ pos: c.pos, name: c.name, label: "obj" + (gi++) }); // 고유 라벨 → 후속 mergeAnchors에 안 뭉침
+        }
       }
       scene.add(model);
       bounds = new THREE.Box3(); model.traverse(c => { if (c.isMesh && c.visible) bounds.expandByObject(c); });
@@ -599,7 +607,7 @@
         $("palaceTitle").textContent = THEME.name;
         document.querySelector(".top .kicker").textContent = `Memory Palace · ${lmName}`;
         $("roomName").textContent = `${THEME.line} · ${room.name}`;
-        $("backBtn").textContent = `← ${lmName}으로`;
+        $("backBtn").textContent = "← 돌아가기";
         const ic = $("lmIcon"); if (ic) { ic.innerHTML = landmarkIcon(THEME); ic.hidden = false; ic.title = lmName; }  // 좌상단 정체성 아이콘(이름 추론)
       }
       let entities = (room.kept||[]).slice().sort((a,b)=>(a.rank||99)-(b.rank||99));
@@ -1067,57 +1075,50 @@
     ];
     (function setupRoomPicker() {
       const btn = $("nextRoomBtn"), menu = $("roomMenu");
+      const CUR_CITY = P.get("city") || "jongno";
+      const CUR_LMNAME = P.get("lmName") || "";
       btn.style.display = "inline-flex";
       btn.innerHTML = "⏭ 방 이동 ▾";
       btn.title = "다른 랜드마크 방으로 이동";
-      menu.innerHTML = `<div class="rmhd">랜드마크 방 선택 · 지식 개념</div>`;
-      const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-      const rowByLm = {};
-      LANDMARK_ROOMS.forEach(r => {
-        const th = LM_THEMES[r.lm], nm = th ? th.name : r.lm, isCur = (LM === r.lm);
-        const row = document.createElement("div");
-        row.className = "roomrow" + (isCur ? " cur" : "");
-        row.innerHTML = `<span class="ic">${landmarkIcon(th)}</span><span class="rmtext">`+
-          `<span class="rmname">${esc(nm)}${isCur ? " · 현재" : ""}</span>`+
-          `<span class="rmconcept" data-concept>학습 개념 불러오는 중…</span></span>`;
-        if (!isCur) row.onclick = () => location.href = `memory-walk.html?glb=${r.glb}&hotspots=${r.hot}&lm=${r.lm}`;
-        menu.appendChild(row); rowByLm[r.lm] = row;
-      });
+      menu.innerHTML = `<div class="rmhd">방 선택 · 지식 개념</div>`;
       btn.onclick = (e) => { e.stopPropagation(); menu.style.display = (menu.style.display === "none" ? "block" : "none"); };
       menu.addEventListener("click", e => e.stopPropagation());
       document.addEventListener("click", () => { menu.style.display = "none"; });
+      const esc = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
-      // 각 방의 "지식 개념"을 함께 표시 — 학습 팰리스(korean_history) 챕터를 규칙기반으로 랜드마크에 배정해
-      //   방마다 배정 챕터명 + 대표 개념 몇 개를 드롭다운에 보여준다(어떤 지식을 담은 방인지 보고 고르게).
-      (async function enrichConcepts(){
+      // 현재 도시의 랜드마크 + 활성 학습자료(업로드 PDF) 기반으로 구성 — 종로·korean_history 하드코딩 제거.
+      (async function build(){
         try {
-          const [lib, pal] = await Promise.all([
-            fetch("public/data/landmarks.json").then(r=>r.json()),
-            fetch("public/data/korean_history.palace.json").then(r=>r.ok?r.json():null)
-          ]);
-          if (!lib || !pal) throw 0;
-          const corpus = (pal.palace?.source?.corpus) || pal.palace?.title || "";
-          const chapters = pal.rooms || []; const used = new Set(); const byLm = {};
-          const score = (text, lm) => { const h = text.toLowerCase(); let s = 0;
-            (lm.tags||[]).forEach(t => { if (h.includes(String(t).toLowerCase())) s += 2; });
-            if (h.includes((lm.name||"").toLowerCase())) s += 3; return s; };
-          chapters.forEach((ch, i) => {
-            const text = `${ch.name} ${ch.summary||""} ${corpus}`;
-            const ranked = (lib.landmarks||[]).map(lm => ({ lm, s: score(text, lm) })).sort((a,b)=>b.s-a.s);
-            const pick = ranked.find(x => !used.has(x.lm.id)) || ranked[0];
-            if (pick) { used.add(pick.lm.id); byLm[pick.lm.id] = { ch, i }; }
+          let pal = null; try { const sp = sessionStorage.getItem("mp_palace") || localStorage.getItem("mp_palace"); if (sp) pal = JSON.parse(sp); } catch(_){}
+          if (!pal) pal = await fetch("public/data/korean_history.palace.json").then(r=>r.ok?r.json():null).catch(()=>null);
+          const isJongno = CUR_CITY === "jongno";
+          const cityData = isJongno
+            ? await fetch("public/data/landmarks.json").then(r=>r.ok?r.json():null).catch(()=>null)
+            : await fetch(`public/data/cities/${encodeURIComponent(CUR_CITY)}.json`).then(r=>r.ok?r.json():null).catch(()=>null);
+          const lms = (cityData && cityData.landmarks) || [];
+          const chapters = (pal && pal.rooms) || [];
+          const jongnoRoom = {}; LANDMARK_ROOMS.forEach(r => jongnoRoom[r.lm] = r);   // jongno 큐레이트 방 매핑
+          menu.innerHTML = `<div class="rmhd">${esc((cityData && cityData.name) || CUR_CITY)} · 방 선택 · 지식 개념</div>`;
+          if (!lms.length) { menu.innerHTML += `<div class="roomrow"><span class="rmtext"><span class="rmconcept">이 도시의 랜드마크 데이터가 없습니다.</span></span></div>`; return; }
+          lms.slice(0, 12).forEach((lm, i) => {
+            const lmId = lm.lmId || lm.id || lm.name;
+            const isCur = (LM && LM === lmId) || (CUR_LMNAME && CUR_LMNAME === lm.name);
+            const ch = chapters[i];
+            const items = ch ? (ch.kept||[]).slice(0,3).map(k => k.title || k.id).filter(Boolean).join(" · ") : "";
+            const row = document.createElement("div");
+            row.className = "roomrow" + (isCur ? " cur" : "");
+            row.innerHTML = `<span class="ic">${landmarkIcon(LM_THEMES[lmId])}</span><span class="rmtext">`+
+              `<span class="rmname">${esc(lm.name||lmId)}${isCur ? " · 현재" : ""}</span>`+
+              `<span class="rmconcept">${ch ? `<span class="b">챕터 ${i+1} · ${esc(ch.name)}</span>` + (items?`<br>${esc(items)}`:"") : "배정된 챕터 없음"}</span></span>`;
+            if (!isCur) {
+              const jr = isJongno && jongnoRoom[lmId];
+              const roomQ = ch && ch.id ? `&room=${encodeURIComponent(ch.id)}` : "";
+              if (jr) row.onclick = () => location.href = `memory-walk.html?glb=${jr.glb}&hotspots=${jr.hot}&lm=${lmId}&city=${encodeURIComponent(CUR_CITY)}${roomQ}`;
+              else    row.onclick = () => location.href = `vworld_map.html?city=${encodeURIComponent(CUR_CITY)}&focus=${encodeURIComponent(lm.name||lmId)}`; // 타 도시: 지도 경유(컨텍스트 정확)
+            }
+            menu.appendChild(row);
           });
-          LANDMARK_ROOMS.forEach(r => {
-            const el = rowByLm[r.lm] && rowByLm[r.lm].querySelector("[data-concept]");
-            if (!el) return;
-            const a = byLm[r.lm];
-            if (!a) { el.textContent = "배정된 학습 챕터 없음"; return; }
-            const items = (a.ch.kept||[]).slice(0,3).map(k => k.title || k.id).filter(Boolean).join(" · ");
-            el.innerHTML = `<span class="b">챕터 ${a.i+1} · ${esc(a.ch.name)}</span>` + (items ? `<br>${esc(items)}` : "");
-          });
-        } catch(e) {
-          Object.values(rowByLm).forEach(row => { const el = row.querySelector("[data-concept]"); if (el) el.remove(); });
-        }
+        } catch(e){ /* 실패해도 페이지 동작엔 영향 없음 */ }
       })();
     })();
 
