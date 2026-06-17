@@ -1388,7 +1388,7 @@
         viewer.scene.globe.backFaceCulling = true;
         viewer.scene.globe.showSkirts = false;
         viewer.scene.globe.maximumScreenSpaceError = 6; // 지형 화질(낮을수록 선명, 기본 2)
-        try { viewer.useBrowserRecommendedResolution = false; viewer.resolutionScale = 1.0; } catch {} // 화면 픽셀 밀도로 렌더(레티나 선명)
+        try { viewer.resolutionScale = Math.min(window.devicePixelRatio || 1, 1.5); } catch {} // 렌더 해상도 상향(상한 1.5x) — 선명하되 약한 GPU의 부담·WebGL 컨텍스트 손실 방지
         try { viewer.scene.fog.enabled = true; viewer.scene.fog.density = 0.00012; } catch {} // 원경 안개 약하게(과한 흐릿함 제거)
         try { viewer.scene.postProcessStages.fxaa.enabled = true; } catch {} // FXAA 켜서 에지 매끈하게
 
