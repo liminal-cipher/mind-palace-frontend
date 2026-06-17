@@ -354,17 +354,31 @@
         filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.85));
       }
 
-      /* 부가 정보 패널 덜어내기 — 미니맵·3D 뷰에 집중(호버 시 복구) */
+      /* 우측 패널: 도시+과목 목차 — 선명하게 */
       .study-panel {
-        opacity: 0.4;
+        opacity: 0.97;
         transition: opacity 0.2s ease;
       }
       .study-panel:hover {
         opacity: 1;
       }
       .status {
-        opacity: 0.5;
+        opacity: 0.82;
       }
+      /* ── 마커/이름표 DOM 레이어: WebGL 밖에서 렌더 → 항상 선명 ── */
+      .mk-layer { position:absolute; inset:0; pointer-events:none; z-index:3; overflow:hidden; }
+      .mk { position:absolute; transform:translate(-50%,-100%); pointer-events:auto; cursor:pointer; transition:opacity .15s ease; }
+      .mk-label { font:700 13px 'Pretendard','Malgun Gothic',sans-serif; color:#fff; background:rgba(26,24,20,.92);
+        border:1px solid rgba(255,255,255,.22); border-radius:9px; padding:4px 10px; white-space:nowrap;
+        box-shadow:0 4px 13px rgba(0,0,0,.34); margin-bottom:3px; text-align:center; letter-spacing:-.01em; }
+      .mk-pin { width:26px; height:26px; margin:0 auto; border-radius:50% 50% 50% 0; transform:rotate(-45deg);
+        background:radial-gradient(circle at 35% 30%, #ff8076, #ec4a41 55%, #c5282a); border:2.5px solid #fff;
+        box-shadow:0 3px 9px rgba(0,0,0,.38); display:flex; align-items:center; justify-content:center; }
+      .mk-pin span { transform:rotate(45deg); color:#fff; font:800 13px 'Pretendard',Arial; }
+      .mk.on .mk-pin { background:radial-gradient(circle at 35% 30%, #5fd6b6, #2c7a63 55%, #1f5a48); transform:rotate(-45deg) scale(1.14); }
+      .mk.on .mk-label { background:#2c7a63; border-color:rgba(255,255,255,.42); }
+      .mk:hover { z-index:11 !important; }
+      .mk:hover .mk-pin { transform:rotate(-45deg) scale(1.12); }
       .entry-dock #spatialCue {
         opacity: 0.55;
       }
@@ -1686,7 +1700,7 @@
         if (kick) kick.textContent = `${CITY.name || "기억궁전"}${PAL_TITLE ? " · " + PAL_TITLE : ""}`;
         qs("eraPill").textContent = ch ? `${stop.num}번 · ${ch.name}` : `${stop.num}번 명소`;
         qs("anchorTitle").textContent = stop.title;
-        qs("anchorQuestion").textContent = ch ? `이 명소엔 '${ch.name}' 챕터가 배치돼요. ${stop.desc || ""}` : (stop.desc || "");
+        qs("anchorQuestion").textContent = ch ? `${ch.name} — 아래 목차의 ${activeIndex + 1}번 챕터` : (stop.desc || "");
         qs("entryQuestion").textContent = `${stop.num}. ${stop.title}`;
         qs("spatialCue").textContent = stop.page
           ? `${stop.desc} 건물을 클릭하면 방으로 입장합니다.`
@@ -1711,8 +1725,9 @@
 
         const list = qs("conceptList");
         list.innerHTML = "";
-        const cards = (ch && (ch.kept || []).length)
-          ? (ch.kept || []).slice(0, 5).map(k => [k.title || k.id || "", k.summary || k.description || k.type || ""])
+        // 우측 패널은 '도시 + 과목 목차' 수준으로 간결하게 — 챕터 목차만(현재 명소 강조)
+        const cards = PAL_ROOMS.length
+          ? PAL_ROOMS.map((r, idx) => [`${idx + 1}. ${r.name}`, idx === activeIndex ? "● 지금 이 명소" : ""])
           : (stop.page ? [["방 입장", "건물을 클릭하면 해당 방(memory-walk)으로 들어갑니다."]] : [["명소 안내", stop.desc || ""]]);
         cards.forEach(([term, description]) => {
           const card = document.createElement("article");
@@ -1986,75 +2001,44 @@
         const viewer = (window.ws3d && window.ws3d.viewer) || getVWorldViewer();
         const engine = window.Cesium;
         if (!viewer || !engine) return;
-        // 빨간 번호 핀 아이콘 생성(원형 머리 + 아래 꼭지 + 흰 숫자) — 사진 모양.
-        // 마커 = 라벨 pill(위) + 입체 핀(아래, 꼭지가 위치에 닿음)을 하나의 고해상도 캔버스로 → 항상 선명·정렬.
-        const makeNumberPin = (num, name) => {
-          const S = 4; // 슈퍼샘플(고해상도)
-          const lf = `700 ${13 * S}px 'Pretendard','Malgun Gothic',sans-serif`;
-          const meas = (makeNumberPin._m || (makeNumberPin._m = document.createElement("canvas").getContext("2d")));
-          meas.font = lf;
-          const tw = Math.ceil(meas.measureText(name || "").width);
-          const px = 12 * S, py = 6.5 * S;
-          const pillW = tw + px * 2, pillH = 13 * S + py * 2;
-          const rad = 14 * S, tail = 12 * S, gap = 6 * S;
-          const W = Math.ceil(Math.max(pillW, rad * 2 + 8 * S)), H = Math.ceil(pillH + gap + rad * 2 + tail);
-          const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
-          const g = cv.getContext("2d"), cx = W / 2;
-          const rr = (x, y, w, h, r) => { g.beginPath();
-            if (g.roundRect) { g.roundRect(x, y, w, h, r); }
-            else { g.moveTo(x + r, y); g.arcTo(x + w, y, x + w, y + h, r); g.arcTo(x + w, y + h, x, y + h, r); g.arcTo(x, y + h, x, y, r); g.arcTo(x, y, x + w, y, r); g.closePath(); } };
-          // 라벨 pill(위)
-          const pillX = cx - pillW / 2;
-          g.save(); g.shadowColor = "rgba(0,0,0,.30)"; g.shadowBlur = 6 * S; g.shadowOffsetY = 2 * S;
-          rr(pillX, 0, pillW, pillH, 9 * S); g.fillStyle = "rgba(26,24,20,.95)"; g.fill(); g.restore();
-          rr(pillX, 0, pillW, pillH, 9 * S); g.lineWidth = 1.4 * S; g.strokeStyle = "rgba(255,255,255,.20)"; g.stroke();
-          g.fillStyle = "#ffffff"; g.font = lf; g.textAlign = "center"; g.textBaseline = "middle";
-          g.fillText(name || "", cx, pillH / 2 + 0.5 * S);
-          // 입체 핀(아래)
-          const headY = pillH + gap + rad, tipY = headY + rad + tail;
-          g.save(); g.shadowColor = "rgba(0,0,0,.32)"; g.shadowBlur = 5 * S; g.shadowOffsetY = 2.5 * S;
-          g.beginPath(); g.moveTo(cx, tipY); g.lineTo(cx - rad * 0.62, headY + rad * 0.5); g.lineTo(cx + rad * 0.62, headY + rad * 0.5); g.closePath();
-          g.fillStyle = "#c5282a"; g.fill(); g.restore();
-          const grad = g.createRadialGradient(cx - rad * 0.35, headY - rad * 0.42, rad * 0.2, cx, headY, rad);
-          grad.addColorStop(0, "#ff8076"); grad.addColorStop(0.5, "#ec4a41"); grad.addColorStop(1, "#c5282a");
-          g.beginPath(); g.arc(cx, headY, rad, 0, 7); g.fillStyle = grad; g.fill();
-          g.lineWidth = 2.6 * S; g.strokeStyle = "#ffffff"; g.stroke();
-          g.beginPath(); g.arc(cx - rad * 0.28, headY - rad * 0.3, rad * 0.32, 0, 7); g.fillStyle = "rgba(255,255,255,.30)"; g.fill();
-          g.fillStyle = "#ffffff"; g.font = `800 ${15 * S}px 'Pretendard','Malgun Gothic',Arial`;
-          g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(String(num), cx, headY + 0.5 * S);
-          return cv;
-        };
-
-        const entityRoom = new Map();
+        const scene = viewer.scene;
+        // ── 마커/이름표는 WebGL 밖 DOM 레이어로 렌더 → 해상도 영향 없이 항상 선명 ──
+        const host = scene.canvas.parentNode;
+        if (host && getComputedStyle(host).position === "static") host.style.position = "relative";
+        let layer = document.getElementById("mkLayer");
+        if (layer) layer.remove();
+        layer = document.createElement("div"); layer.id = "mkLayer"; layer.className = "mk-layer";
+        (host || document.body).appendChild(layer);
+        const mk = [];
         LANDMARKS.forEach((m, i) => {
-          const ent = viewer.entities.add({
-            name: m.name,
-            // 해당 건물 높이(m.h) + MARKER_LIFT_M 위에 띄움(지면 기준)
-            position: engine.Cartesian3.fromDegrees(m.lon, m.lat, markerHeight(m)),
-            billboard: {
-              image: makeNumberPin(i + 1, m.name), // 핀+이름표 합성(선명)
-              verticalOrigin: engine.VerticalOrigin.BOTTOM,   // 핀 꼭지가 위치에 닿게
-              horizontalOrigin: engine.HorizontalOrigin.CENTER,
-              scale: 0.32,
-              heightReference: engine.HeightReference.RELATIVE_TO_GROUND,
-              disableDepthTestDistance: Number.POSITIVE_INFINITY, // 항상 보이게
-              scaleByDistance: new engine.NearFarScalar(600, 1.0, 9000, 0.6),
-              translucencyByDistance: new engine.NearFarScalar(2500, 1.0, 12000, 0.45), // 원거리 페이드(혼잡↓)
-            },
-          });
-          { const r = roomFor(i, m.name); if (r) entityRoom.set(ent, r); }   // &lm 테마 포함 링크로 입장
+          const cart = engine.Cartesian3.fromDegrees(m.lon, m.lat, markerHeight(m));
+          const el = document.createElement("div");
+          el.className = "mk"; el.dataset.idx = i;
+          el.innerHTML = `<div class="mk-label">${escapeHtml(m.name || "")}</div>` +
+            `<div class="mk-pin"><span>${i + 1}</span></div>`;
+          el.addEventListener("click", (e) => { e.stopPropagation(); stopTour(false); flyToAnchor(i); });
+          layer.appendChild(el);
+          mk.push({ cart, el });
         });
-
-        // 2·3번 핀을 클릭하면 연결된 방(memory-walk)으로 입장.
-        const handler = new engine.ScreenSpaceEventHandler(viewer.scene.canvas);
-        handler.setInputAction((click) => {
-          const picked = viewer.scene.pick(click.position);
-          if (engine.defined(picked) && picked.id && picked.id.name) {
-            const idx = LANDMARKS.findIndex((m) => m.name === picked.id.name);
-            if (idx >= 0) { stopTour(false); flyToAnchor(idx); return; } // 핀 클릭 = 그 명소 선택(우측 패널 갱신 + 카메라 이동). 입장은 '건물 입장' 버튼.
+        // 매 렌더마다 3D 좌표 → 화면 좌표로 투영 + 지구 뒤편(가려짐) 숨김 + 선택 강조
+        const ST = engine.SceneTransforms;
+        function sync() {
+          let occ = null;
+          try { occ = new engine.EllipsoidalOccluder(scene.globe.ellipsoid, scene.camera.positionWC); } catch (e) {}
+          for (const p of mk) {
+            let win = null;
+            try { win = ST && ST.wgs84ToWindowCoordinates ? ST.wgs84ToWindowCoordinates(scene, p.cart) : scene.cartesianToCanvasCoordinates(p.cart); } catch (e) {}
+            const visible = win && (!occ || occ.isPointVisible(p.cart));
+            if (!visible) { p.el.style.opacity = "0"; p.el.style.pointerEvents = "none"; continue; }
+            p.el.style.opacity = "1"; p.el.style.pointerEvents = "auto";
+            p.el.style.left = win.x + "px"; p.el.style.top = win.y + "px";
+            const isAct = (+p.el.dataset.idx === activeIndex);
+            p.el.classList.toggle("on", isAct);
+            p.el.style.zIndex = isAct ? 12 : 6;
           }
-        }, engine.ScreenSpaceEventType.LEFT_CLICK);
-
+        }
+        scene.postRender.addEventListener(sync);
+        sync();
         setStatus((CITY.name || "이 지역") + " 명소 " + LANDMARKS.length + "곳 — 핀을 누르면 그 명소가 선택돼요. 우측 정보를 보고 '건물 입장'으로 들어갑니다.");
       }
 

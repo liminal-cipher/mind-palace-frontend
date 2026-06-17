@@ -99,7 +99,7 @@
 
   <div class="footbar">
     <a class="ghost" id="mapLink2" href="#">🗺 3D 지도로 미리보기</a>
-    <a class="start" id="startBtn" href="#">▶ 첫 챕터부터 입장</a>
+    <a class="start" id="startBtn" href="#">🧩 첫 방부터 만들기 →</a>
   </div>
 
 <script>
@@ -199,6 +199,15 @@
     if(lm) p.set("focus", lm.name||lm.id);
     return "vworld_map.html?"+p.toString();
   }
+  // 일방통행: '입장' = 그 챕터의 방 스튜디오(방 선택·마커 수정) → 거기서 '3D 지도로'
+  function studioUrl(ci){
+    const st=chapState[ci]; const ch=PAL.rooms[ci]; const lm=(LIB.landmarks||[]).find(l=>l.id===st.lmId);
+    const p=new URLSearchParams(); p.set("city", CITY);
+    if(lm){ p.set("lm", lm.id||""); p.set("lmName", lm.name||""); }
+    if(ch) p.set("room", ch.id||"");
+    if(st.designId) p.set("design", st.designId);
+    return "glb-customizer.html?"+p.toString();
+  }
 
   function renderCard(ci){
     const ch=PAL.rooms[ci]; const st=chapState[ci];
@@ -223,9 +232,8 @@
         <div>
           <div class="row"><div class="ic" data-dic></div><div><div class="lab">방 디자인</div><div class="nm" data-dnm></div><div class="rg" data-drg></div></div></div>
           <select class="sel" data-dsel style="margin-top:8px"></select>
-          <a class="studio" data-studio target="_blank" rel="noopener">🧩 자세히 꾸미기 (스튜디오)</a>
         </div>
-        <a class="enter" data-enter>입장 →</a>
+        <a class="enter" data-enter>🧩 방 만들기 →</a>
       </div>`;
     // 장소 select(추천순)
     const lmSel=card.querySelector("[data-lmsel]");
@@ -246,9 +254,7 @@
       dic.innerHTML = d2.thumb ? `<img src="${esc(d2.thumb)}" alt="" onerror="this.parentNode.textContent='${d2.emoji}'">` : `<span style="font-size:22px">${d2.emoji}</span>`;
       card.querySelector("[data-dnm]").textContent=d2.label;
       card.querySelector("[data-drg]").textContent=d2.style||"";
-      card.querySelector("[data-enter]").href=mapUrl(ci);
-      const sd=card.querySelector("[data-studio]");
-      if(sd) sd.href=`glb-customizer.html?city=${encodeURIComponent(CITY)}&lm=${encodeURIComponent(lm2.id||"")}&lmName=${encodeURIComponent(lm2.name||"")}&room=${encodeURIComponent(ch.id||"")}&design=${encodeURIComponent(st.designId||"")}`;
+      card.querySelector("[data-enter]").href=studioUrl(ci);
     };
     lmSel.addEventListener("change",()=>{ st.lmId=lmSel.value; const nlm=(LIB.landmarks||[]).find(l=>l.id===st.lmId);
       st.designId=defaultDesignFor(nlm); dSel.value=st.designId; paint(); updateStart(); });
@@ -258,7 +264,7 @@
   }
 
   function updateStart(){
-    const first=PAL.rooms&&PAL.rooms.length?mapUrl(0):"#";
+    const first=PAL.rooms&&PAL.rooms.length?studioUrl(0):"#";
     $("startBtn").href=first;
     $("mapLink").href=$("mapLink2").href=`vworld_map.html?city=${encodeURIComponent(CITY)}`;
   }
