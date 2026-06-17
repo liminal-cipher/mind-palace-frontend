@@ -132,13 +132,14 @@
   .skwrap{position:relative; margin-top:10px; min-height:120px;}
   .skgrid{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:12px; max-height:420px; overflow:auto;}
   .skload{position:absolute; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; gap:12px;
-    background:rgba(44,122,99,.16); backdrop-filter:blur(4px); border:1px solid rgba(44,122,99,.4); border-radius:12px; z-index:6; text-align:center; padding:18px;}
+    background:rgba(44,122,99,.55); backdrop-filter:blur(8px); border:1px solid rgba(44,122,99,.6); border-radius:12px; z-index:6; text-align:center; padding:18px;}
   .skload.on{display:flex;}
-  .skload .spin{width:38px; height:38px; border-radius:50%; border:3px solid rgba(44,122,99,.25); border-top-color:var(--accent); animation:skspin .9s linear infinite;}
+  .skload .spin{width:38px; height:38px; border-radius:50%; border:3px solid rgba(255,255,255,.35); border-top-color:#fff; animation:skspin .9s linear infinite;}
   @keyframes skspin{to{transform:rotate(360deg);}}
-  .skload .lt{font-size:13.5px; font-weight:800; color:var(--accent);}
-  .skload .ls{font-size:11.5px; color:var(--text); max-width:92%; line-height:1.5; min-height:16px;}
-  .skload .lstep{font-size:10.5px; color:var(--muted); letter-spacing:.04em;}
+  /* 진해진 초록 배경 위라 글자는 밝게(초록 제목이 배경에 묻히는 것 방지). */
+  .skload .lt{font-size:13.5px; font-weight:800; color:#fff;}
+  .skload .ls{font-size:11.5px; color:rgba(255,255,255,.92); max-width:92%; line-height:1.5; min-height:16px;}
+  .skload .lstep{font-size:10.5px; color:rgba(255,255,255,.75); letter-spacing:.04em;}
   .skload .lx{margin-top:4px; padding:7px 16px; border:1px solid var(--line); border-radius:8px; background:#fff; cursor:pointer; font-size:12px; display:none;}
   .skload.err{background:rgba(180,69,47,.14); border-color:rgba(180,69,47,.5);}
   .skload.err .lt{color:#b4452f;}
