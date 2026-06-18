@@ -3,20 +3,27 @@ from __future__ import annotations
 import asyncio
 import base64
 import json
+import logging
 import os
+import threading
+import time
+from collections import defaultdict, deque
 from pathlib import Path
 from typing import Any
 
 import requests
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
+from fastapi.responses import JSONResponse
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from . import sketchfab as sk
 from . import storage
+
+log = logging.getLogger("mindpalace.api")
 
 app = FastAPI(title="Mind Palace API", version="0.1.0")
 ROOT_DIR = Path(__file__).resolve().parents[2]
@@ -47,11 +54,69 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# 요청 본문 상한(기본 12MB). detect의 base64 이미지/거대한 palace JSON 등으로 메모리를
+# 소모시키는 것을 1차 차단한다(Content-Length 기준 — 청크 전송은 핸들러 레벨 검증으로 보완).
+MAX_REQUEST_BYTES = int(os.getenv("MAX_REQUEST_BYTES", str(12 * 1024 * 1024)))
+# 사용자가 저장하는 palace/designs JSON 1건의 상한.
+MAX_PALACE_BYTES = int(os.getenv("MAX_PALACE_BYTES", str(3 * 1024 * 1024)))
+
+
+@app.middleware("http")
+async def limit_body_size(request: Request, call_next):
+    content_length = request.headers.get("content-length")
+    if content_length and content_length.isdigit() and int(content_length) > MAX_REQUEST_BYTES:
+        return JSONResponse(status_code=413, content={"detail": "요청 본문이 너무 큽니다."})
+    return await call_next(request)
+
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    """기본 보안 응답 헤더. CSP는 legacy의 인라인 스크립트·외부 지도/임베드 의존이 커서
+    여기선 깨지지 않는 항목만 적용한다(엄격 CSP는 리소스 allowlist 설계 후 별도 단계)."""
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
+    response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+    response.headers.setdefault("Cross-Origin-Opener-Policy", "same-origin")
+    return response
+
+
+# ── 간단한 인메모리 레이트리밋(고정 윈도) ──
+# 외부 의존 없이 비용성 엔드포인트(import/detect/search/client-config)의 남용을 막는다.
+# 주의: 프로세스 단위라 멀티 인스턴스/워커로 확장하면 Redis 등 공유 저장소가 필요하다.
+_rate_buckets: dict[tuple[str, str], deque] = defaultdict(deque)
+_rate_lock = threading.Lock()
+
+
+def _client_ip(request: Request) -> str:
+    forwarded = request.headers.get("X-Forwarded-For", "")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+def rate_limit(scope: str, limit: int, window_sec: float):
+    """scope별·IP별로 window_sec 동안 limit회만 허용하는 의존성을 만든다."""
+    def dependency(request: Request) -> None:
+        key = (scope, _client_ip(request))
+        now = time.monotonic()
+        with _rate_lock:
+            bucket = _rate_buckets[key]
+            while bucket and now - bucket[0] > window_sec:
+                bucket.popleft()
+            if len(bucket) >= limit:
+                raise HTTPException(
+                    status_code=429,
+                    detail="요청이 너무 많습니다. 잠시 후 다시 시도하세요.",
+                )
+            bucket.append(now)
+    return dependency
+
 
 class DetectRequest(BaseModel):
-    imageBase64: str
-    width: int | None = None
-    height: int | None = None
+    imageBase64: str = Field(max_length=18_000_000)  # base64 약 13MB(원본 ~10MB) 상한
+    width: int | None = Field(default=None, ge=1, le=20000)
+    height: int | None = Field(default=None, ge=1, le=20000)
 
 
 def azure_vision_config() -> tuple[str, str]:
@@ -91,16 +156,20 @@ _import_semaphore = asyncio.Semaphore(_IMPORT_CONCURRENCY)
 
 
 class SketchfabImportRequest(BaseModel):
-    uid: str
+    # Sketchfab uid는 영숫자(보통 32자 hex). 패턴 고정으로 다운로드 URL 주입 여지를 차단.
+    uid: str = Field(min_length=1, max_length=64, pattern=r"^[A-Za-z0-9]+$")
 
 
 class HotspotsSaveRequest(BaseModel):
-    uid: str
-    name: str | None = None
-    hotspots: list[dict]
+    uid: str = Field(min_length=1, max_length=64, pattern=r"^[A-Za-z0-9]+$")
+    name: str | None = Field(default=None, max_length=200)
+    hotspots: list[dict] = Field(max_length=1000)
 
 
-@app.get("/api/sketchfab/search")
+@app.get(
+    "/api/sketchfab/search",
+    dependencies=[Depends(rate_limit("search", limit=30, window_sec=60))],
+)
 def sketchfab_search(q: str, cursor: str | None = None) -> dict:
     """다운로드 가능한 Sketchfab 모델 검색(프록시). 토큰 없이도 결과는 보임(가져오기엔 토큰 필요)."""
     q = (q or "").strip()
@@ -113,7 +182,10 @@ def sketchfab_search(q: str, cursor: str | None = None) -> dict:
         raise HTTPException(status_code=502, detail=f"Sketchfab 검색 실패: {detail}") from exc
 
 
-@app.post("/api/sketchfab/import")
+@app.post(
+    "/api/sketchfab/import",
+    dependencies=[Depends(rate_limit("import", limit=10, window_sec=60))],
+)
 async def sketchfab_import(payload: SketchfabImportRequest) -> dict:
     """모델을 받아 단일 GLB(텍스처 1k, 20MB 초과 시 압축)로 변환해 저장하고 상대 URL을 반환.
 
@@ -151,8 +223,14 @@ def rooms_hotspots(payload: HotspotsSaveRequest) -> dict:
     return {"hotspotsUrl": rel}
 
 
-@app.get("/api/client-config")
+@app.get(
+    "/api/client-config",
+    dependencies=[Depends(rate_limit("client-config", limit=60, window_sec=60))],
+)
 def client_config() -> dict:
+    # 주의: vworld SDK가 브라우저에서 키를 직접 쓰므로(map.vworld.kr) 키는 본질적으로
+    #       클라이언트에 노출된다. 이 엔드포인트의 레이트리밋은 대량 스크래핑만 늦출 뿐이며,
+    #       실제 방어는 vworld 콘솔의 '도메인 제한'이다(README/배포 설정 참고).
     return {
         "vworldApiKey": os.getenv("VWORLD_API_KEY", ""),
     }
@@ -166,7 +244,10 @@ def vision_config() -> dict:
     }
 
 
-@app.post("/api/detect")
+@app.post(
+    "/api/detect",
+    dependencies=[Depends(rate_limit("detect", limit=20, window_sec=60))],
+)
 def detect_objects(payload: DetectRequest) -> dict:
     endpoint, key = azure_vision_config()
     if not endpoint or not key:
@@ -202,28 +283,87 @@ def pdf_integration_status() -> dict:
 
 
 # ── 내 서재(라이브러리): palace + 방 구성을 사용자별 Azure Blob에 저장/불러오기 ──
-def current_user_id(request: Request) -> str:
-    """Easy Auth가 넘기는 로그인 사용자(이메일). 로그인 전/헤더 없으면 'anonymous'.
-    헤더 우선순위: NAME(보통 이메일) > 디코드된 principal의 userId/email."""
-    name = (request.headers.get("X-MS-CLIENT-PRINCIPAL-NAME") or "").strip()
-    if name:
-        return name
-    return "anonymous"
+# 정책: 서비스의 나머지 기능(궁전 체험·지도·스캐너·객체인식 등)은 익명으로 전부 사용 가능하지만,
+#       '내 서재'(서버 저장/목록/불러오기/삭제)는 로그인 사용자 전용이다.
+#       → 익명(로그인 신원 없음) 요청은 아래 require_login 의존성이 401로 막는다.
+#         이렇게 하면 익명끼리 같은 'anonymous' 버킷을 공유하는 프라이버시 문제 자체가 사라진다.
+
+# Easy Auth principal 클레임 중 사용자 식별에 쓸 타입들(이메일 우선).
+_EMAIL_CLAIM_TYPES = {
+    "emails",
+    "email",
+    "emailaddress",
+    "preferred_username",
+    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress",
+    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name",
+    "name",
+}
+
+
+def _principal_user_id(request: Request) -> str | None:
+    """Easy Auth가 주입하는 서명된 principal(X-MS-CLIENT-PRINCIPAL, base64 JSON)에서
+    안정적인 사용자 식별값(이메일/이름)을 추출한다. NAME 헤더보다 이쪽을 우선한다."""
+    raw = (request.headers.get("X-MS-CLIENT-PRINCIPAL") or "").strip()
+    if not raw:
+        return None
+    try:
+        data = json.loads(base64.b64decode(raw))
+    except Exception:
+        log.warning("X-MS-CLIENT-PRINCIPAL 디코드 실패", exc_info=True)
+        return None
+    claims = data.get("claims") or []
+    for claim in claims:
+        typ = (claim.get("typ") or "").lower()
+        if typ in _EMAIL_CLAIM_TYPES or typ.endswith("/emailaddress") or typ.endswith("/name"):
+            val = (claim.get("val") or "").strip()
+            if val:
+                return val
+    return None
+
+
+def require_login(request: Request) -> str:
+    """로그인 사용자 식별값을 반환. 익명(신원 헤더 없음)이면 401 → 서재 전용 게이트.
+    우선순위: 서명된 principal 클레임 > NAME 헤더.
+
+    경고: 이 헤더들의 '신뢰'는 App Service Easy Auth 와 컨테이너 직접 노출 차단에서
+    나온다. Easy Auth(미인증 허용 모드)는 켜두되, 컨테이너가 외부에 직접 노출되지
+    않도록 해야 클라이언트가 신원 헤더를 위조하지 못한다."""
+    uid = _principal_user_id(request)
+    if not uid:
+        uid = (request.headers.get("X-MS-CLIENT-PRINCIPAL-NAME") or "").strip()
+    if not uid:
+        raise HTTPException(status_code=401, detail="로그인이 필요한 기능입니다.")
+    return uid
 
 
 class LibrarySaveRequest(BaseModel):
-    title: str
+    title: str = Field(min_length=1, max_length=200)
     palace: Any
     designs: Any | None = None
-    id: str | None = None
+    id: str | None = Field(default=None, max_length=64)
+
+
+def _reject_oversized_payload(*objects: Any) -> None:
+    """palace/designs 직렬화 크기가 상한을 넘으면 413. 스토리지 남용을 막는다."""
+    total = 0
+    for obj in objects:
+        if obj is None:
+            continue
+        try:
+            total += len(json.dumps(obj, ensure_ascii=False).encode("utf-8"))
+        except (TypeError, ValueError) as exc:
+            raise HTTPException(status_code=400, detail="저장할 데이터를 직렬화할 수 없습니다.") from exc
+    if total > MAX_PALACE_BYTES:
+        raise HTTPException(status_code=413, detail="저장할 데이터가 너무 큽니다.")
 
 
 @app.post("/api/library/save")
-def library_save(payload: LibrarySaveRequest, request: Request) -> dict:
+def library_save(payload: LibrarySaveRequest, user_id: str = Depends(require_login)) -> dict:
     if not storage.configured():
         raise HTTPException(status_code=503, detail="저장소(Blob)가 설정되지 않았습니다.")
+    _reject_oversized_payload(payload.palace, payload.designs)
     entry = storage.save_item(
-        current_user_id(request), payload.title, payload.palace, payload.designs, payload.id
+        user_id, payload.title, payload.palace, payload.designs, payload.id
     )
     if entry is None:
         raise HTTPException(status_code=503, detail="저장에 실패했습니다(저장소 오류).")
@@ -231,21 +371,21 @@ def library_save(payload: LibrarySaveRequest, request: Request) -> dict:
 
 
 @app.get("/api/library/list")
-def library_list(request: Request) -> dict:
-    return {"items": storage.list_items(current_user_id(request))}
+def library_list(user_id: str = Depends(require_login)) -> dict:
+    return {"items": storage.list_items(user_id)}
 
 
 @app.get("/api/library/{item_id}")
-def library_get(item_id: str, request: Request) -> dict:
-    item = storage.get_item(current_user_id(request), item_id)
+def library_get(item_id: str, user_id: str = Depends(require_login)) -> dict:
+    item = storage.get_item(user_id, item_id)
     if item is None:
         raise HTTPException(status_code=404, detail="항목을 찾을 수 없습니다.")
     return item
 
 
 @app.delete("/api/library/{item_id}")
-def library_delete(item_id: str, request: Request) -> dict:
-    ok = storage.delete_item(current_user_id(request), item_id)
+def library_delete(item_id: str, user_id: str = Depends(require_login)) -> dict:
+    ok = storage.delete_item(user_id, item_id)
     return {"ok": ok}
 
 
@@ -262,12 +402,19 @@ if FRONTEND_DIST.exists():
         #   기존 Mind Palace SPA(dist)는 보존되며 직접 경로로는 접근 가능하나, 진입은 home으로 일원화.
         return RedirectResponse("/legacy/home.html")
 
+    _FRONTEND_DIST_RESOLVED = FRONTEND_DIST.resolve()
+
     @app.get("/{path:path}")
     def serve_frontend_path(path: str) -> FileResponse:
-        target = FRONTEND_DIST / path
+        index = FRONTEND_DIST / "index.html"
+        # 경로 탐색 방어: 요청 경로가 dist 밖(../, 인코딩된 ..%2f 등)으로 벗어나면
+        # 파일을 주지 않고 SPA 폴백(index.html)으로 돌린다.
+        target = (FRONTEND_DIST / path).resolve()
+        if target != _FRONTEND_DIST_RESOLVED and _FRONTEND_DIST_RESOLVED not in target.parents:
+            return FileResponse(index)
         if target.is_file():
             return FileResponse(target)
-        return FileResponse(FRONTEND_DIST / "index.html")
+        return FileResponse(index)
 elif LEGACY_DIR.exists():
 
     @app.get("/")
