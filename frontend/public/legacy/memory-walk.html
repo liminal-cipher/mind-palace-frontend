@@ -731,6 +731,7 @@
       entities = applyStudioOrder(room, entities);   // 스튜디오(glb-customizer)에서 드래그로 바꾼 학습 순서 반영
       window.__mwConcepts = entities.map(e => e.title);   // 전체 학습 개념 풀(새 핫스팟 의미 연결용)
       window.__mwEntities = entities;                     // 전체 엔티티(새 지점에 학습 항목 바인딩용)
+      window.__mwDemoted = (room.demoted||[]).slice();    // palace.json 미배치(demoted) 항목 — 새 핫스팟 추천 1순위 풀
       buildRoute(entities);
     }
 
@@ -1759,20 +1760,36 @@
       // 1) 로컬 인식(기존 방식): 클릭 메쉬 계층 이름 → 가구 종류. 정확도 보통(정밀은 🔬 버튼=Azure).
       let curClass = mesh ? inferFurnLabel(mesh) : null;
       let curName = curClass ? furnKO(curClass) : "기억 지점";
-      // 2) 학습 항목 후보: 미배치 개념 우선 + AI 추천(객체 종류 친화)
-      const entities = window.__mwEntities || [];
+      // 2) 학습 항목 후보: palace.json의 미배치(demoted) 항목을 1순위로 추천 + 객체 종류 친화(AI)
+      const entities = window.__mwEntities || [];          // 방의 핵심(kept) 학습 항목
+      const demoted  = window.__mwDemoted  || [];          // 아직 어디에도 안 붙은(demoted) 항목 — 추천 1순위
       const assigned = new Set(route.filter(h => h.entity).map(h => h.entity.id));
-      const unassigned = entities.filter(e => !assigned.has(e.id));
-      const recommend = () => { const pool = unassigned.length ? unassigned : entities;   // 미배치 우선, 없으면 전체에서
-        if (!pool.length) return null;
-        if (curClass){ const sc = pool.map(e => ({ e, s: typeAffinity(e.type, curClass) })).sort((a,b)=>b.s-a.s); if (sc[0].s>0) return sc[0].e; }
-        return pool[0]; };
-      const recEnt = recommend();
+      const demPool  = demoted.filter(e => e && e.id && !assigned.has(e.id));    // 미배치 demoted
+      const keptPool = entities.filter(e => e && e.id && !assigned.has(e.id));   // 미배치 kept
+      const allEnts  = entities.concat(demoted);           // confirm()에서 id로 찾을 통합 풀
+      // 점수: 객체타입 친화 + 매칭 이미지(score) 보너스 → 클릭한 가구에 가장 어울리는 미배치 항목을 위로
+      const scoreOf = e => (curClass ? typeAffinity(e.type, curClass) : 0) + ((e.images && e.images.length) ? 6 : 0);
+      const demSorted  = demPool.slice().sort((a,b)=>scoreOf(b)-scoreOf(a));     // demoted를 적합도순 정렬
+      const keptSorted = keptPool.slice().sort((a,b)=>scoreOf(b)-scoreOf(a));
+      // 추천: 미배치 demoted 최우선 → 없으면 미배치 kept → 없으면 통합 첫 항목
+      const rec = demSorted.length ? { e: demSorted[0], dem: true }
+                : keptSorted.length ? { e: keptSorted[0], dem: false }
+                : (allEnts[0] ? { e: allEnts[0], dem: false } : null);
+      const recEnt = rec ? rec.e : null;
+      const _lbl = e => `${_esc(e.title)}${e.type ? " · " + _esc(String(e.type).split(",")[0].trim()) : ""}`;
+      const DEM_CAP = 24;   // demoted가 수백 개일 수 있어 상위만 노출(추천 1개는 항상 최상단)
       let opt = "";
-      if (recEnt) opt += `<option value="${_esc(recEnt.id)}" selected>⭐ 추천: ${_esc(recEnt.title)}</option>`;
-      unassigned.forEach(e => { if (!recEnt || e.id !== recEnt.id) opt += `<option value="${_esc(e.id)}">${_esc(e.title)}</option>`; });
+      if (recEnt) opt += `<option value="${_esc(recEnt.id)}" selected>⭐ 추천${rec.dem ? "(미배치 핵심)" : ""}: ${_esc(recEnt.title)}</option>`;
+      const demRest = demSorted.filter(e => !recEnt || e.id !== recEnt.id).slice(0, DEM_CAP);
+      if (demRest.length) { opt += `<optgroup label="🎯 미배치 학습 항목 (상위 ${demRest.length}/${demPool.length})">`;
+        demRest.forEach(e => opt += `<option value="${_esc(e.id)}">${_lbl(e)}</option>`); opt += `</optgroup>`; }
+      const keptRest = keptSorted.filter(e => !recEnt || e.id !== recEnt.id);
+      if (keptRest.length) { opt += `<optgroup label="📘 방 핵심 항목 (${keptPool.length})">`;
+        keptRest.forEach(e => opt += `<option value="${_esc(e.id)}">${_lbl(e)}</option>`); opt += `</optgroup>`; }
       opt += `<option value="">— 나중에 연결 —</option>`;
-      entities.filter(e => assigned.has(e.id) && (!recEnt || e.id !== recEnt.id)).forEach(e => opt += `<option value="${_esc(e.id)}">${_esc(e.title)} (이미 배치)</option>`);
+      const placed = allEnts.filter(e => assigned.has(e.id) && (!recEnt || e.id !== recEnt.id));
+      if (placed.length) { opt += `<optgroup label="이미 배치됨">`;
+        placed.forEach(e => opt += `<option value="${_esc(e.id)}">${_esc(e.title)}</option>`); opt += `</optgroup>`; }
       const box = document.createElement("div");
       box.className = "panel";
       box.style.cssText = "position:fixed;left:50%;bottom:84px;transform:translateX(-50%);z-index:30;padding:13px 15px;width:min(340px,calc(100vw - 28px));";
@@ -1798,7 +1815,7 @@
             $p = box.querySelector("#_dfPrecise"), $ok = box.querySelector("#_dfOk"), $cc = box.querySelector("#_dfCancel");
       const cancel = () => { box.remove(); _addBox = null; };
       const confirm = () => { const nm = ($n.value || "").trim() || "기억 지점";
-        const ent = $c.value ? entities.find(e => e.id === $c.value) : null;
+        const ent = $c.value ? allEnts.find(e => e.id === $c.value) : null;
         addHotspotAt(point, nm, curClass, ent); cancel(); };
       $ok.onclick = confirm; $cc.onclick = cancel;
       $n.onkeydown = e => { e.stopPropagation(); if (e.key === "Enter") confirm(); if (e.key === "Escape") cancel(); };
