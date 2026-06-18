@@ -149,6 +149,34 @@ body {
 
 .nav-cta:hover { transform: scale(1.04); box-shadow: 0 4px 16px rgba(252,164,53,0.35); }
 
+.nav-auth { display: inline-flex; align-items: center; }
+.nav-login {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-paper) !important;
+  border: 1px solid rgba(245, 240, 232, 0.4);
+  padding: 6px 16px;
+  border-radius: 20px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  transition: border-color 0.2s, background 0.2s;
+}
+.nav-login:hover { border-color: var(--c-acc); background: rgba(252, 164, 53, 0.12); }
+.nav-login svg { width: 14px; height: 14px; display: block; }
+.nav-user { display: inline-flex; align-items: center; gap: 10px; }
+.nav-user .nav-user-name { font-family: var(--font-body); font-size: 12px; color: rgba(245, 240, 232, 0.85); }
+.nav-user .nav-logout {
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: rgba(245, 240, 232, 0.6);
+  background: none; border: none; cursor: pointer;
+  text-decoration: underline; padding: 0;
+}
+.nav-user .nav-logout:hover { color: var(--c-paper); }
+
 /* ───────── HERO ───────── */
 .hero-track { height: 200vh; position: relative; }
 
@@ -3011,7 +3039,7 @@ body {
 }
 
 @media (max-width: 680px) {
-  .nav-links a:not(.nav-cta) { display: none; }
+  .nav-links a:not(.nav-cta):not(.nav-login) { display: none; }
   .section { padding: 8vh 5vw; }
   .panel { border-radius: 18px; padding: 26px 18px; }
   .hero-journey {
@@ -3599,6 +3627,7 @@ end of keeper CSS */
     <a href="#spaces">공간 프리셋</a>
     <a href="#explore">3D 둘러보기</a>
     <a class="nav-cta" href="https://3d-mindpalace-ai-fxf8dyfqega3hvbp.canadacentral-01.azurewebsites.net/legacy/region-select.html" target="_blank" rel="noopener">시작하기</a>
+    <span id="authBox" class="nav-auth"></span>
   </div>
 </nav>
 
@@ -5603,6 +5632,54 @@ end of keeper CSS */
     });
   })();
 
+})();
+</script>
+
+<script>
+/* ═══════ Google 로그인 (Azure App Service Easy Auth) ═══════
+   로그인 안 됨 → "Google로 로그인" 버튼(/.auth/login/google).
+   로그인 됨   → 이름/이메일 + 로그아웃(/.auth/logout).
+   사용자 식별값은 백엔드가 헤더(X-MS-CLIENT-PRINCIPAL-NAME)로도 받아 내 서재 저장 키로 씀. */
+(function () {
+  const box = document.getElementById('authBox');
+  if (!box) return;
+
+  const here = encodeURIComponent(location.pathname + location.search);
+
+  function renderLoggedOut() {
+    box.innerHTML =
+      '<a class="nav-login" href="/.auth/login/google?post_login_redirect_uri=' + here + '">로그인</a>';
+  }
+
+  function renderLoggedIn(name) {
+    const safe = String(name || '사용자').replace(/[<>&]/g, '');
+    box.innerHTML =
+      '<span class="nav-user"><span class="nav-user-name">' + safe + '</span>' +
+      '<button type="button" class="nav-logout">로그아웃</button></span>';
+    box.querySelector('.nav-logout').addEventListener('click', function () {
+      location.href = '/.auth/logout?post_logout_redirect_uri=' + here;
+    });
+  }
+
+  // /.auth/me 로 로그인 여부 확인. App Service는 배열 형식, 일부는 {clientPrincipal} 형식.
+  fetch('/.auth/me', { credentials: 'include' })
+    .then(function (r) { return r.ok ? r.json() : null; })
+    .then(function (data) {
+      let principal = null;
+      if (Array.isArray(data) && data.length) principal = data[0];
+      else if (data && data.clientPrincipal) principal = data.clientPrincipal;
+      if (!principal) { renderLoggedOut(); return; }
+
+      // 표시 이름: claims의 name/email > userDetails > user_id
+      let name = principal.userDetails || principal.user_id || '';
+      const claims = principal.user_claims || [];
+      const byType = function (t) { const c = claims.find(function (x) { return x.typ === t; }); return c && c.val; };
+      name = byType('name') || byType('emails') ||
+             byType('http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress') ||
+             name;
+      renderLoggedIn(name);
+    })
+    .catch(function () { renderLoggedOut(); });
 })();
 </script>
 
