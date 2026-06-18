@@ -998,7 +998,9 @@
       $("miniCv").style.display = "block";
       const mapped = route.filter(h => h.entity).length;
       setStatus(`동선 ${route.length}개 지점 · 학습 ${mapped}개 배치 · <b>다음 →</b>으로 투어 시작`);
-      activeIdx = -1; renderDots(-1); roomEntryView(true);   // 첫 화면 = 방 안 눈높이(정면 광화문·마커, 다음 →으로 투어)
+      activeIdx = -1; renderDots(-1);
+      if (THEME) roomEntryView(false, true);   // 랜드마크에서 입장: 위에서 내려앉는 시네마틱(다이브 흐름 연결)
+      else roomEntryView(true);                 // 직접 진입: 즉시 눈높이
       if (DASH) { try { openEditor(); } catch(e){ console.warn("dash openEditor 실패", e); } }   // 임베드 모드: 2D 대시보드 자동 표시
       else maybeTutorial(route);   // 첫 입장 학습 가이드(공부법·순서) — "다시 보지 않기" 전까지
     }
@@ -1016,7 +1018,7 @@
     // 첫 화면·홈 = 방 안 눈높이 1인칭, 방 "정면"(부엌 카운터 벽)을 직교로 마주봄.
     //   ① 마커가 많은 쪽(부엌)을 가장 가까운 벽 축으로 스냅 → 대각선이 아닌 똑바른 정면
     //   ② 카메라를 그 반대쪽 벽 근처에 두고 정면을 바라봄.
-    function roomEntryView(instant){
+    function roomEntryView(instant, cine){
       const { eye, fwd } = entryFrame();                        // 동선 설계와 동일한 입장 시점(순서와 카메라 일치)
       // 입장 시점이 지오메트리에 박히는지 검사(박물관 홀 등 큰/불규칙 모델) → 막히면 조망 시점으로 폴백
       const meshes = []; scene.traverse(c => { if (c.isMesh && c.visible) meshes.push(c); });
@@ -1033,6 +1035,13 @@
       const tgt = new THREE.Vector3(c0.x, bounds.min.y + sz0.y * 0.32, c0.z);   // 방 중심을 살짝 내려다봄
       const settle = () => { fpsReady = false; enterFPS(); };
       if (instant){ camera.position.copy(p); controls.target.copy(tgt); controls.update(); settle(); }
+      else if (cine){
+        // 랜드마크 다이브가 '위에서 내려오던' 흐름을 이어, 입장 지점 바로 위에서 눈높이로 내려앉으며 들어간다.
+        //   수평 이동(특히 뒤로)을 안 줘서 "들어갔다 바로 뒤로 빠지는" 느낌을 없앤다. 시선은 처음부터 방 중심 고정.
+        const start = new THREE.Vector3(p.x, Math.min(p.y + sz0.y * 0.45, bounds.max.y - 0.12), p.z);
+        camera.position.copy(start); controls.target.copy(tgt); controls.update();
+        flyTo(p, tgt, 1000, settle);
+      }
       else flyTo(p, tgt, 700, settle);
     }
 
