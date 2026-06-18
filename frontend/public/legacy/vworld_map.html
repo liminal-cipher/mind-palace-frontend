@@ -1963,8 +1963,8 @@
         qs("dockFocusBtn").addEventListener("click", () =>
           flyToAnchor(activeIndex),
         );
-        // 🔭 전체 보기 — 모든 명소가 한눈에 보이는 상공 조망으로 부드럽게 복귀(언제 어디서든)
-        qs("dockOverviewBtn").addEventListener("click", () => { stopTour(false); flyTo(GWANGHWAMUN); setStatus("전체 조망 — 모든 명소를 한눈에 봅니다."); });
+        // 🔭 전체 보기 — 모든 명소가 한눈에 들어오도록 정확히 프레이밍(바운딩 스피어 기반)된 상공 조망으로(언제 어디서든)
+        qs("dockOverviewBtn").addEventListener("click", () => { stopTour(false); activeIndex = 0; renderUi(); setInitialView(); setStatus("전체 조망 — 모든 명소를 한눈에 봅니다."); });
         qs("dockEnterBtn").addEventListener("click", () => enterCurrentStop());
         qs("performanceToggle").addEventListener("click", () =>
           applyPerformanceMode(!performanceMode),
