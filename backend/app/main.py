@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import requests
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.responses import RedirectResponse
@@ -15,6 +15,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from . import sketchfab as sk
+from . import storage
 
 app = FastAPI(title="Mind Palace API", version="0.1.0")
 ROOT_DIR = Path(__file__).resolve().parents[2]
@@ -187,6 +188,54 @@ def pdf_integration_status() -> dict:
             "PATCH /api/palace/rooms/{room_id}/nodes",
         ],
     }
+
+
+# ── 내 서재(라이브러리): palace + 방 구성을 사용자별 Azure Blob에 저장/불러오기 ──
+def current_user_id(request: Request) -> str:
+    """Easy Auth가 넘기는 로그인 사용자(이메일). 로그인 전/헤더 없으면 'anonymous'.
+    헤더 우선순위: NAME(보통 이메일) > 디코드된 principal의 userId/email."""
+    name = (request.headers.get("X-MS-CLIENT-PRINCIPAL-NAME") or "").strip()
+    if name:
+        return name
+    return "anonymous"
+
+
+class LibrarySaveRequest(BaseModel):
+    title: str
+    palace: Any
+    designs: Any | None = None
+    id: str | None = None
+
+
+@app.post("/api/library/save")
+def library_save(payload: LibrarySaveRequest, request: Request) -> dict:
+    if not storage.configured():
+        raise HTTPException(status_code=503, detail="저장소(Blob)가 설정되지 않았습니다.")
+    entry = storage.save_item(
+        current_user_id(request), payload.title, payload.palace, payload.designs, payload.id
+    )
+    if entry is None:
+        raise HTTPException(status_code=503, detail="저장에 실패했습니다(저장소 오류).")
+    return {"ok": True, "item": entry}
+
+
+@app.get("/api/library/list")
+def library_list(request: Request) -> dict:
+    return {"items": storage.list_items(current_user_id(request))}
+
+
+@app.get("/api/library/{item_id}")
+def library_get(item_id: str, request: Request) -> dict:
+    item = storage.get_item(current_user_id(request), item_id)
+    if item is None:
+        raise HTTPException(status_code=404, detail="항목을 찾을 수 없습니다.")
+    return item
+
+
+@app.delete("/api/library/{item_id}")
+def library_delete(item_id: str, request: Request) -> dict:
+    ok = storage.delete_item(current_user_id(request), item_id)
+    return {"ok": ok}
 
 
 if LEGACY_DIR.exists():
