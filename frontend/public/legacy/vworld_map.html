@@ -1422,17 +1422,24 @@
         applyCameraConstraints();
       }
 
-      // VWorld 하이브리드(Layer=hyb) 이미지 레이어 = 은행·약국·상호 등 POI 텍스트 오버레이. 숨겨 잡다함 제거.
-      //   비동기로 늦게 추가될 수 있어 즉시 + layerAdded 훅 + 짧은 재시도로 확실히 끈다.
+      // VWorld POI 텍스트 제거 — ① 하이브리드(Layer=hyb) 이미지 레이어(은행·약국·상호) ② POI 라벨 3D타일셋
+      //   (POI_BASE/POI_BOUND = 경복궁흥례문·국립고궁박물관 등 건물·장소명). 둘 다 비동기 로드 → 훅+재시도로 확실히 끈다.
       function hideVWorldPoiLabels(viewer) {
+        const engine = window.Cesium;
         const hideHyb = (L) => { try { const p = L.imageryProvider || {}; const u = (p.url || p._url || "").toString();
           if (/Layer=hyb|hybrid/i.test(u)) L.show = false; } catch {} };
+        const hidePoi = (pr) => { try { if (engine && pr instanceof engine.Cesium3DTileset) {
+          const u = (pr._url || (pr.resource && pr.resource.url) || "").toString();
+          if (/\/poi\/POI_/i.test(u)) pr.show = false; } } catch {} };
         try {
-          const il = viewer.imageryLayers;
-          for (let i = 0; i < il.length; i++) hideHyb(il.get(i));
+          const il = viewer.imageryLayers, P = viewer.scene.primitives;
+          const sweep = () => { for (let i = 0; i < il.length; i++) hideHyb(il.get(i));
+            for (let i = 0; i < (P.length || 0); i++) { let pr; try { pr = P.get(i); } catch (e) { continue; } hidePoi(pr); } };
+          sweep();
           if (il.layerAdded && !il.__poiHook) { il.__poiHook = 1; il.layerAdded.addEventListener(hideHyb); }
-          let n = 0; const t = setInterval(() => { for (let i = 0; i < il.length; i++) hideHyb(il.get(i));
-            if (viewer.scene.requestRender) viewer.scene.requestRender(); if (++n > 6) clearInterval(t); }, 800);
+          if (P.primitiveAdded && !P.__poiHook) { P.__poiHook = 1; P.primitiveAdded.addEventListener(hidePoi); }   // POI 타일셋이 늦게 추가돼도 숨김
+          let n = 0; const t = setInterval(() => { sweep();
+            if (viewer.scene.requestRender) viewer.scene.requestRender(); if (++n > 8) clearInterval(t); }, 800);
         } catch {}
       }
 
