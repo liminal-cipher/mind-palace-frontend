@@ -184,9 +184,7 @@
 </head>
 <body>
   <div class="top">
-    <a class="home" href="region-select.html">← 지역</a>
-    <a class="home" id="mapLink" href="vworld_map.html">🗺 3D 지도</a>
-    <a class="home" id="shopLink" href="compose.html">🛍 구성</a>
+    <!-- 이동(지역·구성·3D지도)은 상단 글로벌 nav 바가 담당 — 중복 링크 제거 -->
     <div><div class="kicker">Memory Palace · 방 디자인 스튜디오</div><h1 id="title">방 디자인 스튜디오</h1></div>
     <label class="palacebtn">📂 학습 JSON 바꾸기<input id="palaceFile" type="file" accept=".json,application/json" hidden /></label>
   </div>
@@ -448,8 +446,6 @@
     return "memory-walk.html?" + params.toString();
   }
   function updateLinks(){
-    $("mapLink").href = `vworld_map.html?city=${encodeURIComponent(CITY)}`;
-    $("shopLink").href = `compose.html?city=${encodeURIComponent(CITY)}`;
     const url = sel ? entryUrl(sel) : null;
     const enterHref = sel ? `vworld_map.html?city=${encodeURIComponent(CITY)}&focus=${encodeURIComponent(sel.name||"")}` : "#"; // 일방통행: 스튜디오 → 3D 지도
     $("enterBtn").href = enterHref;
