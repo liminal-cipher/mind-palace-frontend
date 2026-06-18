@@ -381,9 +381,9 @@
   Promise.all([
     fetch("public/data/cities.json").then(r=>r.json()),
     fetch("public/data/cities-centers.json").then(r=>r.json()).catch(()=>({})),
-    fetch("public/data/city-photos.json").then(r=>r.json()).catch(()=>({})),
-    fetch("public/data/city-index.json").then(r=>r.json()).catch(()=>({})),
-    fetch("public/data/featured-cities.json").then(r=>r.json()).catch(()=>({slugs:[]}))
+    fetch("public/data/city-photos.json?v=3").then(r=>r.json()).catch(()=>({})),   // ?v= 캐시버스터: 큐레이션 갱신이 바로 반영되게
+    fetch("public/data/city-index.json?v=3").then(r=>r.json()).catch(()=>({})),
+    fetch("public/data/featured-cities.json?v=3").then(r=>r.json()).catch(()=>({slugs:[]}))
   ]).then(([cities, centers, photos, index, featured]) => {
     DATA = cities; CENTERS = centers; PHOTOS = photos; INDEX = index;
     FEATURED = (featured.slugs || []).filter(s => (INDEX[s] || PHOTOS[s]));
