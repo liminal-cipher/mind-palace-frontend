@@ -109,6 +109,14 @@
       { label:"3D 지도", act:"go", v:"vworld_map.html", say:1 },
       { label:"처음으로", act:"go", v:"region-select.html", say:1 }
     ]; addChips(c); }
+    // 추천 학습 항목 칩 — 방(memory-walk)이 노출한 미배치(demoted) 우선 추천. 누르면 빈 지점에 연결.
+    function recoChips(){
+      if (typeof window.mpRecommendations !== "function"){ addMsg("방 안(memory-walk)에서 추천·연결을 도와드릴 수 있어요.", "bot"); return; }
+      var recs = window.mpRecommendations(10);
+      if (recs && recs.length){
+        addChips(recs.map(function(r){ return { label:(r.demoted?"🎯 ":"")+r.title+(r.type?(" · "+String(r.type).split(",")[0].trim()):""), act:"reco", v:r.id, say:1 }; }));
+      } else { addMsg("학습 항목이 모두 배치됐어요 🎉 방에서 ➕ 지점을 추가하면 더 연결할 수 있어요.", "bot"); }
+    }
 
     function act(c){
       if (c.act === "theme") return setTheme(c.v);
@@ -124,6 +132,22 @@
           if (r.desc) addMsg("📖 " + r.concept + ": " + r.desc, "bot");
         } else if (r){ addMsg(r.object + " — 아직 연결된 학습 개념이 없어요. 방에서 ➕ 지점으로 정의하면 연결됩니다.", "bot"); }
         else { addMsg("방 안(memory-walk)에서 이용해 주세요.", "bot"); }
+        return;
+      }
+      if (c.act === "reco"){   // 추천 학습항목 칩 → 미배치 지점(없으면 첫 지점)에 개념 연결
+        var rr = (typeof window.mpAssignConcept === "function") ? window.mpAssignConcept("auto", c.v) : null;
+        if (rr && rr.ok){
+          addMsg("🔗 " + rr.n + "번 " + rr.object + "  ↔  '" + rr.concept + "' 연결했어요.", "bot");
+          if (rr.mnemonic) addMsg(rr.mnemonic, "bot");
+          if (rr.desc) addMsg("📖 " + rr.concept + ": " + rr.desc, "bot");
+          addMsg("계속 연결할까요?", "bot"); recoChips();   // 남은 추천 갱신
+        } else { addMsg((rr && rr.reason) || "방 안(memory-walk)에서 이용해 주세요.", "bot"); }
+        return;
+      }
+      if (c.act === "assign"){   // {n,id} → 특정 번호 지점에 개념 연결
+        var v = c.v || {}, ra = (typeof window.mpAssignConcept === "function") ? window.mpAssignConcept(v.n, v.id) : null;
+        if (ra && ra.ok){ addMsg("🔗 " + ra.n + "번 " + ra.object + "  ↔  '" + ra.concept + "' 연결.", "bot"); if (ra.mnemonic) addMsg(ra.mnemonic, "bot"); }
+        else { addMsg((ra && ra.reason) || "연결하지 못했어요.", "bot"); }
         return;
       }
       if (c.act === "intent") return ruleReply(c.v);
@@ -156,6 +180,19 @@
       if (/테마|색|팔레트|분위기|톤|theme|컬러/.test(t) || text === "테마"){ addMsg("테마를 골라보세요. 고르면 모든 화면에 바로 적용되고 유지돼요.", "bot"); return themeChips(); }
       if (/밝|어둡|글씨|크게|작게|크기|폰트|zoom/.test(t)){ addMsg("화면 크기를 조절해 드릴게요.", "bot"); return addChips([{label:"글씨 크게",act:"zoom",v:"1.12",say:1},{label:"글씨 작게",act:"zoom",v:"0.92",say:1},{label:"기본 크기",act:"zoom",v:"",say:1}]); }
       if (/가벼|렉|느려|성능|lite/.test(t)){ return setLite(get(LS_LITE,"0")!=="1"); }
+      // 학습 커스텀(방 안에서만): "X를 3번에 연결" 직접 연결, "추천/미배치/커스텀" → 추천 칩
+      // 명령형만: "<개념>을/를 N번에 연결[해줘]" — 조사·'번'·끝 앵커 필수(질문/서술문 오매칭 방지)
+      var mAssign = text && text.match(/^\s*(.+?)\s*(?:을|를|=|->|→)\s*(\d+)\s*번\s*(?:에|에다|핫스팟|지점)?\s*(?:연결|배치|넣어|매핑)(?:해|해줘|하기|해주세요)?[\s.!?]*$/);
+      if (mAssign && typeof window.mpAssignConcept === "function"){
+        var rc = window.mpAssignConcept(mAssign[2], mAssign[1].trim());
+        if (rc && rc.ok){ addMsg("🔗 " + rc.n + "번 " + rc.object + "  ↔  '" + rc.concept + "' 연결했어요.", "bot"); if (rc.mnemonic) addMsg(rc.mnemonic, "bot"); }
+        else { addMsg((rc && rc.reason) || "그 개념·지점을 찾지 못했어요.", "bot"); }
+        return;
+      }
+      if (typeof window.mpRecommendations === "function" && /추천|미배치|더 배|배울|학습.*추천|커스텀|연결해|연결할/.test(t)){
+        addMsg("아직 방에 없는 학습 항목이에요(🎯=미배치 우선). 누르면 빈 지점에 연결해 드려요:", "bot");
+        return recoChips();
+      }
       if (/핫스팟|hotspot|노드|마커|이 방|뭐가 있|뭐있|배치|지점|인식/.test(t)){
         var R = window.mpRoom;
         if (R && R.hotspots && R.hotspots.length){

@@ -124,11 +124,30 @@
           border:1px solid var(--line);background:rgba(255,255,255,.82);box-shadow:0 14px 38px rgba(40,34,26,.16);
           cursor:pointer;z-index:10;display:none;}
     .mini:hover{border-color:var(--accent);}
-    /* 편집 대시보드 */
-    .esheet{width:min(640px,calc(100vw - 28px));max-height:92vh;padding:0;overflow:hidden;display:flex;flex-direction:column;}
+    /* 편집 대시보드 — 가로로 넓힌 2열(개념지도 + 추천 학습항목) */
+    .esheet{width:min(980px,calc(100vw - 28px));max-height:92vh;padding:0;overflow:hidden;display:flex;flex-direction:column;}
     .ehead{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 8px;}
     .ebody{padding:6px 16px 14px;display:flex;flex-direction:column;gap:10px;overflow:auto;}
-    #editCv{width:100%;border-radius:12px;border:1px solid var(--line);background:#eee9df;cursor:crosshair;touch-action:none;}
+    .emain{display:flex;gap:14px;align-items:stretch;}
+    .ecol-map{flex:1 1 auto;min-width:0;}
+    .ecol-reco{flex:0 0 234px;display:flex;flex-direction:column;min-height:0;}
+    #editCv{width:100%;aspect-ratio:760/560;height:auto;border-radius:12px;border:1px solid var(--line);background:#eee9df;cursor:crosshair;touch-action:none;}
+    /* 추천 학습항목(미배치 demoted 우선) 리스트 — 지점 고르고 ＋연결 */
+    .ereco-h{font-size:12px;font-weight:800;color:var(--gold);letter-spacing:.04em;}
+    .ereco-h span{color:var(--accent);font-weight:700;}
+    .ereco-sub{font-size:10.5px;color:var(--muted);margin:3px 0 8px;line-height:1.45;}
+    .ereco-sub b{color:var(--accent);}
+    .ereco-list{flex:1;overflow:auto;display:flex;flex-direction:column;gap:5px;max-height:560px;}
+    .ereco-item{display:grid;grid-template-columns:1fr auto;grid-template-rows:auto auto;gap:1px 8px;text-align:left;
+      border:1px solid var(--line);border-radius:9px;background:rgba(51,46,40,.04);color:var(--text);font:inherit;
+      padding:7px 9px;cursor:pointer;transition:border-color .12s,background .12s;}
+    .ereco-item:hover{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,transparent);}
+    .ereco-item.dem{border-left:3px solid var(--gold);}
+    .ereco-item .ereco-t{font-weight:700;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .ereco-item .ereco-ty{grid-column:1;font-size:10px;color:var(--muted);}
+    .ereco-item .ereco-add{grid-row:1/3;grid-column:2;align-self:center;font-size:11px;font-weight:800;color:var(--accent);white-space:nowrap;}
+    .ereco-empty{font-size:12px;color:var(--muted);padding:16px 6px;text-align:center;line-height:1.5;}
+    @media(max-width:720px){ .emain{flex-direction:column;} .ecol-reco{flex:none;} .ereco-list{max-height:208px;} }
     .erow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
     .erow input{flex:1;min-width:140px;height:36px;border-radius:9px;border:1px solid var(--line);
                 background:rgba(51,46,40,.05);color:var(--text);font:inherit;font-size:13px;padding:0 11px;}
@@ -198,8 +217,11 @@
     body.dash #editModal{display:flex !important;background:var(--bg);backdrop-filter:none;}
     body.dash #editModal .esheet{width:100%;max-width:none;height:100%;max-height:none;border-radius:0;border:none;}
     body.dash #editClose{display:none;}
-    body.dash #editModal .ebody{align-items:center;}
-    body.dash #editCv{width:min(86vh,96vw) !important;height:min(86vh,96vw) !important;max-width:700px;max-height:700px;}
+    body.dash #editModal .ebody{height:100%;}
+    body.dash #editModal .emain{flex:1;min-height:0;}
+    body.dash #editCv{width:100% !important;max-width:calc(74vh * 760 / 560);margin:0 auto;display:block;}
+    body.dash .ecol-reco{flex-basis:280px;}
+    body.dash .ereco-list{max-height:74vh;}
     .msheet{width:min(420px,calc(100vw - 32px));max-height:min(72vh,640px);padding:0;overflow:hidden;display:flex;flex-direction:column;}
     .mhead{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 10px;}
     .mx{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;}
@@ -332,7 +354,16 @@
       <div class="ebody">
         <p class="enote"><b>금색=개념</b> · 점선=연결 · 빨강=내 위치·시선 · <b>휠=줌</b>(확대하면 개념 설명 펼침) ·
            빈 곳 드래그=지도 이동 · <b>점 드래그</b>=핫스팟 이동 · 빈 곳 클릭=추가 · 더블클릭=삭제</p>
-        <canvas id="editCv" width="600" height="600"></canvas>
+        <div class="emain">
+          <div class="ecol-map">
+            <canvas id="editCv" width="760" height="560"></canvas>
+          </div>
+          <aside class="ecol-reco">
+            <div class="ereco-h">🎯 추천 학습 항목 <span id="eRecoCount"></span></div>
+            <div class="ereco-sub">아직 방에 없는 개념(미배치)이에요. 지도에서 <b>지점을 고르고</b> 항목을 누르면 그 자리에 <b>＋연결</b>돼요.</div>
+            <div id="eRecoList" class="ereco-list"></div>
+          </aside>
+        </div>
         <div class="erow">
           <input id="newName" placeholder="추가할 핫스팟 이름 (예: 냉장고, 내 책상)" value="기억 지점" />
         </div>
@@ -909,7 +940,9 @@
       const entOf = new Map(), used = new Set(), boundEnts = new Set();
       for (const a of ordered) {
         if (!a.entityId) continue;
-        const ent = entities.find(e => e.id === a.entityId);
+        // kept 우선, 없으면 demoted에서 복원(미배치 항목을 추천으로 연결·저장한 경우 리로드에도 유지)
+        const ent = entities.find(e => e.id === a.entityId)
+                 || (window.__mwDemoted || []).find(e => e && e.id === a.entityId);
         if (ent && !boundEnts.has(ent)) { entOf.set(a, ent); used.add(a); boundEnts.add(ent); }
       }
       // ③ 남은 엔티티는 rank 순서 = 동선 순서로 배정(걷는 순서가 곧 서사 순서가 되게).
@@ -1429,7 +1462,41 @@
       eOx = Wc/2 - c.x * eScale; eOz = Hc/2 - c.z * eScale;
       selENodeIdx = -1; $("eDetail").classList.remove("on");
       drawEditor();
+      renderReco();                 // 미배치(demoted) 추천 학습항목 패널 채우기
       $("editModal").classList.add("open");
+    }
+    // 개념 지도 옆 "추천 학습 항목" — palace.json의 미배치(demoted)를 우선, 이미 배치된 건 제외.
+    //   항목 클릭 = 선택한 지점(없으면 첫 미배치 지점)에 그 개념을 연결 → 학습 내용 커스텀.
+    function renderReco() {
+      const box = $("eRecoList"); if (!box) return;
+      const assigned = new Set(editList.map(h => h.entId).filter(Boolean));
+      const dem  = (window.__mwDemoted  || []).filter(e => e && e.id && !assigned.has(e.id));
+      const kept = (window.__mwEntities || []).filter(e => e && e.id && !assigned.has(e.id));
+      const list = dem.map(e => ({ e, dem: true })).concat(kept.map(e => ({ e, dem: false })));
+      const cnt = $("eRecoCount"); if (cnt) cnt.textContent = dem.length ? `· 미배치 ${dem.length}` : "";
+      if (!list.length) { box.innerHTML = `<div class="ereco-empty">학습 항목이 모두 배치됐어요 🎉<br>지도 빈 곳을 클릭해 새 지점을 추가할 수 있어요.</div>`; return; }
+      box.innerHTML = list.slice(0, 40).map(x =>
+        `<button class="ereco-item${x.dem ? " dem" : ""}" data-id="${_esc(x.e.id)}" title="${_esc(x.e.summary || x.e.description || "")}">
+           <span class="ereco-t">${_esc(x.e.title)}</span>
+           <span class="ereco-ty">${_esc(String(x.e.type || "").split(",")[0].trim())}</span>
+           <span class="ereco-add">＋ 연결</span></button>`).join("");
+      box.querySelectorAll(".ereco-item").forEach(btn => btn.onclick = () => assignRecoToNode(btn.getAttribute("data-id")));
+    }
+    function assignRecoToNode(id) {
+      const ent = (window.__mwEntities || []).concat(window.__mwDemoted || []).find(e => e && e.id === id);
+      if (!ent) return;
+      let idx = selENodeIdx >= 0 ? selENodeIdx : editList.findIndex(h => !h.entId);
+      if (idx < 0) { setStatusE("연결할 지점이 없어요 — 지도 빈 곳을 클릭해 지점을 먼저 추가하세요."); return; }
+      const h = editList[idx];
+      // openEditor의 노드 필드를 모두 동일하게 세팅(재연결 시 이전 개념의 rel/capt/img 잔존 방지)
+      h.ent = ent.title; h.entId = ent.id; h.type = ent.type || "";
+      h.desc = ent.description || ent.summary || ""; h.cap = ent.caption || ent.summary || "";
+      h.capt = ent.caption || ent.summary || ent.description || "";   // 줌 시 지도 위 캡션 박스
+      h.rel = ent.related || [];                                      // 개념 간 연결선
+      h.img = ent.image || (THEME && THEME.cardImage) || "";          // 상세 패널 이미지
+      setStatusE(`🔗 ${idx + 1}번 "${dispName(h)}" ↔ '${ent.title}' 연결 — [저장하고 적용]으로 반영`);
+      selectENode(idx);   // 상세 패널 + 지도 갱신
+      renderReco();       // 방금 배치한 항목 목록에서 제거
     }
     // 휠 = 커서 중심 줌. 확대하면 개념 캡션(설명)이 노드 아래에 펼쳐진다.
     editCv.addEventListener("wheel", ev => {
@@ -1932,6 +1999,43 @@
         concept = cs && cs.length ? cs[n % cs.length] : null; }
       return { n, object, pos: [ +h.pos.x.toFixed(2), +h.pos.y.toFixed(2), +h.pos.z.toFixed(2) ],
         concept, desc, mnemonic: concept ? mnemonicFor(object, concept) : null, bound: !!h.entity };
+    };
+    // 추천 학습 항목(미배치 demoted 우선) — 챗봇/패널이 표시. limit개 반환.
+    window.mpRecommendations = (limit) => {
+      const assigned = new Set(route.filter(h => h.entity).map(h => h.entity.id));
+      const dem  = (window.__mwDemoted  || []).filter(e => e && e.id && !assigned.has(e.id));
+      const kept = (window.__mwEntities || []).filter(e => e && e.id && !assigned.has(e.id));
+      return dem.concat(kept).slice(0, limit || 8).map(e => ({
+        id: e.id, title: e.title, type: e.type || "",
+        desc: e.summary || e.description || "", demoted: dem.indexOf(e) >= 0 }));
+    };
+    // 챗봇 액션: 학습 개념을 핫스팟에 연결(어거지 의미). target=핫스팟 번호 또는 "auto"(미배치 우선).
+    //   conceptRef = 개념 id 또는 제목(kept/demoted 양쪽 검색). 성공 시 route 갱신·저장·상태통지.
+    window.mpAssignConcept = (target, conceptRef) => {
+      const pool = (window.__mwEntities || []).concat(window.__mwDemoted || []);
+      const key = String(conceptRef || "").toLowerCase().trim();
+      if (!key) return { ok: false, reason: "어떤 개념을 연결할지 알려주세요." };
+      let ent = pool.find(e => e && (e.id === conceptRef || String(e.id || "").toLowerCase() === key || String(e.title || "").toLowerCase() === key));
+      if (!ent) {   // 부분일치는 모호하지 않을 때(정확히 1개)만 허용 — 오연결로 기존 바인딩을 덮어쓰는 것 방지
+        const subs = pool.filter(e => e && String(e.title || "").toLowerCase().indexOf(key) >= 0);
+        if (subs.length === 1) ent = subs[0];
+        else if (subs.length > 1) return { ok: false, reason: `'${conceptRef}'에 해당하는 개념이 여러 개예요. 더 정확히 적어 주세요.` };
+      }
+      if (!ent) return { ok: false, reason: `'${conceptRef}' 개념을 못 찾았어요.` };
+      let h = (target == null || target === "auto" || target === "")
+              ? (route.find(r => !r.entity) || route[0])
+              : route.find(r => r.number === +target);
+      if (!h) return { ok: false, reason: "연결할 지점이 없어요. 방에서 ➕ 지점을 먼저 추가하세요." };
+      pushUndo();
+      h.entity = ent;
+      try { renderDots(activeIdx); } catch (_) {}
+      try { buildObjectList(); } catch (_) {}
+      try { buildRelations(); } catch (_) {}
+      saveOverrideFromRoute(); updateRoomState();
+      const object = dispName(h);
+      setStatus(`🔗 ${h.number}번 <b>${object}</b> ↔ '${ent.title}' 연결 — 저장됨`);
+      return { ok: true, n: h.number, object, concept: ent.title,
+        desc: ent.description || ent.summary || "", mnemonic: mnemonicFor(object, ent.title), demoted: (window.__mwDemoted || []).indexOf(ent) >= 0 };
     };
 
     // 마커 클릭 → 그 지점 / 추가 모드면 클릭한 표면에 핫스팟 생성
