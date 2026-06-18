@@ -150,7 +150,7 @@ body {
 .nav-cta:hover { transform: scale(1.04); box-shadow: 0 4px 16px rgba(252,164,53,0.35); }
 
 /* ───────── HERO ───────── */
-.hero-track { height: 260vh; position: relative; }
+.hero-track { height: 200vh; position: relative; }
 
 .hero-sticky {
   position: sticky;
@@ -162,7 +162,7 @@ body {
 .hero-title-block {
   position: absolute;
   left: 6vw;
-  bottom: 9vh;
+  bottom: calc(9vh + 30px);
   z-index: 5;
   will-change: opacity, transform;
   animation: heroFadeIn 1.6s ease-out;
@@ -414,53 +414,6 @@ body {
   100% { box-shadow: 0 0 0 8px rgba(252,164,53,0.08), 0 0 28px rgba(252,164,53,0.5); }
 }
 
-.hero-boundary {
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  width: min(1120px, 88vw);
-  height: 118px;
-  transform: translateX(-50%);
-  z-index: 5;
-  pointer-events: none;
-  opacity: 0;
-  will-change: opacity, transform;
-}
-
-.hero-boundary::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 42px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(252,164,53,0.92), transparent);
-  box-shadow: 0 0 24px rgba(252,164,53,0.42);
-}
-
-.hero-boundary::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  bottom: 16px;
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: var(--c-acc);
-  transform: translateX(-50%);
-  box-shadow: 0 0 0 10px rgba(252,164,53,0.12), 0 0 34px rgba(252,164,53,0.58);
-}
-
-.hero-boundary span {
-  position: absolute;
-  left: 50%;
-  bottom: 58px;
-  transform: translateX(-50%);
-  font-size: 11px;
-  letter-spacing: 0.22em;
-  color: rgba(245,240,232,0.72);
-  white-space: nowrap;
-}
 
 
 .hero-statement {
@@ -3645,7 +3598,7 @@ end of keeper CSS */
     <a href="#objects">체험 순서</a>
     <a href="#spaces">공간 프리셋</a>
     <a href="#explore">3D 둘러보기</a>
-    <a class="nav-cta" href="#upload">시작하기</a>
+    <a class="nav-cta" href="https://3d-mindpalace-ai-fxf8dyfqega3hvbp.canadacentral-01.azurewebsites.net/legacy/region-select.html" target="_blank" rel="noopener">시작하기</a>
   </div>
 </nav>
 
@@ -3681,10 +3634,6 @@ end of keeper CSS */
     <div class="scroll-hint" id="scrollHint">
       <span>SCROLL</span>
       <div class="line"></div>
-    </div>
-
-    <div class="hero-boundary" id="heroBoundary" aria-hidden="true">
-      <span>STORY AREA</span>
     </div>
   </div>
 </div>
@@ -5067,8 +5016,7 @@ end of keeper CSS */
     });
   }
 
-  /* ═══════ PDF 업로드 → 백엔드 연결 ═══════ */
-  const API_UPLOAD_ENDPOINT = '/api/pdf/upload';
+  /* ═══════ PDF 업로드 → GraphRAG 백엔드 연결 ═══════ */
   const pdfForm = document.getElementById('pdfUploadForm');
   const pdfInput = document.getElementById('pdfFileInput');
   const pdfDropZone = document.getElementById('pdfDropZone');
