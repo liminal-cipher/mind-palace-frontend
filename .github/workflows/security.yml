@@ -1,0 +1,97 @@
+# 보안 자동화 파이프라인 — push/PR마다 보안 게이트가 자동 실행된다.
+#   · SAST(정적분석)   : bandit           — 파이썬 코드의 취약 패턴
+#   · SCA(의존성 CVE)  : pip-audit / npm audit — 알려진 취약 라이브러리
+#   · Secret 스캔      : gitleaks         — 커밋에 섞인 키·토큰
+#   · DAST(동적 스캔)   : OWASP ZAP baseline — 실제 떠 있는 앱을 외부에서 점검
+name: Security Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * 1"   # 매주 월요일 — 새로 공개된 CVE 재점검
+
+permissions:
+  contents: read
+
+jobs:
+  # ── 1) SAST: 파이썬 정적 분석 ──
+  sast:
+    name: SAST (bandit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install bandit
+      # 高심각도 발견은 빌드 실패로 게이트. 전체 리포트는 로그/아티팩트로 보존.
+      - name: Run bandit
+        run: bandit -r backend --severity-level high --confidence-level medium
+
+  # ── 2) SCA: 의존성 취약점(파이썬 + 프론트엔드) ──
+  dependency-audit:
+    name: SCA (pip-audit + npm audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install pip-audit
+      # 업스트림 미패치 CVE로 배포가 막히지 않도록 보고만(continue-on-error). 게이트로 쓰려면 제거.
+      - name: pip-audit (Python deps)
+        continue-on-error: true
+        run: pip-audit -r requirements.txt --desc
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: npm audit (frontend deps)
+        continue-on-error: true
+        working-directory: frontend
+        run: npm audit --audit-level=high
+
+  # ── 3) Secret 스캔: 커밋된 키/토큰 탐지 ──
+  secret-scan:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # 전체 히스토리 스캔
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # 조직 저장소는 GITLEAKS_LICENSE 필요(개인 저장소는 불필요).
+
+  # ── 4) DAST: 실제 기동된 앱을 외부에서 동적 스캔 ──
+  dast:
+    name: DAST (OWASP ZAP baseline)
+    runs-on: ubuntu-latest
+    # PR마다 돌리면 느리므로 main push / 수동 / 주간 스케줄에서만.
+    if: github.event_name != 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install backend deps
+        run: pip install -r requirements.txt
+      - name: Start app (background)
+        working-directory: backend
+        run: |
+          nohup python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8000/api/health >/dev/null; then echo "up"; break; fi
+            sleep 1
+          done
+      - name: ZAP baseline scan
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          target: "http://localhost:8000"
+          # baseline은 경고를 리포트하는 성격 → 데모/초기엔 실패로 막지 않음.
+          fail_action: false
+          allow_issue_creation: false
