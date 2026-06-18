@@ -255,6 +255,8 @@
     let scanning = false;           // 스캔 중엔 렌더루프가 카메라를 못 건드리게(광선 정확도)
 
     const $ = (id)=>document.getElementById(id);
+    // XSS 방어: innerHTML에 들어가는 외부 데이터(AI 인식 라벨·저장된 핫스팟 제목/사물 등)를 이스케이프.
+    const esc = s => String(s ?? "").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
     const setStatus = (h)=>{ $("status").innerHTML = h; if (AUTO_SCAN) postParent({ type:"scan-progress", html:h }); };
 
     // 서버에 Azure 비전이 설정돼 있는지 물어본다(없거나 file://면 폴백).
@@ -963,7 +965,7 @@
         const row = document.createElement("div");
         row.className = "drow";
         row.innerHTML = `<span class="swatch" style="background:#${hex}"></span>` +
-          `<span class="name">${ko}</span>` +
+          `<span class="name">${esc(ko)}</span>` +
           `<span class="pct">${Math.round(cl.score*100)}%</span>` +
           `<span class="tri ${b.ok?'ok':'weak'}">${b.t}</span>`;
         row.addEventListener("click", () => selectDetect(cl));   // 라벨 고정 + 카메라 이동
@@ -1010,7 +1012,7 @@
       hotspots.forEach((h,i) => {
         const row = document.createElement("div");
         row.className = "row" + (i===activeIndex?" active":"");
-        row.innerHTML = `<span class="n">${h.number}</span><span>${h.title} · <b>${h.object}</b></span>
+        row.innerHTML = `<span class="n">${esc(h.number)}</span><span>${esc(h.title)} · <b>${esc(h.object)}</b></span>
           <span class="conf">${h.score!=null?Math.round(h.score*100)+"%":"조망"}</span>`;
         row.addEventListener("click", ()=>selectHotspot(i));
         list.appendChild(row);
