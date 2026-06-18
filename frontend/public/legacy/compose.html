@@ -100,8 +100,8 @@
   </div>
 
   <div class="footbar">
-    <a class="ghost" id="mapLink2" href="#">🗺 3D 지도로 미리보기</a>
-    <a class="start" id="startBtn" href="#">🧩 첫 방부터 만들기 →</a>
+    <a class="ghost" id="studioLink" href="#">🧩 방 디자인 다듬기(선택)</a>
+    <a class="start" id="startBtn" href="#">🌐 바로 3D 지도로 입장 →</a>
   </div>
 
 <script>
@@ -272,10 +272,15 @@
   }
 
   function updateStart(){
-    const first=PAL.rooms&&PAL.rooms.length?studioUrl(0):"#";
-    $("startBtn").href=first;
-    $("mapLink").href=$("mapLink2").href=`vworld_map.html?city=${encodeURIComponent(CITY)}`;
+    const has = PAL.rooms && PAL.rooms.length;
+    $("startBtn").href = has ? mapUrl(0) : `vworld_map.html?city=${encodeURIComponent(CITY)}`;   // 바로 3D 지도로(디자인 커스텀 스킵)
+    $("studioLink").href = has ? studioUrl(0) : "glb-customizer.html";                            // 선택: 방 디자인 스튜디오에서 다듬기
+    $("mapLink").href = `vworld_map.html?city=${encodeURIComponent(CITY)}`;
   }
+  // '바로 입장' 클릭 시, 자동 매칭된 방 디자인을 studio_designs에 확정 저장 → 스튜디오를 건너뛰어도 그대로 반영
+  $("startBtn").addEventListener("click", () => {
+    try { (chapState || []).forEach(st => st && saveStudioDesign(lmNameOf(st.lmId), st.designId)); } catch(_){}
+  });
 
   function render(){
     $("title").innerHTML = `${esc(PAL.palace?.title||"학습 콘텐츠")}를 <span class="g">기억의 궁전</span>으로 구성`;

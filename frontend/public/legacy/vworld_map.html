@@ -1402,7 +1402,22 @@
         try { viewer.scene.fog.enabled = true; viewer.scene.fog.density = 0.00012; } catch {} // 원경 안개 약하게(과한 흐릿함 제거)
         try { viewer.scene.postProcessStages.fxaa.enabled = true; } catch {} // FXAA 켜서 에지 매끈하게
 
+        hideVWorldPoiLabels(viewer);   // 잡다한 상호·POI 라벨(하이브리드 레이어) 숨김 — 위성+우리 마커만 깔끔하게
         applyCameraConstraints();
+      }
+
+      // VWorld 하이브리드(Layer=hyb) 이미지 레이어 = 은행·약국·상호 등 POI 텍스트 오버레이. 숨겨 잡다함 제거.
+      //   비동기로 늦게 추가될 수 있어 즉시 + layerAdded 훅 + 짧은 재시도로 확실히 끈다.
+      function hideVWorldPoiLabels(viewer) {
+        const hideHyb = (L) => { try { const p = L.imageryProvider || {}; const u = (p.url || p._url || "").toString();
+          if (/Layer=hyb|hybrid/i.test(u)) L.show = false; } catch {} };
+        try {
+          const il = viewer.imageryLayers;
+          for (let i = 0; i < il.length; i++) hideHyb(il.get(i));
+          if (il.layerAdded && !il.__poiHook) { il.__poiHook = 1; il.layerAdded.addEventListener(hideHyb); }
+          let n = 0; const t = setInterval(() => { for (let i = 0; i < il.length; i++) hideHyb(il.get(i));
+            if (viewer.scene.requestRender) viewer.scene.requestRender(); if (++n > 6) clearInterval(t); }, 800);
+        } catch {}
       }
 
       function applyCameraConstraints() {
