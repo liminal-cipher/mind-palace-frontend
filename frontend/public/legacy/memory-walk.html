@@ -2170,29 +2170,46 @@
       };
       $n.focus(); $n.select();
     }
-    // 정밀 인식: 화면 캡처 → /api/detect → 마커 화면위치(0~1)를 덮는 객체 박스를 채택(없으면 최근접).
+    // 정밀 인식: 마커가 가리키는 대상을 화면에서 '크롭'해 /api/detect(Azure 비전)로 전송 → 대상이 프레임을
+    //   채워 인식 정확도가 높다. 크롭 안에서 중심(마커)을 덮는/가장 가까운 객체 채택. 크롭서 못 찾으면 전체화면 폴백.
+    async function detectOn(canvas, W, H, mx, my) {   // mx,my = 이미지 내 마커 위치(0~1)
+      const r = await fetch("/api/detect", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageBase64: canvas.toDataURL("image/png"), width: W, height: H }) });
+      if (!r.ok) return { err: "서버 오류" };
+      const j = await r.json();
+      if (!j.configured) return { err: "Azure 미설정" };
+      const objs = j.objects || [];
+      if (!objs.length) return { objs: [] };
+      let best = null, bestD = Infinity, inside = false;
+      objs.forEach(o => { const b = o.box || {}; if (b.xmin == null) return;
+        const cx = (b.xmin + b.xmax) / 2, cy = (b.ymin + b.ymax) / 2, d = Math.hypot(mx - cx, my - cy);
+        const ins = mx >= b.xmin && mx <= b.xmax && my >= b.ymin && my <= b.ymax;
+        if (ins && (!inside || d < bestD)) { inside = true; bestD = d; best = o; }
+        else if (!inside && d < bestD) { bestD = d; best = o; } });
+      return { objs, best };
+    }
     async function preciseRecognize(point) {
       try {
         renderer.render(scene, camera);   // preserveDrawingBuffer=false → 캡처 직전 1회 렌더
-        const W = renderer.domElement.width, H = renderer.domElement.height;
-        const dataURL = renderer.domElement.toDataURL("image/png");
-        const r = await fetch("/api/detect", { method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ imageBase64: dataURL, width: W, height: H }) });
-        if (!r.ok) return { ok: false, reason: "서버 오류" };
-        const j = await r.json();
-        if (!j.configured) return { ok: false, reason: "Azure 미설정" };
-        const objs = j.objects || [];
-        if (!objs.length) return { ok: false, reason: "검출 없음" };
+        const cvs = renderer.domElement, W = cvs.width, H = cvs.height;
         const v = point.clone().project(camera);
-        const sx = (v.x + 1) / 2, sy = (1 - v.y) / 2;
-        let best = null, bestD = Infinity, inside = false;
-        objs.forEach(o => { const b = o.box || {}; if (b.xmin == null) return;
-          const cx = (b.xmin + b.xmax) / 2, cy = (b.ymin + b.ymax) / 2, d = Math.hypot(sx - cx, sy - cy);
-          const ins = sx >= b.xmin && sx <= b.xmax && sy >= b.ymin && sy <= b.ymax;
-          if (ins && (!inside || d < bestD)) { inside = true; bestD = d; best = o; }
-          else if (!inside && d < bestD) { bestD = d; best = o; } });
-        if (!best) return { ok: false, reason: "검출 없음" };
-        return { ok: true, label: best.label, ko: furnKO(best.label), score: best.score };
+        const sx = (v.x + 1) / 2, sy = (1 - v.y) / 2;            // 마커의 화면 위치(0~1)
+        // ① 마커 주변 크롭(대상 사물 중심) — 정사각, 짧은 변의 ~60%
+        const half = Math.round(Math.min(W, H) * 0.30);
+        const cw = Math.min(2 * half, W), ch = Math.min(2 * half, H);
+        const x0 = Math.max(0, Math.min(W - cw, Math.round(sx * W - half)));
+        const y0 = Math.max(0, Math.min(H - ch, Math.round(sy * H - half)));
+        const crop = document.createElement("canvas"); crop.width = cw; crop.height = ch;
+        crop.getContext("2d").drawImage(cvs, x0, y0, cw, ch, 0, 0, cw, ch);
+        const mx = (sx * W - x0) / cw, my = (sy * H - y0) / ch;  // 크롭 내 마커 위치(≈0.5)
+        let res = await detectOn(crop, cw, ch, mx, my);
+        if (res.err) return { ok: false, reason: res.err };
+        if (res.best) return { ok: true, label: res.best.label, ko: furnKO(res.best.label), score: res.best.score };
+        // ② 크롭서 검출 0 → 전체화면 폴백(마커 위치 기준)
+        res = await detectOn(cvs, W, H, sx, sy);
+        if (res.err) return { ok: false, reason: res.err };
+        if (res.best) return { ok: true, label: res.best.label, ko: furnKO(res.best.label), score: res.best.score };
+        return { ok: false, reason: "검출 없음" };
       } catch (e) { return { ok: false, reason: "연결 실패" }; }
     }
     function addHotspotAt(point, nm, recogClass, entity) {
