@@ -1001,12 +1001,11 @@
       //    카메라가 머리를 돌리듯 한 방향으로 부드럽게 팬(왔다갔다 지그재그 없음).
       //    같은 각도대(거의 같은 방향)는 가까운 것 → 먼 것 순(그 방향으로 걸어 들어가듯).
       //    → 모서리 끝 항목은 스윕의 양 끝에서 순서대로 밟힌다.
-      picked.forEach(f => { f._ang = Math.atan2(f.lat, Math.max(f.depth, 0.05)); });
-      const SECTOR = 0.20;   // ~11°: 이 안쪽이면 같은 방향으로 보고 가까운 것 우선
-      picked.sort((x, y) => {
-        if (Math.abs(x._ang - y._ang) > SECTOR) return x._ang - y._ang; // 좌→우 각도 순
-        return x.depth - y.depth;                                       // 같은 방향이면 가까운 것 먼저
-      });
+      // 각도를 SECTOR 버킷으로 양자화 → (버킷, 깊이) 전순서로 정렬. 비교자가 추이적이라 결과가 일관됨.
+      //   (이전: |Δang|>SECTOR 분기 비교자는 비추이적 → 정렬 뒤섞임/엔진별 미정의. 버킷화로 해소.)
+      const SECTOR = 0.20;   // ~11°: 같은 버킷이면 같은 방향으로 보고 가까운 것 우선
+      picked.forEach(f => { f._ang = Math.atan2(f.lat, Math.max(f.depth, 0.05)); f._bucket = Math.round(f._ang / SECTOR); });
+      picked.sort((x, y) => (x._bucket - y._bucket) || (x.depth - y.depth));   // 좌→우 각도 버킷, 같은 버킷은 가까운 것 먼저
       return picked.map(f=>f.a);
     }
 
