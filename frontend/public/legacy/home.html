@@ -338,48 +338,6 @@ body {
 
 .nav-cta:hover { transform: scale(1.04); box-shadow: 0 4px 16px rgba(252,164,53,0.35); }
 
-.nav-auth { display: inline-flex; align-items: center; }
-.nav-login {
-  font-family: var(--font-body);
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--c-paper) !important;
-  border: 1px solid rgba(245, 240, 232, 0.4);
-  padding: 6px 16px;
-  border-radius: 20px;
-  text-decoration: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  transition: border-color 0.2s, background 0.2s;
-}
-.nav-login:hover { border-color: var(--c-acc); background: rgba(252, 164, 53, 0.12); }
-.nav-user { position: relative; display: inline-flex; align-items: center; }
-.nav-user-name {
-  font-family: var(--font-body); font-size: 12px; font-weight: 600;
-  color: rgba(245, 240, 232, 0.9);
-  background: none; border: 1px solid rgba(245, 240, 232, 0.25);
-  padding: 6px 14px; border-radius: 20px; cursor: pointer;
-  display: inline-flex; align-items: center; gap: 6px;
-  transition: border-color 0.2s, background 0.2s;
-}
-.nav-user-name:hover { border-color: var(--c-acc); background: rgba(252, 164, 53, 0.12); }
-.nav-menu {
-  position: absolute; top: calc(100% + 8px); right: 0;
-  min-width: 152px; background: #2a211b;
-  border: 1px solid rgba(245, 240, 232, 0.15); border-radius: 12px;
-  padding: 6px; display: flex; flex-direction: column;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45); z-index: 200;
-}
-.nav-menu[hidden] { display: none; }
-.nav-menu-item {
-  font-family: var(--font-body); font-size: 13px; text-align: left;
-  color: rgba(245, 240, 232, 0.85); background: none; border: none; cursor: pointer;
-  padding: 9px 12px; border-radius: 8px; text-decoration: none; display: block;
-  transition: background 0.15s, color 0.15s;
-}
-.nav-menu-item:hover { background: rgba(245, 240, 232, 0.08); color: var(--c-paper); }
-
 /* ───────── HERO ───────── */
 .hero-track { height: 200vh; position: relative; }
 
@@ -4233,7 +4191,7 @@ body {
 }
 
 @media (max-width: 680px) {
-  .nav-links a:not(.nav-cta):not(.nav-login) { display: none; }
+  .nav-links a:not(.nav-cta) { display: none; }
   .section { padding: 8vh 5vw; }
   .panel { border-radius: 18px; padding: 26px 18px; }
   .hero-journey {
@@ -4911,10 +4869,22 @@ end of keeper CSS */
     <a href="#objects">체험 순서</a>
     <a href="#spaces">공간 프리셋</a>
     <a href="#explore">3D 둘러보기</a>
-    <a class="nav-cta" href="https://3d-mindpalace-ai-fxf8dyfqega3hvbp.canadacentral-01.azurewebsites.net/legacy/region-select.html" target="_blank" rel="noopener">시작하기</a>
-    <span id="authBox" class="nav-auth"></span>
+    <a id="navAuth" href="/.auth/login/google?post_login_redirect_uri=%2Flegacy%2Fhome.html">로그인</a>
+    <a class="nav-cta" href="region-select.html" target="_blank" rel="noopener">시작하기</a>
   </div>
 </nav>
+<script>
+  /* Easy Auth: 로그인 상태면 '로그인' → '마이페이지'로 토글 */
+  (function () {
+    fetch('/.auth/me', { credentials: 'include' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (d) {
+        var cp = !d ? null : (Array.isArray(d) ? d[0] : (d.clientPrincipal || d));
+        var el = document.getElementById('navAuth');
+        if (cp && el) { el.textContent = '마이페이지'; el.href = 'mypage.html'; }
+      }).catch(function () {});
+  })();
+</script>
 
 <!-- HERO -->
 <div class="hero-track" id="heroTrack">
@@ -4931,7 +4901,7 @@ end of keeper CSS */
       </div>
       <div class="hero-cta-row">
         <a class="hero-enter hero-enter--primary" href="#upload" aria-label="내 PDF로 시작하기"><span>내 PDF로 시작하기</span><span class="hero-enter-icon" aria-hidden="true">›</span></a>
-        <a class="hero-enter" href="https://3d-mindpalace-ai-fxf8dyfqega3hvbp.canadacentral-01.azurewebsites.net/legacy/region-select.html" target="_blank" rel="noopener" aria-label="3D 궁전 둘러보기"><span>3D 궁전 둘러보기</span><span class="hero-enter-icon" aria-hidden="true">↗</span></a>
+        <a class="hero-enter" href="region-select.html" target="_blank" rel="noopener" aria-label="3D 궁전 둘러보기"><span>3D 궁전 둘러보기</span><span class="hero-enter-icon" aria-hidden="true">↗</span></a>
       </div>
     </div>
 
@@ -5872,7 +5842,7 @@ end of keeper CSS */
 
     <div class="explore-actions">
       <button type="button" id="exploreFullscreenBtn" hidden>전체 화면으로 보기</button>
-      <a href="https://3d-mindpalace-ai-fxf8dyfqega3hvbp.canadacentral-01.azurewebsites.net/legacy/region-select.html" target="_blank" rel="noopener">새 탭에서 열기 ↗</a>
+      <a href="region-select.html" target="_blank" rel="noopener">새 탭에서 열기 ↗</a>
     </div>
   </div>
 </section>
@@ -7209,8 +7179,8 @@ end of keeper CSS */
       new URLSearchParams(location.search).get('graphrag') ||
       'https://3d-mindpalace-ai-backend-h3gze8h7hfhqg3h8.canadacentral-01.azurewebsites.net'
     ).replace(/\/+$/, '');
-    // 처리 완료 후 이동할 곳(도시 선택 허브). 마인드팰리스 앱과 같은 출처라 mp_palace 공유됨.
-    const NEXT_URL = 'https://3d-mindpalace-ai-fxf8dyfqega3hvbp.canadacentral-01.azurewebsites.net/legacy/region-select.html';
+    // 업로드 직후 이동할 곳(도시 선택 허브). 같은 출처·같은 탭이라 mp_rag_job·mp_palace가 그대로 공유됨.
+    const NEXT_URL = 'region-select.html';
 
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -7238,7 +7208,9 @@ end of keeper CSS */
     }
 
     async function runGraphrag(file) {
-      // 1) 업로드 · orchestrator 는 raw 본문을 읽는다(multipart 아님).
+      // 비블로킹: 업로드만 해서 job_id를 받고 localStorage에 저장한다.
+      //   ~5분 걸리는 상태 폴링·palace 수신은 다음 페이지(들)의 rag-status.js가 이어받아 상단 진행바로 처리한다.
+      //   → 사용자는 분석을 기다리지 않고 바로 도시·명소를 둘러볼 수 있다.
       const upUrl = GRAPHRAG_BASE + '/orchestrator/upload?filename=' +
                     encodeURIComponent(file.name) + '&domain=unknown';
       const up = await fetch(upUrl, { method: 'POST', headers: { 'Content-Type': 'application/pdf' }, body: file });
@@ -7246,25 +7218,12 @@ end of keeper CSS */
       const job = await up.json();
       const jobId = job.job_id;
       if (!jobId) throw new Error('job_id 를 받지 못했습니다.');
+      try {
+        localStorage.setItem('mp_rag_job', JSON.stringify({ jobId: jobId, base: GRAPHRAG_BASE, filename: file.name, startedAt: Date.now() }));
+        localStorage.removeItem('mp_palace'); sessionStorage.removeItem('mp_palace');   // 이전 자료 비우고 새 분석 대기
+      } catch (_) {}
       applyStage('QUEUED');
-
-      // 2) 상태 폴링 · palace_ready 가 켜질 때까지(또는 FAILED).
-      while (true) {
-        await sleep(2500);
-        const r = await fetch(GRAPHRAG_BASE + '/orchestrator/jobs/' + jobId + '/status');
-        if (!r.ok) throw new Error('상태 조회 실패 (' + r.status + ')');
-        const s = await r.json();
-        applyStage(s.state);
-        if (s.state === 'FAILED') throw new Error(s.error || '처리 중 오류가 발생했습니다.');
-        if (s.palace_ready) break;
-      }
-
-      // 3) palace.json 수신 → mp_palace 저장(마인드팰리스가 방에 배치).
-      const pr = await fetch(GRAPHRAG_BASE + '/orchestrator/jobs/' + jobId + '/palace');
-      if (!pr.ok) throw new Error('palace 가져오기 실패 (' + pr.status + ')');
-      const text = await pr.text();
-      JSON.parse(text); // 형식 검증
-      try { sessionStorage.setItem('mp_palace', text); localStorage.setItem('mp_palace', text); } catch (_) {}
+      return jobId;
     }
 
     pdfForm.addEventListener('submit', (event) => {
@@ -7279,13 +7238,12 @@ end of keeper CSS */
       setUploadStatus('PDF를 GraphRAG 서버로 전송하고 있습니다.', '');
       showLoadingOverlay();
 
-      runGraphrag(selectedPdf).then(() => {
-        showLoadingComplete(selectedPdf?.name || 'PDF');
-        setUploadProgress(100);
-        setUploadStep(2);
-        backendState.textContent = '연결 완료';
-        setUploadStatus(`<strong>${selectedPdf?.name || 'PDF'}</strong> 처리 완료. 기억의 궁전으로 이동합니다.`, 'success');
-        setTimeout(() => { location.href = NEXT_URL; }, 1500);
+      runGraphrag(selectedPdf).then((jobId) => {
+        setUploadProgress(35);
+        setUploadStep(1);
+        backendState.textContent = '분석 대기열';
+        setUploadStatus(`<strong>${selectedPdf?.name || 'PDF'}</strong> 업로드 완료 · 분석은 백그라운드에서 진행됩니다. 그동안 도시·명소를 둘러보세요.`, 'success');
+        setTimeout(() => { location.href = NEXT_URL; }, 1100);
       }).catch((err) => {
         const msg = (err && err.message) ? err.message : String(err);
         showLoadingError(msg);
@@ -7305,7 +7263,7 @@ end of keeper CSS */
   PERF.init();
 
   /* ═══════ 3D 둘러보기: 클릭 시에만 iframe 로드 ═══════ */
-  const EXPLORE_URL = 'https://3d-mindpalace-ai-fxf8dyfqega3hvbp.canadacentral-01.azurewebsites.net/legacy/region-select.html';
+  const EXPLORE_URL = 'region-select.html';
   const exploreStage = document.getElementById('exploreStage');
   const explorePlaceholder = document.getElementById('explorePlaceholder');
   const exploreLoadBtn = document.getElementById('exploreLoadBtn');
@@ -7481,67 +7439,7 @@ end of keeper CSS */
 })();
 </script>
 
-<script>
-/* ═══════ Google 로그인 (Azure App Service Easy Auth) ═══════
-   로그인 안 됨 → "로그인" 버튼(/.auth/login/google).
-   로그인 됨   → 이름 클릭 시 드롭다운(마이페이지 / 로그아웃). */
-(function () {
-  const box = document.getElementById('authBox');
-  if (!box) return;
-
-  const here = encodeURIComponent(location.pathname + location.search);
-
-  function renderLoggedOut() {
-    box.innerHTML =
-      '<a class="nav-login" href="/.auth/login/google?post_login_redirect_uri=' + here + '">로그인</a>';
-  }
-
-  function renderLoggedIn(name) {
-    const safe = String(name || '사용자').replace(/[<>&]/g, '');
-    box.innerHTML =
-      '<div class="nav-user">' +
-        '<button type="button" class="nav-user-name" id="navUserBtn" aria-haspopup="true" aria-expanded="false">' +
-          safe + ' <span aria-hidden="true">▾</span></button>' +
-        '<div class="nav-menu" id="navMenu" hidden>' +
-          '<a class="nav-menu-item" href="/legacy/mypage.html">마이페이지</a>' +
-          '<button type="button" class="nav-menu-item" id="navLogout">로그아웃</button>' +
-        '</div>' +
-      '</div>';
-    const btn = box.querySelector('#navUserBtn');
-    const menu = box.querySelector('#navMenu');
-    btn.addEventListener('click', function (e) {
-      e.stopPropagation();
-      const willOpen = menu.hidden;
-      menu.hidden = !willOpen;
-      btn.setAttribute('aria-expanded', String(willOpen));
-    });
-    document.addEventListener('click', function () {
-      menu.hidden = true;
-      btn.setAttribute('aria-expanded', 'false');
-    });
-    box.querySelector('#navLogout').addEventListener('click', function () {
-      location.href = '/.auth/logout?post_logout_redirect_uri=' + here;
-    });
-  }
-
-  fetch('/.auth/me', { credentials: 'include' })
-    .then(function (r) { return r.ok ? r.json() : null; })
-    .then(function (data) {
-      let principal = null;
-      if (Array.isArray(data) && data.length) principal = data[0];
-      else if (data && data.clientPrincipal) principal = data.clientPrincipal;
-      if (!principal) { renderLoggedOut(); return; }
-      let name = principal.userDetails || principal.user_id || '';
-      const claims = principal.user_claims || [];
-      const byType = function (t) { const c = claims.find(function (x) { return x.typ === t; }); return c && c.val; };
-      name = byType('name') || byType('emails') ||
-             byType('http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress') ||
-             name;
-      renderLoggedIn(name);
-    })
-    .catch(function () { renderLoggedOut(); });
-})();
-</script>
-
+<script src="assistant.js" defer></script>
+<script src="rag-status.js" defer></script>
 </body>
 </html>
