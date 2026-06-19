@@ -38,6 +38,11 @@
     .mpnav.mpnav-float{left:50%;right:auto;transform:translateX(-50%);top:8px;height:auto;width:auto;
       border-radius:13px;padding:6px 9px;gap:6px;box-shadow:0 6px 20px rgba(40,34,26,.18);}
     .mpnav.mpnav-float .mpb{display:none;}
+    .mpnav .mpauth{margin-left:auto;display:flex;align-items:center;gap:6px;}
+    .mpnav .mpauth-login{background:#b5552f;border-color:#b5552f;color:#fff;}
+    .mpnav .mpauth-login:hover{filter:brightness(1.07);background:#b5552f;border-color:#b5552f;}
+    .mpnav .mpauth-acc{max-width:160px;overflow:hidden;text-overflow:ellipsis;}
+    .mpnav.mpnav-float .mpauth{display:none;}  /* 3D 몰입형 컴팩트 바엔 계정 숨김 */
     @media(max-width:560px){.mpnav .mpb{display:none;}.mpnav a{padding:6px 9px;font-size:11.5px;}.mpnav{gap:5px;padding:0 9px;}}
     `;
     const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
@@ -50,6 +55,25 @@
         ? `<a class="on" aria-current="page">${it.icon} ${it.label}</a>`
         : `<a href="${withCity(it.href, it.key)}" title="${it.label}로 이동">${it.icon} ${it.label}</a>`
     ).join("");
+    // 오른쪽: Easy Auth 계정 섹션(로그인 → 구글 / 로그인됨 → 마이페이지). 몰입형 바엔 숨김(CSS).
+    const auth = document.createElement("div");
+    auth.className = "mpauth";
+    const back = encodeURIComponent(location.pathname + location.search);
+    auth.innerHTML = `<a class="mpauth-login" href="/.auth/login/google?post_login_redirect_uri=${back}">로그인</a>`;
+    nav.appendChild(auth);
+    fetch("/.auth/me", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        const cp = !d ? null : (Array.isArray(d) ? d[0] : (d.clientPrincipal || d));
+        if (!cp) return; // 비로그인 → 로그인 버튼 유지
+        const claims = cp.user_claims || cp.claims || [];
+        const nm = claims.find((c) => /(^|\/)(name|nickname|givenname)$/i.test(c.typ || c.type || ""));
+        let name = (nm && (nm.val || nm.value)) || cp.userDetails || cp.user_id || "내 계정";
+        if (name.length > 10) name = name.slice(0, 10) + "…";
+        auth.innerHTML = `<a class="mpauth-acc" href="mypage.html" title="마이페이지">👤 ${name}</a>`;
+      })
+      .catch(() => {});
+
     document.body.insertBefore(nav, document.body.firstChild);
 
     // 문서형(region-select·compose·glb-customizer)은 풀바+body 패딩,
