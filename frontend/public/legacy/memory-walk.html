@@ -281,8 +281,8 @@
       <div class="rel" id="cRel"></div>
       <div class="cardacts">
         <button class="cact" id="cMnemo" title="이 사물에 학습 개념을 '어거지로' 연결해 기억 장면을 만들기" hidden>✨ 의미부여</button>
-        <button class="cact" id="cMove" title="이 마커를 화면에서 클릭한 자리로 옮기기">✥ 옮기기</button>
-        <button class="cact danger" id="cDel" title="이 마커를 삭제">🗑 삭제</button>
+        <button class="cact mw-edit-only" id="cMove" title="이 마커를 화면에서 클릭한 자리로 옮기기">✥ 옮기기</button>
+        <button class="cact danger mw-edit-only" id="cDel" title="이 마커를 삭제">🗑 삭제</button>
       </div>
     </div>
   </aside>
@@ -325,11 +325,19 @@
     <button class="btn ghost" id="prevBtn">← 이전</button>
     <div class="dots" id="dots"></div>
     <button class="btn primary" id="nextBtn">다음 →</button>
-    <button class="btn ghost" id="addBtn" title="화면에서 사물을 클릭해 그 자리에 핫스팟 추가">➕ 지점</button>
-    <button class="btn ghost" id="moveBtn" title="선택한 핫스팟을 화면에서 클릭한 자리로 이동">✥ 이동</button>
-    <button class="btn ghost" id="undoBtn" title="마지막 변경(이동·추가·삭제·순서)을 되돌리기">↶</button>
-    <button class="btn ghost" id="tourBtn" title="처음부터">↺</button>
+    <button class="btn ghost mw-edit-only" id="addBtn" title="화면에서 사물을 클릭해 그 자리에 핫스팟 추가">➕ 지점</button>
+    <button class="btn ghost mw-edit-only" id="moveBtn" title="선택한 핫스팟을 화면에서 클릭한 자리로 이동">✥ 이동</button>
+    <button class="btn ghost mw-edit-only" id="undoBtn" title="마지막 변경(이동·추가·삭제·순서)을 되돌리기">↶</button>
+    <button class="btn ghost mw-edit-only" id="tourBtn" title="처음부터">↺</button>
+    <button class="btn ghost" id="editToggle" title="핫스팟 편집 도구 켜기/끄기">✎ 편집</button>
   </nav>
+  <style>
+    /* 기본은 '보기·학습' 모드 — 편집 도구(지점·이동·되돌리기·옮기기·삭제)는 숨겨 화면을 단순하게.
+       ✎ 편집을 누르면 body.mw-edit 로 편집 도구가 나타난다(필요할 때만 노출 → 난잡함 완화). */
+    .mw-edit-only { display: none !important; }
+    body.mw-edit .mw-edit-only { display: inline-flex !important; }
+    body.mw-edit #editToggle { background: var(--accent, #b5552f); color: #fff; }
+  </style>
 
   <!-- 우하단 2D 평면도(나 중심) — 클릭하면 "개념 지도 보기" -->
   <canvas class="mini" id="miniCv" width="176" height="176" title="개념 지도 보기 — 사물·개념의 실제 배치"></canvas>
@@ -1603,6 +1611,8 @@
     window.mpOpenQuiz = openQuiz;
     $("quizClose").onclick = ()=>{ $("quizModal").style.display="none"; };
     $("quizModal").addEventListener("click", e=>{ if(e.target===$("quizModal")) $("quizModal").style.display="none"; });
+    // ✎ 편집 모드 토글 — 편집 도구(지점·이동·되돌리기·옮기기·삭제)를 필요할 때만 노출(기본은 보기·학습만).
+    { const et = $("editToggle"); if (et) et.onclick = () => document.body.classList.toggle("mw-edit"); }
 
     $("nextBtn").onclick = () => goTo(Math.min(route.length-1, activeIdx+1));
     $("prevBtn").onclick = () => goTo(Math.max(0, activeIdx-1));
