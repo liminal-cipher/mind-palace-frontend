@@ -737,6 +737,25 @@
       loadPalaceThenBuild();
     }
 
+    // ── 학습 개념 이미지·캡션 해석 (PDF 추출 엔티티 대응) ──
+    //   PDF 추출 엔티티는 e.image/e.caption이 없고 images:[{path,caption}]·summary를 가진다.
+    //   이미지: PDF figure(백엔드 /images/{palaceId}/{파일명}) > concept-photos(제목 매칭) > e.image > 테마 공통.
+    //   캡션:   e.caption > images[0].caption > summary.
+    let CONCEPT_PHOTOS = {}, MW_IMG_BASE = "", MW_PALACE_ID = "", _cpLoaded = false;
+    async function loadConceptPhotos(){ if (_cpLoaded) return; _cpLoaded = true;
+      try { const d = await (await fetch("public/data/concept-photos.json")).json(); CONCEPT_PHOTOS = d.concepts || d || {}; } catch(_) {} }
+    const _imgUrl = v => !v ? "" : (typeof v === "string" ? v : (v.url || v.src || v.image || v.thumb || v.full || ""));
+    function _figURL(e){   // PDF 추출 figure(images[].path) → 백엔드 /images/{palaceId}/{파일명}
+      if (!MW_IMG_BASE || !MW_PALACE_ID || !e || !Array.isArray(e.images) || !e.images[0]) return "";
+      const p = e.images[0].path || ""; const fn = p.split("/").pop(); if (!fn) return "";
+      return MW_IMG_BASE.replace(/\/+$/, "") + "/images/" + encodeURIComponent(MW_PALACE_ID) + "/" + encodeURIComponent(fn);
+    }
+    function entImage(e){ if (!e) return "";
+      const cp = CONCEPT_PHOTOS[e.title] || CONCEPT_PHOTOS[e.id];
+      return _figURL(e) || (cp && (cp.thumb || cp.full)) || _imgUrl(e.image || e.img || e.thumb) || (THEME && THEME.cardImage) || ""; }
+    function entCaption(e){ if (!e) return "";
+      return e.caption || (Array.isArray(e.images) && e.images[0] && e.images[0].caption) || e.summary || ""; }
+
     async function loadPalaceThenBuild() {
       let palace = SAMPLE_PALACE;
       // 우선순위: 업로드한 학습자료(sessionStorage) > ?palace= 명시 > 랜드마크 테마 콘텐츠 > 내장 샘플
@@ -745,6 +764,9 @@
       const url = P.get("palace") || (THEME && THEME.palace) || null;
       if (!fromUpload && url) { try { palace = await (await fetch(url)).json(); } catch(e){ console.warn("palace 로드 실패, 샘플 사용", e); } }
       $("palaceTitle").textContent = palace.palace?.title || "기억 궁전";
+      MW_PALACE_ID = (palace.palace && palace.palace.id) || "";   // PDF figure URL 스코프(/images/{id}/...)
+      if (fromUpload) { try { const _j = JSON.parse(localStorage.getItem("mp_rag_job") || "null"); MW_IMG_BASE = (_j && _j.base) || ""; } catch(_) {} }
+      loadConceptPhotos();   // 개념 대표사진(제목 매칭) 비동기 로드
       const rid = P.get("room");
       const room = (palace.rooms||[]).find(r => r.id === rid) || (palace.rooms||[])[0];
       if (!room) { setStatus("팰리스에 방이 없습니다."); return; }
@@ -1231,8 +1253,8 @@
         $("cType").textContent = e.type || "";
         $("cTitle").textContent = e.title;
         $("cFurn").textContent = `📍 ${dispName(h)}에 배치`;
-        setCardImage(e.image || (THEME && THEME.cardImage) || "");   // 엔티티별 이미지 우선, 없으면 랜드마크 공통
-        $("cCap").textContent = e.caption || "";
+        setCardImage(entImage(e));   // PDF figure > concept-photos > e.image > 랜드마크 공통
+        $("cCap").textContent = entCaption(e);   // e.caption > images[0].caption > summary
         $("cDesc").textContent = paraBreak(e.description || "");
         if ((e.related||[]).length) {
           const lab = document.createElement("span"); lab.className="lab"; lab.textContent = "연결:"; rel.appendChild(lab);
@@ -1458,10 +1480,10 @@
         x: h.pos.x, y: h.pos.y, z: h.pos.z,
         ent: h.entity ? h.entity.title : null, entId: h.entity ? h.entity.id : null,
         type: h.entity ? (h.entity.type || "") : "",
-        img: h.entity ? (h.entity.image || (THEME && THEME.cardImage) || "") : "",
-        cap: h.entity ? (h.entity.caption || "") : "",
+        img: h.entity ? entImage(h.entity) : "",
+        cap: h.entity ? entCaption(h.entity) : "",
         desc: h.entity ? (h.entity.description || "") : "",
-        capt: h.entity ? (h.entity.caption || h.entity.description || "") : null,
+        capt: h.entity ? entCaption(h.entity) : null,
         rel: h.entity ? (h.entity.related || []) : [] }));
       const sz = bounds.getSize(new THREE.Vector3());
       const pad = 46, Wc = editCv.width, Hc = editCv.height;
@@ -1499,10 +1521,10 @@
       const h = editList[idx];
       // openEditor의 노드 필드를 모두 동일하게 세팅(재연결 시 이전 개념의 rel/capt/img 잔존 방지)
       h.ent = ent.title; h.entId = ent.id; h.type = ent.type || "";
-      h.desc = ent.description || ent.summary || ""; h.cap = ent.caption || ent.summary || "";
-      h.capt = ent.caption || ent.summary || ent.description || "";   // 줌 시 지도 위 캡션 박스
+      h.desc = ent.description || ent.summary || ""; h.cap = entCaption(ent);
+      h.capt = entCaption(ent);                                       // 줌 시 지도 위 캡션 박스
       h.rel = ent.related || [];                                      // 개념 간 연결선
-      h.img = ent.image || (THEME && THEME.cardImage) || "";          // 상세 패널 이미지
+      h.img = entImage(ent);                                          // 상세 패널 이미지(PDF figure 우선)
       setStatusE(`🔗 ${idx + 1}번 "${dispName(h)}" ↔ '${ent.title}' 연결 — [저장하고 적용]으로 반영`);
       selectENode(idx);   // 상세 패널 + 지도 갱신
       renderReco();       // 방금 배치한 항목 목록에서 제거
