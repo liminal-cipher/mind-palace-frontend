@@ -439,9 +439,9 @@
         (isNew ? `<span class="newbadge">새로 가져옴</span>` : "")+
         (hasThumb ? `<img src="${esc(d.thumb)}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">` : "")+
         `<span class="emoji" style="display:${hasThumb?'none':'block'}">${esc(d.emoji)}</span>`+
-        `<button class="ph-prev" title="방 내부 미리보기" onclick="event.stopPropagation(); openRoomPreview(this.dataset.glb, this.dataset.label, this.dataset.blurb)" data-glb="${esc(resolveGlb(d.glb))}" data-label="${esc(d.label)}" data-blurb="${esc(d.blurb||'')}">🔍 미리보기</button></div>`+
+        `<button class="ph-prev" title="방 내부 미리보기" onclick="event.stopPropagation(); openRoomPreview(this.dataset.glb, this.dataset.label, this.dataset.blurb, this.dataset.id)" data-id="${esc(d.id)}" data-glb="${esc(resolveGlb(d.glb))}" data-label="${esc(d.label)}" data-blurb="${esc(d.blurb||'')}">🔍 미리보기</button></div>`+
         `<div class="cap"><div class="l">${esc(d.label)}</div><div class="s">${esc(d.style)} · ${esc(d.blurb)}</div></div>`;
-      card.onclick = () => pickDesign(d);
+      card.onclick = () => openRoomPreview(resolveGlb(d.glb), d.label, d.blurb, d.id);   // 방 클릭 → 내부 미리보기 팝업(적용은 팝업 안 버튼)
       el.appendChild(card);
     });
   }
@@ -834,14 +834,20 @@
   /* ④ 노드 잠금/해금: PDF 추출 중이면 노드(학습 내용) 잠금, 완료(mp-rag-ready) 시 해금·재로드.
      방 둘러보기·선택은 그대로 가능, 노드만 분석 완료 후 표시. */
   (function () {
-    function ragPending(){
-      try { var j = JSON.parse(localStorage.getItem("mp_rag_job") || "null");
-        var hasPalace = !!(sessionStorage.getItem("mp_palace") || localStorage.getItem("mp_palace"));
-        return !!(j && j.jobId && !j.done && !hasPalace);
-      } catch (_) { return false; }
-    }
+    function hasPalace(){ try { return !!(sessionStorage.getItem("mp_palace") || localStorage.getItem("mp_palace")); } catch(_){ return false; } }
+    function getJob(){ try { return JSON.parse(localStorage.getItem("mp_rag_job") || "null"); } catch (_) { return null; } }
+    function ragPending(){ var j = getJob(); return !!(j && j.jobId && !j.done && !hasPalace()); }
     var lock = document.getElementById("nodeLock");
-    if (lock && ragPending()) lock.hidden = false;
+    // 개념 노드(방 내부 마커 편집)는 PDF 분석 후 해금. 분석 중=진행 안내, PDF 미업로드=빈 상태(데모 노출 안 함). 방 둘러보기는 그대로.
+    if (lock && !hasPalace()) {
+      lock.hidden = false;
+      if (!ragPending()) {   // PDF 미업로드 — 데모 대신 빈 상태 + 업로드 유도
+        var sp = lock.querySelector(".nl-spin"), t = lock.querySelector(".nl-t"), s2 = lock.querySelector(".nl-s");
+        if (sp) sp.textContent = "📄";
+        if (t) t.textContent = "아직 내용 없음";
+        if (s2) s2.innerHTML = "PDF를 분석하면 개념 노드가 여기에 표시됩니다.<br>그동안 방을 골라 둘러보세요. <a href=\"home.html\" style=\"color:#fff;font-weight:800\">📄 PDF 올리기 →</a>";
+      }
+    }
     window.addEventListener("mp-rag-ready", function () {
       if (!lock || lock.hidden) return;
       var s = lock.querySelector(".nl-spin"), t = lock.querySelector(".nl-t");
@@ -858,7 +864,9 @@
     <div class="rp-dots" id="rpDots"></div>
     <div class="rp-stage">
       <div class="rp-imgwrap" id="rpImgWrap"><div class="rp-loading">📷 방 내부를 촬영하는 중…</div></div>
-      <div class="rp-info"><h3 id="rpLabel"></h3><p id="rpBlurb"></p></div>
+      <div class="rp-info"><h3 id="rpLabel"></h3><p id="rpBlurb"></p>
+        <button class="rp-apply" id="rpApply" style="margin-top:10px;padding:9px 16px;border:0;border-radius:10px;background:var(--accent,#b5552f);color:#fff;font-weight:800;font-size:13px;cursor:pointer;">✓ 이 방으로 적용 →</button>
+      </div>
     </div>
     <iframe id="rpFrame" referrerpolicy="no-referrer" title="방 내부 캡처"></iframe>
   </div>
@@ -867,25 +875,36 @@
   /* ②c 방 미리보기 — 방 사진의 🔍 클릭 → 숨김 iframe(memory-walk capture=1)이 내부 4컷 postMessage → 캐러셀. */
   (function () {
     var modal = document.getElementById("roomPreview");
-    var shots = [], idx = 0, expectGlb = "";
+    var shots = [], idx = 0, expectGlb = "", curDesignId = "";
     function show(i){
       if (!shots[i]) return; idx = i;
       var w = document.getElementById("rpImgWrap");
       w.innerHTML = '<img src="' + shots[i] + '" alt="방 내부 ' + (i + 1) + '">';
       Array.prototype.forEach.call(document.querySelectorAll("#rpDots .rp-dot"), function (b, j) { b.classList.toggle("on", j === i); });
     }
-    window.openRoomPreview = function (glb, label, blurb) {
+    window.openRoomPreview = function (glb, label, blurb, designId) {
       if (!glb) return;
+      curDesignId = designId || "";
       document.getElementById("rpLabel").textContent = label || "방";
       document.getElementById("rpBlurb").textContent = blurb || "이 방의 내부를 4방향에서 둘러봅니다.";
       document.getElementById("rpImgWrap").innerHTML = '<div class="rp-loading">📷 방 내부를 촬영하는 중… (수 초)</div>';
       document.getElementById("rpDots").innerHTML = "";
+      var ap = document.getElementById("rpApply"); if (ap) ap.style.display = curDesignId ? "" : "none";
       shots = []; idx = 0; expectGlb = glb;
       modal.hidden = false;
       document.getElementById("rpFrame").src = "memory-walk.html?capture=1&lite=1&glb=" + encodeURIComponent(glb);
     };
     function close(){ modal.hidden = true; document.getElementById("rpFrame").src = "about:blank"; shots = []; }
     document.getElementById("rpClose").onclick = close;
+    // 팝업 안 "적용" — 미리본 방을 현재 랜드마크에 적용(기존 pickDesign 재사용) 후 닫기.
+    var rpApplyBtn = document.getElementById("rpApply");
+    if (rpApplyBtn) rpApplyBtn.onclick = function () {
+      try {
+        var d = (typeof designById === "function") ? designById(curDesignId) : null;
+        if (d && typeof pickDesign === "function") { pickDesign(d); close(); }
+        else if (typeof msg === "function") { msg("이 방을 적용하지 못했어요. 카드를 다시 시도해 주세요."); }
+      } catch (e) { /* 적용 실패는 미리보기 동작에 영향 없음 */ }
+    };
     modal.addEventListener("click", function (e) { if (e.target === modal) close(); });
     document.addEventListener("keydown", function (e) {
       if (modal.hidden) return;

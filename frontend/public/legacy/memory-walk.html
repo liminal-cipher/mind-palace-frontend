@@ -583,6 +583,7 @@
     const UP = new THREE.Vector3(0,1,0);
     let occluders = [];                       // 방 메쉬(가시성 레이캐스트 대상)
     const _viewRay = new THREE.Raycaster();   // 마커가 다른 가구에 가려졌는지 검사용
+    let CONTENT_LOCKED = false;               // PDF 미업로드 = 데모 콘텐츠 잠금(방·가구 둘러보기 O, 학습 마커는 PDF 후 해금)
 
     // 배경/스카이박스 식별(스캐너와 동일) — 이름 또는 "압도적으로 큰 메쉬"(loft의 거대 구).
     function findBackdrops(meshes) {
@@ -799,7 +800,11 @@
       try { const sp = sessionStorage.getItem("mp_palace") || localStorage.getItem("mp_palace"); if (sp) { palace = JSON.parse(sp); fromUpload = true; } } catch(_) {}
       const url = P.get("palace") || (THEME && THEME.palace) || null;
       if (!fromUpload && url) { try { palace = await (await fetch(url)).json(); } catch(e){ console.warn("palace 로드 실패, 샘플 사용", e); } }
-      $("palaceTitle").textContent = palace.palace?.title || "기억 궁전";
+      // PDF(업로드 학습자료)가 아직이면 = 데모(korean_history/내장 샘플) → 콘텐츠 잠금.
+      //   방·가구는 그대로 둘러보되(둘러보기), 내부 학습 마커·편집은 PDF 분석 후 해금. 데모 지식은 노출 안 함.
+      const _pid = (palace.palace && palace.palace.id) || "";
+      CONTENT_LOCKED = !fromUpload && (palace === SAMPLE_PALACE || /korean_history|sample|demo/i.test(_pid) || /korean_history|sample/i.test(url || ""));
+      $("palaceTitle").textContent = (CONTENT_LOCKED && !THEME) ? "기억 궁전" : (palace.palace?.title || "기억 궁전");
       MW_PALACE_ID = (palace.palace && palace.palace.id) || "";   // PDF figure URL 스코프(/images/{id}/...)
       if (fromUpload) { try { const _j = JSON.parse(localStorage.getItem("mp_rag_job") || "null"); MW_IMG_BASE = (_j && _j.base) || ""; } catch(_) {} }
       loadConceptPhotos();   // 개념 대표사진(제목 매칭) 비동기 로드
@@ -816,12 +821,29 @@
         $("backBtn").textContent = "← 돌아가기";
         const ic = $("lmIcon"); if (ic) { ic.innerHTML = landmarkIcon(THEME); ic.hidden = false; ic.title = lmName; }  // 좌상단 정체성 아이콘(이름 추론)
       }
-      let entities = (room.kept||[]).slice().sort((a,b)=>(a.rank||99)-(b.rank||99));
-      entities = applyStudioOrder(room, entities);   // 스튜디오(glb-customizer)에서 드래그로 바꾼 학습 순서 반영
+      // 잠금(PDF 미업로드) 시 학습 항목을 마커에 바인딩하지 않음 — 방·가구만 보여 둘러보기 가능, 지식은 빈 상태.
+      let entities = CONTENT_LOCKED ? [] : (room.kept||[]).slice().sort((a,b)=>(a.rank||99)-(b.rank||99));
+      if (!CONTENT_LOCKED) entities = applyStudioOrder(room, entities);   // 스튜디오에서 드래그로 바꾼 학습 순서 반영
       window.__mwConcepts = entities.map(e => e.title);   // 전체 학습 개념 풀(새 핫스팟 의미 연결용)
       window.__mwEntities = entities;                     // 전체 엔티티(새 지점에 학습 항목 바인딩용)
-      window.__mwDemoted = (room.demoted||[]).slice();    // palace.json 미배치(demoted) 항목 — 새 핫스팟 추천 1순위 풀
+      window.__mwDemoted = CONTENT_LOCKED ? [] : (room.demoted||[]).slice();   // palace.json 미배치(demoted) — 새 핫스팟 추천 풀
       buildRoute(entities);
+      if (CONTENT_LOCKED) lockContentUI();   // 학습 편집·추가 비활성 + "아직 내용 없음" 안내
+    }
+    // PDF 분석 전: 학습 마커 추가/편집 비활성 + 하단 안내 배너(분석하러 가기).
+    function lockContentUI(){
+      const add = $("addBtn");
+      if (add){ add.disabled = true; add.title = "PDF 분석 후 사용할 수 있어요"; add.style.opacity = ".45"; add.style.pointerEvents = "none"; }
+      if (document.getElementById("mwLockHint")) return;
+      const city = P.get("city") ? ("?city=" + encodeURIComponent(P.get("city"))) : "";
+      const b = document.createElement("div"); b.id = "mwLockHint";
+      b.innerHTML = `<span>📄 아직 내용 없음 · PDF를 분석하면 이 방에 학습 마커가 채워집니다</span>` +
+                    `<a href="compose.html${city}">분석하러 가기 →</a>`;
+      b.style.cssText = "position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:8500;display:flex;align-items:center;gap:12px;" +
+        "background:rgba(42,36,29,.92);color:#fff;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:600;" +
+        "box-shadow:0 6px 22px rgba(0,0,0,.28);font-family:'Pretendard','Malgun Gothic',sans-serif;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);";
+      const a = b.querySelector("a"); if (a) a.style.cssText = "color:#ffcf99;text-decoration:none;font-weight:800;white-space:nowrap;";
+      document.body.appendChild(b);
     }
 
     // 첫 입장 학습 가이드 — 업로드한 PDF/학습자료의 개념을 동선 순서로 보여주고 기억궁전 공부법을 안내.
@@ -1324,12 +1346,14 @@
           });
         }
       } else {                                   // 가구만 있는 지점(학습 미배치)
-        $("cType").textContent = "가구";
+        $("cType").textContent = CONTENT_LOCKED ? "" : "가구";
         $("cTitle").textContent = dispName(h);
         $("cFurn").textContent = `📍 ${h.number}번째 지점`;
         setCardImage("");
         $("cCap").textContent = "";
-        $("cDesc").textContent = "이 자리에 기억을 배치할 수 있어요. (학습 항목 미지정)";
+        $("cDesc").textContent = CONTENT_LOCKED
+          ? "아직 내용 없음 — PDF를 분석하면 이 방에 학습 마커가 채워집니다."
+          : "이 자리에 기억을 배치할 수 있어요. (학습 항목 미지정)";
       }
       $("card").style.display = "block";
     }
@@ -1420,7 +1444,7 @@
       (async function build(){
         try {
           let pal = null; try { const sp = sessionStorage.getItem("mp_palace") || localStorage.getItem("mp_palace"); if (sp) pal = JSON.parse(sp); } catch(_){}
-          if (!pal) pal = await fetch("public/data/korean_history.palace.json").then(r=>r.ok?r.json():null).catch(()=>null);
+          // PDF 미업로드 시 korean_history 데모를 끌어오지 않음 — 방 목록만 표시, 개념은 "(아직 내용 없음)".
           const isJongno = CUR_CITY === "jongno";
           const cityData = isJongno
             ? await fetch("public/data/landmarks.json").then(r=>r.ok?r.json():null).catch(()=>null)
@@ -1451,7 +1475,7 @@
             row.className = "roomrow" + (isCur ? " cur" : "");
             row.innerHTML = `<span class="ic">${landmarkIcon(LM_THEMES[lmId])}</span><span class="rmtext">`+
               `<span class="rmname">${esc(lm.name||lmId)}${isCur ? " · 현재" : ""}</span>`+
-              `<span class="rmconcept">${ch ? `<span class="b">챕터 ${i+1} · ${esc(ch.name)}</span>` + (items?`<br>${esc(items)}`:"") : "배정된 챕터 없음"}</span></span>`;
+              `<span class="rmconcept">${ch ? `<span class="b">챕터 ${i+1} · ${esc(ch.name)}</span>` + (items?`<br>${esc(items)}`:"") : "(아직 내용 없음 · PDF 분석 후 표시)"}</span></span>`;
             if (!isCur) {
               const roomQ = ch && ch.id ? `&room=${encodeURIComponent(ch.id)}` : "";
               const jr = isJongno && jongnoRoom[lmId];
