@@ -38,28 +38,56 @@
       "#mpRagChip .rg-tx small{display:block;color:rgba(42,36,29,.6);font-weight:500;font-size:12px;margin-top:2px;" +
       "overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}" +
       "#mpRagChip .rg-go{flex:none;text-decoration:none;font-weight:800;font-size:12.5px;color:#fff;" +
-      "background:linear-gradient(180deg,#b5552f,#c4623a);padding:8px 13px;border-radius:10px;display:none;}" +
+      "background:linear-gradient(180deg,#b5552f,#c4623a);padding:8px 13px;border-radius:10px;white-space:nowrap;}" +
       "#mpRagChip .rg-go:hover{filter:brightness(1.07);}" +
       "#mpRagChip .rg-x{flex:none;background:none;border:none;color:rgba(42,36,29,.5);font-size:15px;cursor:pointer;padding:2px 3px;line-height:1;}" +
       "#mpRagChip .rg-x:hover{color:#2a241d;}" +
       "#mpRagChip.rg-done .rg-ic.spin{animation:none;}" +
-      "#mpRagChip.rg-done .rg-go{display:inline-block;}";
+      // 반짝이는 효과 — 처리 중 칩 테두리가 은은하게 빛났다 가라앉음(지루함 완화).
+      "#mpRagChip{animation:mpRagGlow 2.6s ease-in-out infinite;}" +
+      "#mpRagChip.rg-done{animation:none;}" +
+      "@keyframes mpRagGlow{0%,100%{box-shadow:0 12px 32px rgba(40,34,26,.20);}50%{box-shadow:0 12px 32px rgba(40,34,26,.20),0 0 0 2px rgba(196,98,58,.35),0 0 18px rgba(196,98,58,.30);}}" +
+      // 다음 행동 추천 팁(회전) — 페이드로 부드럽게 교체.
+      "#mpRagTip{padding:0 15px 13px;margin-top:-6px;font-size:12.5px;color:#7a5a3a;font-weight:600;display:flex;align-items:center;gap:6px;}" +
+      "#mpRagTip .tw{animation:mpTwinkle 1.4s ease-in-out infinite;}" +
+      "@keyframes mpTwinkle{0%,100%{opacity:.4;transform:scale(.9);}50%{opacity:1;transform:scale(1.15);}}" +
+      "#mpRagTipTx{transition:opacity .4s ease;}";
     var st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
 
     var fname = job.filename ? String(job.filename).replace(/[<>&"]/g, "") : "학습자료";
     var chip = document.createElement("div"); chip.id = "mpRagChip";
+    var CITY = (P.get("city") || "").trim();
+    var browseHref = "region-select.html" + (CITY ? ("?city=" + encodeURIComponent(CITY)) : "");
     chip.innerHTML =
       '<div id="mpRagBar"></div>' +
       '<div id="mpRagInner">' +
         '<span class="rg-ic spin" id="mpRagIc">📚</span>' +
         '<div class="rg-tx"><span id="mpRagLabel">PDF 분석 중…</span><small>' + fname + "</small></div>" +
-        '<a class="rg-go" id="mpRagGo" href="compose.html">방 미리보기 →</a>' +
+        '<a class="rg-go" id="mpRagGo" href="' + browseHref + '">🗺 둘러보기</a>' +
         '<button class="rg-x" id="mpRagX" title="숨기기">✕</button>' +
-      "</div>";
+      "</div>" +
+      '<div id="mpRagTip"><span class="tw">✨</span><span id="mpRagTipTx">분석하는 동안 명소를 먼저 둘러보세요!</span></div>';
+
+    // 다음 행동 추천 멘트 — 처리 중 지루하지 않게 회전(반짝임과 함께).
+    var TIPS = [
+      "분석하는 동안 명소를 먼저 둘러보세요!",
+      "선택한 도시의 랜드마크를 미리 구경해 보세요.",
+      "방 디자인이 어떤 게 있는지 둘러볼 수 있어요.",
+      "마음에 드는 방을 골라두면 분석 후 바로 입장!",
+      "분석이 끝나면 학습 내용이 방 안에 채워집니다.",
+      "랜드마크 마커는 끌어서 순서를 바꿀 수 있어요."
+    ];
+    var tipI = 0, tipTimer = null;
+    function rotateTip() {
+      var tx = document.getElementById("mpRagTipTx"); if (!tx) return;
+      tx.style.opacity = "0";
+      setTimeout(function () { tipI = (tipI + 1) % TIPS.length; tx.textContent = TIPS[tipI]; tx.style.opacity = "1"; }, 400);
+    }
 
     function mount() {
       document.body.appendChild(chip);
-      document.getElementById("mpRagX").onclick = function () { chip.style.display = "none"; };
+      document.getElementById("mpRagX").onclick = function () { chip.style.display = "none"; if (tipTimer) clearInterval(tipTimer); };
+      tipTimer = setInterval(rotateTip, 4200);   // 4.2초마다 다음 추천 멘트
     }
     if (document.body) mount(); else document.addEventListener("DOMContentLoaded", mount);
 
@@ -69,14 +97,18 @@
     var stopped = false;
     function finish() {
       stopped = true;
+      if (tipTimer) clearInterval(tipTimer);
       setBar(100); setLabel("분석 완료 · 방 미리보기로");
       chip.classList.add("rg-done");
       var ic = document.getElementById("mpRagIc"); if (ic) ic.textContent = "✅";
+      var go = document.getElementById("mpRagGo"); if (go) { go.href = "compose.html" + (CITY ? ("?city=" + encodeURIComponent(CITY)) : ""); go.textContent = "방 미리보기 →"; }
+      var tip = document.getElementById("mpRagTip"); if (tip) tip.innerHTML = '<span class="tw">🎉</span><span>학습 내용이 준비됐어요 — 방에 들어가 확인해 보세요!</span>';
       try { job.done = true; localStorage.setItem("mp_rag_job", JSON.stringify(job)); } catch (_) {}
       try { window.dispatchEvent(new CustomEvent("mp-rag-ready")); } catch (_) {}
     }
     function fail(msg) {
       stopped = true;
+      if (tipTimer) clearInterval(tipTimer);
       setLabel("분석 실패: " + (msg || "오류"));
       var b = document.getElementById("mpRagBar"); if (b) b.style.background = "#c0463e";
       var ic = document.getElementById("mpRagIc"); if (ic) { ic.textContent = "⚠️"; ic.classList.remove("spin"); }
