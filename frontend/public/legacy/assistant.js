@@ -162,6 +162,11 @@
         return;
       }
       if (c.act === "gotoHotspot"){ if (typeof window.mpGoToHotspot === "function") window.mpGoToHotspot(c.v); return; }   // 관련 개념 칩 → 그 학습 마커로 이동
+      if (c.act === "mnemonic"){   // ✨ 의미 매치 — 우상단 카드의 의미부여와 동일(graphrag /mnemonic 모달)
+        if (typeof window.mpOpenMnemonic === "function") { window.mpOpenMnemonic(); addMsg("✨ 사물에 학습 개념을 연결해 기억 장면을 만들어 드릴게요. (창에서 개념을 고르고 '생성')", "bot"); }
+        else addMsg("방 안(memory-walk)에서 이용할 수 있어요.", "bot");
+        return;
+      }
       if (c.act === "intent") return ruleReply(c.v);
     }
 
@@ -242,6 +247,7 @@
       region:"도시를 골라 시작하는 화면이에요." }[pg] || "안녕하세요, 기억의 궁전 도우미예요.";
     addMsg(hi + " 무엇을 도와드릴까요?", "bot");
     addMsg("테마(색·글씨)를 바꾸거나, 화면을 이동할 수 있어요.", "bot");
+    if (pg === "walk") addChips([{ label: "✨ 의미 매치", act: "mnemonic", say: 0 }]);   // 우상단 의미부여와 동일 — 사물↔개념 기억 장면
     themeChips();
 
     function toggle(open){ panel.classList.toggle("open", open); set(LS_OPEN, open ? "1" : "0"); if (open) input.focus(); }
