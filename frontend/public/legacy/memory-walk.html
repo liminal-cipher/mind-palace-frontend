@@ -604,17 +604,22 @@
         const center = bounds.getCenter(new THREE.Vector3());
         const sz = bounds.getSize(new THREE.Vector3());
         const eyeY = bounds.min.y + Math.min(Math.max(sz.y * 0.5, 1.4), 1.9);
-        const eye = new THREE.Vector3(center.x, eyeY, center.z);
-        const yaws = [0, Math.PI / 2, Math.PI, -Math.PI / 2];
-        camera.aspect = renderer.domElement.width / renderer.domElement.height; camera.updateProjectionMatrix();
+        // 대각선 4방향(두 벽이 만나는 모서리 쪽) — 평평한 벽 정면보다 깊이·가구가 프레임에 들어와 구도가 좋음.
+        const yaws = [Math.PI/4, 3*Math.PI/4, -3*Math.PI/4, -Math.PI/4];
+        const back = 0.30 * Math.min(sz.x, sz.z);   // 바라보는 반대쪽(모서리)로 살짝 물러서서 방을 넓게
+        const clampX = v => Math.min(Math.max(v, bounds.min.x + 0.25), bounds.max.x - 0.25);
+        const clampZ = v => Math.min(Math.max(v, bounds.min.z + 0.25), bounds.max.z - 0.25);
+        camera.aspect = renderer.domElement.width / renderer.domElement.height;
+        camera.fov = 62; camera.updateProjectionMatrix();   // 살짝 넓은 화각으로 방을 더 담음(캡처 후 페이지 폐기)
         const grab = () => {
           const shots = [];
           yaws.forEach((yaw) => {
-            const dir = new THREE.Vector3(Math.sin(yaw), -0.14, Math.cos(yaw)).normalize();
+            const dir = new THREE.Vector3(Math.sin(yaw), -0.16, Math.cos(yaw)).normalize();
+            const eye = new THREE.Vector3(clampX(center.x - dir.x*back), eyeY, clampZ(center.z - dir.z*back));
             camera.position.copy(eye);
             controls.target.copy(eye.clone().add(dir)); controls.update();
             renderer.render(scene, camera);
-            shots.push(renderer.domElement.toDataURL("image/jpeg", 0.82));
+            shots.push(renderer.domElement.toDataURL("image/jpeg", 0.85));
           });
           try { parent.postMessage({ type: "mw-room-shots", glb: ROOM_GLB, shots: shots }, "*"); } catch (_) {}
           try { setStatus("미리보기 4컷 캡처 완료"); } catch (_) {}
