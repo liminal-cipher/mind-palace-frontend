@@ -1336,7 +1336,11 @@
           applyPerformanceMode(true, false);
           applyVWorldRenderSettings();
           activeIndex = 0; renderUi(); setInitialView();   // 교보 앞에서 세종대로 북향 몰입(직접 setView)
-          initLock = 200;   // 초기 ~3초 매 프레임 강제 적용(VWorld 정착에 안 밀리게), 사용자 입력 시 해제
+          // 포커스 입장(?focus=)이면 초기 전체조망 '강제유지'(initLock)를 끄고 잠금을 해제한다.
+          //   안 그러면 VWorld 로드 타이밍에 따라 랜드마크로 날아간 직후 initLock 루프가 setInitialView(전체조망)로
+          //   되돌려 '경복궁 줌인 → 전체조망 줌아웃'처럼 튕긴다. 일반 진입은 기존대로 초기 조망 유지.
+          { const _fx = (new URLSearchParams(location.search).get("focus") || "").trim();
+            initLock = _fx ? 0 : 200; if (_fx) userMoved = true; }
           const viewer = getVWorldViewer();
           if (viewer && viewer.scene && viewer.scene.postRender) {
             viewer.scene.postRender.addEventListener(syncBuildingPositions);
