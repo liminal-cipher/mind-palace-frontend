@@ -280,11 +280,28 @@
       <div class="desc" id="cDesc"></div>
       <div class="rel" id="cRel"></div>
       <div class="cardacts">
+        <button class="cact" id="cMnemo" title="이 사물에 학습 개념을 '어거지로' 연결해 기억 장면을 만들기" hidden>✨ 의미부여</button>
         <button class="cact" id="cMove" title="이 마커를 화면에서 클릭한 자리로 옮기기">✥ 옮기기</button>
         <button class="cact danger" id="cDel" title="이 마커를 삭제">🗑 삭제</button>
       </div>
     </div>
   </aside>
+
+  <!-- ✨ 의미부여(mnemonic): 사물 + 학습 개념 → graphrag /mnemonic 이 만든 기억 장면(마크다운) 렌더 -->
+  <div id="mnemoModal" style="display:none;position:fixed;inset:0;z-index:9600;background:rgba(20,16,12,.55);backdrop-filter:blur(3px);">
+    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:min(560px,92vw);max-height:86vh;overflow:auto;
+                background:#fbf7f1;border-radius:16px;box-shadow:0 18px 60px rgba(0,0,0,.4);font-family:'Pretendard','Malgun Gothic',sans-serif;">
+      <div style="display:flex;align-items:center;gap:8px;padding:13px 16px;border-bottom:1px solid rgba(51,46,40,.12);position:sticky;top:0;background:#fbf7f1;">
+        <b id="mnemoHd" style="font-size:14.5px;color:#2a241d;flex:1;">✨ 의미부여 — 기억 장면 만들기</b>
+        <button id="mnemoClose" style="border:0;background:none;font-size:18px;cursor:pointer;color:#7a7066;">✕</button>
+      </div>
+      <div style="padding:14px 16px;">
+        <div id="mnemoPick" style="margin-bottom:10px;"></div>
+        <button id="mnemoGen" style="padding:9px 16px;border:0;border-radius:10px;background:var(--accent,#b5552f);color:#fff;font-weight:800;font-size:13px;cursor:pointer;">✨ 기억 장면 생성</button>
+        <div id="mnemoBody" style="margin-top:14px;font-size:13.5px;line-height:1.62;color:#2a241d;"></div>
+      </div>
+    </div>
+  </div>
 
   <div class="status" id="status">로드 중…</div>
 
@@ -1361,6 +1378,8 @@
           ? "아직 내용 없음 — PDF를 분석하면 이 방에 학습 마커가 채워집니다."
           : "이 자리에 기억을 배치할 수 있어요. (학습 항목 미지정)";
       }
+      // ✨ 의미부여: 학습 개념이 있을 때(PDF 분석 후)만 노출 — 사물에 개념을 연결해 기억 장면 생성.
+      const mn = $("cMnemo"); if (mn) mn.hidden = !(!CONTENT_LOCKED && (!!e || (window.__mwEntities||[]).length > 0));
       $("card").style.display = "block";
     }
     function goTo(i, instant) {
@@ -1414,6 +1433,70 @@
       _viewRay.far = dist - 0.35;                      // 타깃 표면 자체는 제외
       return _viewRay.intersectObjects(occluders, false).length === 0;
     }
+    // ✨ 의미부여(mnemonic) — graphrag /mnemonic: 사물 + 학습개념 → "어거지로" 연결한 기억 장면(마크다운).
+    const MNEMO_BASE = (function(){ try { const j=JSON.parse(localStorage.getItem("mp_rag_job")||"null"); if(j&&j.base) return j.base; } catch(_){}
+      return "https://3d-mindpalace-ai-backend-h3gze8h7hfhqg3h8.canadacentral-01.azurewebsites.net"; })();
+    function mdLite(md){   // 가벼운 마크다운 → HTML(헤더·표·목록·굵게)
+      const e = s => String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+      const lines = String(md||"").split(/\r?\n/); let html="", inTbl=false;
+      const flush = () => { if(inTbl){ html+="</tbody></table>"; inTbl=false; } };
+      for (const ln of lines){
+        if (/^\s*\|(.+)\|\s*$/.test(ln)){
+          const cells = ln.trim().replace(/^\||\|$/g,"").split("|").map(c=>c.trim());
+          if (cells.every(c=>/^:?-{2,}:?$/.test(c))) continue;
+          if(!inTbl){ html+='<table style="width:100%;border-collapse:collapse;margin:6px 0;font-size:12.5px"><tbody>'; inTbl=true; }
+          html += "<tr>"+cells.map(c=>`<td style="border:1px solid rgba(51,46,40,.18);padding:4px 7px">${e(c)}</td>`).join("")+"</tr>"; continue;
+        }
+        flush(); let m;
+        if ((m=ln.match(/^(#{1,4})\s+(.*)$/))){ const sz=[0,16,15,14,13][m[1].length]||13;
+          html+=`<div style="font-weight:800;font-size:${sz}px;margin:10px 0 4px;color:#2a241d">${e(m[2])}</div>`; continue; }
+        if ((m=ln.match(/^\s*[-*]\s+(.*)$/))){ html+=`<div style="margin:2px 0 2px 12px">• ${e(m[1])}</div>`; continue; }
+        if (!ln.trim()){ html+="<div style='height:6px'></div>"; continue; }
+        html += `<div>${e(ln)}</div>`;
+      }
+      flush(); return html.replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
+    }
+    function buildConceptPicker(h){
+      const pick = $("mnemoPick"); pick.innerHTML="";
+      if (h.entity) { pick.innerHTML = `<div style="font-size:12.5px;color:#7a7066">연결 개념 <b style="color:#2a241d">${esc2(h.entity.title||"")}</b> · 사물 <b>${esc2(dispName(h))}</b></div>`; return ()=>h.entity; }
+      const ents = (window.__mwEntities||[]);
+      if (!ents.length){ pick.innerHTML = `<div style="font-size:12.5px;color:#b06a3a">PDF를 분석하면 연결할 학습 개념이 생깁니다.</div>`; return ()=>null; }
+      const sel = document.createElement("select");
+      sel.style.cssText="width:100%;padding:8px;border:1px solid rgba(51,46,40,.2);border-radius:9px;font-size:13px;background:#fff";
+      sel.innerHTML = `<option value="">— «${esc2(dispName(h))}»에 연결할 학습 개념 선택(어거지로!) —</option>`+
+        ents.slice(0,80).map((e,i)=>`<option value="${i}">${esc2(e.title||e.id||"")}</option>`).join("");
+      pick.appendChild(sel);
+      return ()=> { const i=sel.value; return i===""?null:ents[+i]; };
+    }
+    function esc2(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+    function openMnemo(){
+      const h = route[activeIdx]; if(!h) return;
+      $("mnemoHd").textContent = `✨ 의미부여 — «${dispName(h)}»`;
+      $("mnemoBody").innerHTML = "";
+      const getNode = buildConceptPicker(h);
+      $("mnemoGen").onclick = async () => {
+        const node = getNode();
+        if (!node){ $("mnemoBody").innerHTML = `<div style="color:#b06a3a">먼저 연결할 학습 개념을 고르세요.</div>`; return; }
+        $("mnemoBody").innerHTML = `<div style="color:#7a7066">✨ 기억 장면을 만드는 중…</div>`;
+        try {
+          const body = { object: dispName(h), nodeName: node.title||node.id||"",
+            nodeDescription: node.summary||node.description||(node.images&&node.images[0]&&node.images[0].caption)||node.title||"",
+            keywords: node.keywords||[], markerPosition: [h.pos.x,h.pos.y,h.pos.z],
+            detectedClass: h.label||"", roomContext: (THEME&&THEME.name)||"" };
+          const ctrl = new AbortController(); const to=setTimeout(()=>ctrl.abort(),22000);
+          const r = await fetch(MNEMO_BASE+"/mnemonic",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body),signal:ctrl.signal});
+          clearTimeout(to);
+          if(!r.ok){ $("mnemoBody").innerHTML=`<div style="color:#b03636">생성 실패(${r.status}) — 백엔드 LLM 설정/네트워크를 확인하세요.</div>`; return; }
+          const j = await r.json();
+          $("mnemoBody").innerHTML = mdLite(j.markdown||"(빈 응답)");
+        } catch(_){ $("mnemoBody").innerHTML=`<div style="color:#b03636">요청 실패 — 잠시 후 다시 시도하세요.</div>`; }
+      };
+      $("mnemoModal").style.display="block";
+    }
+    $("mnemoClose").onclick = () => { $("mnemoModal").style.display="none"; };
+    $("mnemoModal").addEventListener("click", e=>{ if(e.target===$("mnemoModal")) $("mnemoModal").style.display="none"; });
+    $("cMnemo").onclick = openMnemo;
+
     $("nextBtn").onclick = () => goTo(Math.min(route.length-1, activeIdx+1));
     $("prevBtn").onclick = () => goTo(Math.max(0, activeIdx-1));
     $("tourBtn").onclick = () => goTo(0);
