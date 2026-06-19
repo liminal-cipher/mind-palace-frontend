@@ -581,6 +581,8 @@
     let route = [];             // 경로 순 핫스팟 [{pos, entity, number, marker, related:[]}]
     let activeIdx = -1;
     const UP = new THREE.Vector3(0,1,0);
+    let occluders = [];                       // 방 메쉬(가시성 레이캐스트 대상)
+    const _viewRay = new THREE.Raycaster();   // 마커가 다른 가구에 가려졌는지 검사용
 
     // 배경/스카이박스 식별(스캐너와 동일) — 이름 또는 "압도적으로 큰 메쉬"(loft의 거대 구).
     function findBackdrops(meshes) {
@@ -664,19 +666,24 @@
           const ctr = b.getCenter(new THREE.Vector3());
           if (ctr.y > roomH * 0.72) return;   // 천장 부착물(조명·실링팬 등) 제외 — 마커가 천장에 찍히지 않게
           cand.push({ pos: ctr, name: c.name || "object", vol: s.x * s.y * s.z,
-            ko: (() => { const k = inferFurnLabel(c); return k ? furnKO(k) : null; })() }); // 계층 이름에서 가구명 추론
+            ko: (() => { const k = inferFurnLabel(c); return k ? furnKO(k) : null; })(), // 계층 이름에서 가구명 추론
+            geo: geomGuess(s, ctr.y, roomH) });                       // 이름 실패 시 쓸 기하학 추정명
         });
         cand.sort((a, b) => b.vol - a.vol); // 큰 가구 우선
         const MINSEP = roomMax * 0.07;      // ≈0.5m: 가까운 분할 메쉬는 하나로(공간 디클러스터)
-        let gi = 0, un = 0;                  // gi=고유 내부라벨 카운터 · un=이름 추론 실패한 무명 가구 번호
+        let gi = 0; const koSeen = {};       // gi=고유 내부라벨 · koSeen=같은 한글명 중복 시 번호 부여
         for (const c of cand) {
           if (anchors.length >= TARGET) break;
-          // label=고유("obj"+i, 병합/다양성 파이프라인용) · ko=표시용 한글명(추론 성공=실제 가구명, 실패="가구 N")
-          if (anchors.every(a => a.pos.distanceTo(c.pos) > MINSEP)) anchors.push({ pos: c.pos, name: c.name, label: "obj" + (gi++), ko: c.ko || ("가구 " + (++un)) });
+          if (!anchors.every(a => a.pos.distanceTo(c.pos) > MINSEP)) continue;
+          // label=고유("obj"+i, 병합/다양성 파이프라인용) · ko=표시명: 추론 성공=실제 가구명, 실패=기하학 추정명(숫자 X)
+          let ko = c.ko || c.geo || "가구";
+          const n = (koSeen[ko] = (koSeen[ko] || 0) + 1);             // 같은 이름 2번째부터 "의자 2"처럼 구분
+          anchors.push({ pos: c.pos, name: c.name, label: "obj" + (gi++), ko: n > 1 ? (ko + " " + n) : ko });
         }
       }
       scene.add(model);
-      bounds = new THREE.Box3(); model.traverse(c => { if (c.isMesh && c.visible) bounds.expandByObject(c); });
+      bounds = new THREE.Box3(); occluders = [];
+      model.traverse(c => { if (c.isMesh && c.visible) { bounds.expandByObject(c); occluders.push(c); } });   // occluders=가시성(레이캐스트) 검사용 방 메쉬
       // (파노라마 철회: 천장 제거/클리핑 없음 — 방은 천장 덮인 닫힌 공간으로 유지)
       buildFurnRects(model, backs);   // 2D 평면도용 가구 발자국(footprint)
       // 같은 라벨 가까운 앵커 병합(수납장 패널 여러 개 → 하나)
@@ -1201,7 +1208,13 @@
       "armchair":"안락의자", "arm chair":"안락의자", "office chair":"의자",
       "bar stool":"바스툴", "barstool":"바스툴", "loveseat":"2인소파", "ottoman":"오토만",
       "wardrobe":"옷장", "dresser":"서랍장", "drawer":"서랍장", "chest":"수납장",
-      "console":"콘솔장", "sideboard":"수납장", "counter":"카운터",
+      "console":"콘솔장", "sideboard":"수납장",
+      "kitchen island":"아일랜드", "island":"아일랜드", "kitchen counter":"조리대", "counter":"카운터",
+      "casier":"사물함", "locker":"사물함", "duvet":"이불", "fireplace":"벽난로", "radiator":"라디에이터",
+      "end table":"협탁", "endtable":"협탁", "head board":"침대", "headboard":"침대",
+      "chopping board":"도마", "cutting board":"도마", "key board":"키보드", "keyboard":"키보드",
+      "black board":"칠판", "blackboard":"칠판", "chalk board":"칠판", "chalkboard":"칠판",
+      "white board":"화이트보드", "whiteboard":"화이트보드",
       "refrigerator":"냉장고", "refriger":"냉장고", "fridge":"냉장고", "microwave":"전자레인지",
       "stove":"가스레인지", "oven":"오븐", "sink":"싱크대",
       "toilet":"변기", "bathtub":"욕조", "bath tub":"욕조", "shower":"샤워부스",
@@ -1215,7 +1228,8 @@
       "painting":"그림", "picture":"그림", "frame":"액자", "poster":"포스터", "clock":"시계",
       "carpet":"러그", "rug":"러그", "pillow":"쿠션", "cushion":"쿠션", "blanket":"담요",
       "television":"TV", "monitor":"모니터", "laptop":"노트북", "computer":"컴퓨터", "speaker":"스피커",
-      "piano":"피아노", "guitar":"기타", "trash":"휴지통", "cup":"컵", "book":"책" };
+      "piano":"피아노", "guitar":"기타", "trash":"휴지통", "cup":"컵",
+      "board":"칠판", "book":"책" };
     const furnKO = label => { const l = String(label||"").toLowerCase(); for (const k in FURN_KO) if (l.includes(k)) return FURN_KO[k]; return label || "가구"; };
     // 노드 이름이 가구 종류를 안 담아도(예: "Object_12"), 부모 그룹·조상 이름까지 훑어 종류를 추론.
     //   3D-FRONT·DiffuScene·Sketchfab GLB는 부모 노드/그룹명에 "Sofa_01" 같은 종류가 흔히 들어있음.
@@ -1227,6 +1241,22 @@
       s = s.toLowerCase().replace(/[_\-.]+/g, " ");
       for (const k in FURN_KO) if (s.includes(k)) return k;
       return null;
+    }
+    // 이름이 전혀 없는 GLB(loft의 "Cube"·room_paris의 "Object_4")용 마지막 폴백.
+    //   노드 이름으로 가구를 못 잡을 때, 정규화된 바운딩박스 크기·바닥높이로 "그럴듯한" 가구명을 추정.
+    //   (정확한 명명은 Azure Vision 검출 단계의 몫 — 여기선 "가구 N" 숫자 대신 자연스러운 이름이 목표.)
+    //   s=크기벡터(정규화·방폭7.2), cy=바닥에서의 중심높이, roomH=정규화 방높이.
+    function geomGuess(s, cy, roomH){
+      const h = s.y, foot = Math.max(s.x, s.z), thin = Math.min(s.x, s.z);
+      const H = Math.max(roomH, 0.001);
+      if (h < H * 0.07 && foot > 1.4) return "러그";                 // 바닥에 깔린 아주 납작·넓은 것
+      if (h > H * 0.60 && foot > 0.7) return "수납장";               // 키 크고 폭 있음 → 장/책장
+      if (h > H * 0.42 && thin < 0.55) return "스탠드";              // 키 크고 가늚 → 스탠드/조명대
+      if (cy < H * 0.30 && foot > 2.6) return "침대";                // 바닥 가까이·아주 넓음
+      if (cy < H * 0.32 && foot > 1.8) return "소파";                // 바닥 가까이·넓음
+      if (cy < H * 0.44 && foot > 1.0 && h < H * 0.34) return "테이블"; // 중간높이 평평한 상판
+      if (cy < H * 0.42 && foot <= 1.2) return "의자";               // 앉는 높이의 작은 덩어리
+      return "소품";                                                  // 그 외(표면 위 작은 것)
     }
 
     // 인식된 모든 가구 팝업 — 걷는 순번(1·2·3…)대로. 클릭=이동+개념 카드, ☰ 드래그=순서 변경.
@@ -1308,12 +1338,42 @@
       activeIdx = i; const h = route[i];
       refreshMarkers(); showCard(h);
       renderDots(i);
-      // 카메라가 사물 정면으로 "걸어가" 바라본다(방 중심 쪽에서)
-      const center = bounds.getCenter(new THREE.Vector3());
-      const dir = new THREE.Vector3(center.x - h.pos.x, 0, center.z - h.pos.z);
-      if (dir.lengthSq() < 0.04) dir.set(0,0,1); dir.normalize();
-      const camPos = new THREE.Vector3(h.pos.x + dir.x*1.7, bounds.min.y + 1.55, h.pos.z + dir.z*1.7);
+      // 카메라가 사물 정면으로 "걸어가" 바라본다(방 중심 쪽에서). 단, 다른 가구에 가리면 시점을 돌려 뚫린 곳에서.
+      const camPos = clearViewPos(h.eye);
       flyTo(camPos, h.eye.clone(), instant ? 0 : 750);
+    }
+    // 마커(eye)를 다른 가구가 막지 않는 카메라 위치 선택.
+    //   정면(방 중심 쪽) 우선 → 막히면 가구를 중심으로 회전·거리 조합을 훑어 시야가 트인 첫 지점.
+    //   가려짐 = camPos→eye 직선 위(타깃 직전까지) 다른 메쉬가 있음. 전부 막히면 기본 정면으로 폴백.
+    function clearViewPos(eye) {
+      const center = bounds.getCenter(new THREE.Vector3());
+      const base = new THREE.Vector3(center.x - eye.x, 0, center.z - eye.z);
+      if (base.lengthSq() < 0.04) base.set(0, 0, 1); base.normalize();
+      const eyeY = Math.min(bounds.min.y + 1.55, bounds.max.y - 0.15);
+      const m = 0.35;                                  // 벽에서 띄울 여유
+      const angles = [0, 22, -22, 45, -45, 70, -70, 110, -110, 150, -150, 180];
+      const dists = [1.7, 2.15, 1.35, 2.6];
+      const place = (a, dist) => {
+        const dir = base.clone().applyAxisAngle(UP, THREE.MathUtils.degToRad(a));
+        const p = new THREE.Vector3(eye.x + dir.x * dist, eyeY, eye.z + dir.z * dist);
+        p.x = Math.min(Math.max(p.x, bounds.min.x + m), bounds.max.x - m);
+        p.z = Math.min(Math.max(p.z, bounds.min.z + m), bounds.max.z - m);
+        return p;
+      };
+      for (const dist of dists) for (const a of angles) {
+        const p = place(a, dist);
+        if (losClear(p, eye)) return p;                // 시야 트인 첫 지점
+      }
+      return place(0, 1.7);                            // 전부 막히면 기본 정면
+    }
+    // camPos→target 직선이 타깃 직전(−0.35m)까지 다른 메쉬에 안 막히면 true.
+    function losClear(from, to) {
+      if (!occluders.length) return true;
+      const d = to.clone().sub(from); const dist = d.length();
+      if (dist < 0.05) return true;
+      _viewRay.set(from, d.multiplyScalar(1 / dist));
+      _viewRay.far = dist - 0.35;                      // 타깃 표면 자체는 제외
+      return _viewRay.intersectObjects(occluders, false).length === 0;
     }
     $("nextBtn").onclick = () => goTo(Math.min(route.length-1, activeIdx+1));
     $("prevBtn").onclick = () => goTo(Math.max(0, activeIdx-1));
