@@ -40,8 +40,15 @@
     .lmicon{width:46px;height:46px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:12px;background:rgba(51,46,40,.05);color:var(--gold);margin:10px 0 4px;}
     .lmicon svg{width:28px;height:28px;}
     .lmicon[hidden]{display:none;}
-    .cimg{width:100%;max-height:172px;object-fit:cover;border-radius:10px;margin:8px 0 4px;display:block;border:1px solid var(--line);}
+    .cimg{width:100%;max-height:230px;object-fit:contain;background:rgba(51,46,40,.05);border-radius:10px;display:block;border:1px solid var(--line);cursor:zoom-in;}
     .cimg[hidden]{display:none;}
+    .imgwrap{position:relative;margin:8px 0 4px;}
+    .imgwrap[hidden]{display:none;}
+    .imgzoom{position:absolute;top:8px;right:8px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border:0;border-radius:7px;background:rgba(42,36,29,.35);color:#fff;font-size:13px;line-height:1;cursor:pointer;opacity:.4;transition:opacity .15s;}
+    .imgwrap:hover .imgzoom,.imgzoom:focus-visible{opacity:.92;}
+    .imglb{position:fixed;inset:0;z-index:99999;background:rgba(28,22,16,.88);display:flex;align-items:center;justify-content:center;cursor:zoom-out;padding:24px;}
+    .imglb[hidden]{display:none;}
+    .imglb img{max-width:94vw;max-height:90vh;border-radius:10px;box-shadow:0 24px 70px rgba(0,0,0,.55);}
     .roommenu{position:fixed;top:58px;left:14px;z-index:60;width:min(330px,calc(100vw - 28px));max-height:78vh;overflow:auto;
       background:rgba(255,255,255,.97);border:1px solid var(--line);border-radius:13px;padding:6px;
       backdrop-filter:blur(10px);box-shadow:0 16px 40px rgba(40,34,26,.16);}
@@ -175,7 +182,7 @@
     .edetail .etype{font-size:10px;font-weight:800;letter-spacing:.05em;color:var(--gold);border:1px solid rgba(138,129,112,.4);border-radius:999px;padding:2px 9px;}
     .edetail h3{margin:11px 0 0;font-size:18px;font-weight:800;letter-spacing:-.01em;}
     .edetail .efurn{margin:7px 0 0;font-size:11.5px;font-weight:700;color:var(--gold);display:inline-block;border:1px solid rgba(138,129,112,.35);border-radius:8px;padding:3px 8px;}
-    .edetail .eimg{width:100%;max-height:150px;object-fit:cover;border-radius:10px;margin:9px 0 2px;display:block;border:1px solid var(--line);}
+    .edetail .eimg{width:100%;max-height:200px;object-fit:contain;background:rgba(51,46,40,.05);border-radius:10px;display:block;border:1px solid var(--line);cursor:zoom-in;}
     .edetail .eimg[hidden]{display:none;}
     .edetail .ecap{color:var(--accent);font-size:12.5px;font-weight:700;margin:8px 0 0;}
     .edetail .edesc{color:var(--muted);font-size:12.5px;line-height:1.65;margin:8px 0 0;white-space:pre-line;}
@@ -276,7 +283,7 @@
     <div class="body">
       <div class="head"><span class="num" id="cNum">1</span><span class="type" id="cType"></span></div>
       <h2 id="cTitle"></h2>
-      <img class="cimg" id="cImg" hidden alt="" />
+      <div class="imgwrap" id="cImgWrap" hidden><img class="cimg" id="cImg" alt="" /><button class="imgzoom" id="cImgZoom" type="button" title="크게 보기" aria-label="크게 보기">⤢</button></div>
       <div class="furn" id="cFurn"></div>
       <div class="cap" id="cCap"></div>
       <button class="cmore" id="cMore" hidden></button>
@@ -385,7 +392,7 @@
           <div class="ehd"><span class="enum" id="eDetNum">1</span><span class="etype" id="eDetType"></span></div>
           <h3 id="eDetTitle"></h3>
           <span class="efurn" id="eDetFurn"></span>
-          <img class="eimg" id="eDetImg" hidden alt="" />
+          <div class="imgwrap" id="eDetImgWrap" hidden><img class="eimg" id="eDetImg" alt="" /><button class="imgzoom" id="eDetImgZoom" type="button" title="크게 보기" aria-label="크게 보기">⤢</button></div>
           <div class="ecap" id="eDetCap"></div>
           <button class="cmore" id="eDetMore" hidden></button>
           <div class="edesc" id="eDetDesc"></div>
@@ -1385,7 +1392,7 @@
     $("modal").onclick = e => { if (e.target === $("modal")) $("modal").classList.remove("open"); };
 
     // ── 카드 표시 + 이동 ──
-    function setCardImage(src){ const im=$("cImg"); if(src){ im.src=src; im.hidden=false; } else { im.hidden=true; im.removeAttribute("src"); } }
+    function setCardImage(src){ const im=$("cImg"), w=$("cImgWrap"); if(src){ im.src=src; if(w)w.hidden=false; } else { if(w)w.hidden=true; im.removeAttribute("src"); } }
     function showCard(h) {
       const e = h.entity;
       $("cNum").textContent = h.number;
@@ -2073,7 +2080,7 @@
       $("eDetail").classList.add("on");
       drawEditor();
     }
-    function setEImg(src) { const im = $("eDetImg"); if (src) { im.src = src; im.hidden = false; } else { im.hidden = true; im.removeAttribute("src"); } }
+    function setEImg(src) { const im = $("eDetImg"), w = $("eDetImgWrap"); if (src) { im.src = src; if(w)w.hidden=false; } else { if(w)w.hidden=true; im.removeAttribute("src"); } }
     function closeEDetail() { selENodeIdx = -1; $("eDetail").classList.remove("on"); drawEditor(); }
     $("eDetClose").onclick = closeEDetail;
     $("eDetRename").onclick = () => {
@@ -2602,6 +2609,23 @@ window.addEventListener('load', function(){
     ['prevBtn','homeBtn','tourBtn'].forEach(function(id){ var b=document.getElementById(id); if(b) b.addEventListener('click', clear, {once:true}); });
   }, 1500);
 });
+</script>
+<div class="imglb" id="imgLightbox" hidden><img id="imgLightboxImg" alt="" /></div>
+<script>
+(function(){
+  var lb=document.getElementById("imgLightbox"), lbi=document.getElementById("imgLightboxImg");
+  if(!lb) return;
+  function close(){ lb.hidden=true; lbi.removeAttribute("src"); }
+  function open(src){ if(!src) return; lbi.src=src; lb.hidden=false; }
+  lb.addEventListener("click", close);
+  document.addEventListener("keydown", function(e){ if(e.key==="Escape" && !lb.hidden) close(); });
+  function wire(imgId, btnId){
+    var img=document.getElementById(imgId), btn=document.getElementById(btnId);
+    if(img) img.addEventListener("click", function(){ open(img.src); });
+    if(btn) btn.addEventListener("click", function(e){ e.stopPropagation(); var im=document.getElementById(imgId); open(im&&im.src); });
+  }
+  wire("cImg","cImgZoom"); wire("eDetImg","eDetImgZoom");
+})();
 </script>
 </body>
 </html>
