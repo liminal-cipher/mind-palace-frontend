@@ -9,6 +9,8 @@
         library: users/<userId>/items/<itemId>.designs.json
       Cosmos 문서 1건 2MB 한도를 피하려고 payload 는 Blob 에 두고 메타엔 경로만 남긴다.
       컨테이너는 첫 사용 시 자동 생성. 이름은 LIBRARY_BLOB_CONTAINER 로 바꿀 수 있다(기본 library).
+      계정은 AZURE_LIBRARY_STORAGE_CONNECTION_STRING(앱과 같은 리전 권장)을 쓰고, 없으면
+      GLB 와 같은 AZURE_STORAGE_CONNECTION_STRING 을 재사용한다(단일 계정 setup 하위호환).
     - Blob 미설정이면 palace/designs 를 메타 문서에 인라인 저장(작은 궁전만 안전, 2MB 미만).
 
 userId 는 Easy Auth 가 넘기는 이메일. 익명은 라우터(require_login)에서 401 로 막으므로 여기 도달하지 않는다.
@@ -51,7 +53,12 @@ def _container_client():
     global _container_singleton
     if _container_singleton is not None:
         return _container_singleton
-    conn = (os.getenv("AZURE_STORAGE_CONNECTION_STRING") or "").strip()
+    # 서재 payload 전용 계정(앱과 같은 리전 권장). 없으면 GLB와 같은 계정 재사용(하위호환).
+    conn = (
+        os.getenv("AZURE_LIBRARY_STORAGE_CONNECTION_STRING")
+        or os.getenv("AZURE_STORAGE_CONNECTION_STRING")
+        or ""
+    ).strip()
     if not conn:
         return None
     try:
