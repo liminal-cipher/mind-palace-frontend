@@ -12,12 +12,12 @@
 oid(Entra object id)는 프로필 속성에 함께 보관해 둔다 — 추후 키를 oid 로 옮길 수 있게.
 
 설정(둘 중 하나):
-    COSMOS_CONNECTION_STRING            # 권장(연결 문자열 하나)
-    또는 COSMOS_ENDPOINT + COSMOS_KEY
+    AZURE_COSMOS_CONNECTION_STRING            # 권장(연결 문자열 하나)
+    또는 AZURE_COSMOS_ENDPOINT + AZURE_COSMOS_KEY
 선택:
-    COSMOS_DB_NAME      (기본 "mindpalace")
-    COSMOS_MAX_RU       (기본 1000 — 프로비저닝 오토스케일 상한 RU/s)
-    COSMOS_SERVERLESS   (true 면 처리량 미지정 — 서버리스 계정용)
+    AZURE_COSMOS_DB_NAME      (기본 "mindpalace")
+    AZURE_COSMOS_MAX_RU       (기본 1000 — 프로비저닝 오토스케일 상한 RU/s)
+    AZURE_COSMOS_SERVERLESS   (true 면 처리량 미지정 — 서버리스 계정용)
 
 미설정이면 configured()=False, 모든 함수가 None/빈 결과를 반환하고 라우터가 503 으로 안내한다.
 """
@@ -30,7 +30,7 @@ from typing import Any
 
 log = logging.getLogger("mindpalace.cosmos")
 
-DB_NAME = os.getenv("COSMOS_DB_NAME", "mindpalace")
+DB_NAME = os.getenv("AZURE_COSMOS_DB_NAME", "mindpalace")
 USERS = "users"
 LIBRARY = "library"
 
@@ -44,11 +44,11 @@ def _now() -> str:
 
 
 def configured() -> bool:
-    if (os.getenv("COSMOS_CONNECTION_STRING") or "").strip():
+    if (os.getenv("AZURE_COSMOS_CONNECTION_STRING") or "").strip():
         return True
     return bool(
-        (os.getenv("COSMOS_ENDPOINT") or "").strip()
-        and (os.getenv("COSMOS_KEY") or "").strip()
+        (os.getenv("AZURE_COSMOS_ENDPOINT") or "").strip()
+        and (os.getenv("AZURE_COSMOS_KEY") or "").strip()
     )
 
 
@@ -60,12 +60,12 @@ def _get_client():
     try:
         from azure.cosmos import CosmosClient
 
-        conn = (os.getenv("COSMOS_CONNECTION_STRING") or "").strip()
+        conn = (os.getenv("AZURE_COSMOS_CONNECTION_STRING") or "").strip()
         if conn:
             _client = CosmosClient.from_connection_string(conn)
         else:
-            endpoint = (os.getenv("COSMOS_ENDPOINT") or "").strip()
-            key = (os.getenv("COSMOS_KEY") or "").strip()
+            endpoint = (os.getenv("AZURE_COSMOS_ENDPOINT") or "").strip()
+            key = (os.getenv("AZURE_COSMOS_KEY") or "").strip()
             if not (endpoint and key):
                 return None
             _client = CosmosClient(endpoint, credential=key)
@@ -78,7 +78,7 @@ def _get_client():
 def _ensure_database(client):
     """DB 생성/확보. 프로비저닝 계정이면 DB 레벨 오토스케일 처리량을 공유로 두어
     컨테이너마다 처리량을 따로 잡지 않게 한다. 서버리스면 처리량을 지정하지 않는다."""
-    serverless = (os.getenv("COSMOS_SERVERLESS") or "").strip().lower() in (
+    serverless = (os.getenv("AZURE_COSMOS_SERVERLESS") or "").strip().lower() in (
         "1",
         "true",
         "yes",
@@ -89,7 +89,7 @@ def _ensure_database(client):
     try:
         from azure.cosmos import ThroughputProperties
 
-        max_ru = int(os.getenv("COSMOS_MAX_RU", "1000"))
+        max_ru = int(os.getenv("AZURE_COSMOS_MAX_RU", "1000"))
         return client.create_database_if_not_exists(
             DB_NAME,
             offer_throughput=ThroughputProperties(auto_scale_max_throughput=max_ru),
