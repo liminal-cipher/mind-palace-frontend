@@ -9,3 +9,5 @@ Pillow==11.0.0
 numpy==2.1.3
 # Azure Blob Storage 업로드
 azure-storage-blob==12.23.1
+# 사용자/서재 메타데이터 (Cosmos DB NoSQL)
+azure-cosmos==4.7.0
