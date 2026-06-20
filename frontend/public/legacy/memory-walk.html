@@ -78,6 +78,8 @@
                 display:inline-block;border:1px solid rgba(138,129,112,.35);border-radius:8px;padding:4px 9px;}
     .card .cap{color:var(--accent);font-size:13px;font-weight:700;margin:9px 0 0;}
     .card .desc{color:var(--muted);font-size:13px;line-height:1.66;margin:10px 0 0;white-space:pre-line;}
+    .cmore{background:none;border:0;color:color-mix(in srgb,var(--accent) 62%,var(--gold) 38%);font-size:12px;font-weight:600;cursor:pointer;padding:8px 0 0;letter-spacing:.01em;}
+    .cmore:hover{text-decoration:underline;}
     .card .rel{margin-top:14px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
     .card .rel .lab{font-size:11px;color:var(--muted);margin-right:2px;}
     .card .cardacts{margin-top:14px;display:flex;gap:8px;}
@@ -277,6 +279,7 @@
       <img class="cimg" id="cImg" hidden alt="" />
       <div class="furn" id="cFurn"></div>
       <div class="cap" id="cCap"></div>
+      <button class="cmore" id="cMore" hidden></button>
       <div class="desc" id="cDesc"></div>
       <div class="rel" id="cRel"></div>
       <div class="cardacts">
@@ -384,6 +387,7 @@
           <span class="efurn" id="eDetFurn"></span>
           <img class="eimg" id="eDetImg" hidden alt="" />
           <div class="ecap" id="eDetCap"></div>
+          <button class="cmore" id="eDetMore" hidden></button>
           <div class="edesc" id="eDetDesc"></div>
           <div class="eacts">
             <button class="ea" id="eDetRename">✎ 이름수정</button>
@@ -1392,7 +1396,7 @@
         $("cFurn").textContent = `📍 ${dispName(h)}에 배치`;
         setCardImage(entImage(e));   // PDF figure > concept-photos > e.image > 랜드마크 공통
         $("cCap").textContent = entCaption(e);   // e.caption > images[0].caption > summary
-        $("cDesc").textContent = paraBreak(e.description || "");
+        (function(){var cap=entCaption(e),desc=paraBreak(e.description||""),n=function(s){return String(s||"").replace(/\s/g,"");},cd=$("cDesc"),tg=$("cMore");if(!cap){cd.textContent=desc;cd.hidden=false;if(tg)tg.hidden=true;}else if(!desc||n(desc)===n(cap)||(n(desc).indexOf(n(cap))===0&&n(desc).length-n(cap).length<10)){cd.textContent="";cd.hidden=true;if(tg)tg.hidden=true;}else{cd.textContent=desc;cd.hidden=true;if(tg){tg.hidden=false;tg.textContent="더보기 ▾";tg.onclick=function(){cd.hidden=!cd.hidden;tg.textContent=cd.hidden?"더보기 ▾":"접기 ▴";};}}})();
         if ((e.related||[]).length) {
           const lab = document.createElement("span"); lab.className="lab"; lab.textContent = "연결:"; rel.appendChild(lab);
           e.related.forEach(rid => {
@@ -2057,7 +2061,7 @@
         $("eDetFurn").textContent = `📍 ${dispName(h)}에 배치`;
         setEImg(h.img);
         $("eDetCap").textContent = h.cap || "";
-        $("eDetDesc").textContent = paraBreak(h.desc || h.cap || "");
+        (function(){var cap=(h.cap||""),desc=paraBreak(h.desc||h.cap||""),n=function(s){return String(s||"").replace(/\s/g,"");},cd=$("eDetDesc"),tg=$("eDetMore");if(!cap){cd.textContent=desc;cd.hidden=false;if(tg)tg.hidden=true;}else if(!desc||n(desc)===n(cap)||(n(desc).indexOf(n(cap))===0&&n(desc).length-n(cap).length<10)){cd.textContent="";cd.hidden=true;if(tg)tg.hidden=true;}else{cd.textContent=desc;cd.hidden=true;if(tg){tg.hidden=false;tg.textContent="더보기 ▾";tg.onclick=function(){cd.hidden=!cd.hidden;tg.textContent=cd.hidden?"더보기 ▾":"접기 ▴";};}}})();
       } else {
         $("eDetType").textContent = "가구";
         $("eDetTitle").textContent = dispName(h);
