@@ -55,11 +55,11 @@
         ? `<a class="on" aria-current="page">${it.icon} ${it.label}</a>`
         : `<a href="${withCity(it.href, it.key)}" title="${it.label}로 이동">${it.icon} ${it.label}</a>`
     ).join("");
-    // 오른쪽: Easy Auth 계정 섹션(로그인 → 구글 / 로그인됨 → 마이페이지). 몰입형 바엔 숨김(CSS).
+    // 오른쪽: Easy Auth 계정 섹션(로그인 → Microsoft / 로그인됨 → 마이페이지). 몰입형 바엔 숨김(CSS).
     const auth = document.createElement("div");
     auth.className = "mpauth";
     const back = encodeURIComponent(location.pathname + location.search);
-    auth.innerHTML = `<a class="mpauth-login" href="/.auth/login/google?post_login_redirect_uri=${back}">로그인</a>`;
+    auth.innerHTML = `<a class="mpauth-login" href="/.auth/login/aad?post_login_redirect_uri=${back}">로그인</a>`;
     nav.appendChild(auth);
     fetch("/.auth/me", { credentials: "include" })
       .then((r) => (r.ok ? r.json() : null))

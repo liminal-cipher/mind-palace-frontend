@@ -127,7 +127,7 @@
 
     <div id="anon" class="need-login" hidden>
       <div>마이페이지는 로그인 후 이용할 수 있어요.</div>
-      <a id="loginLink" href="#">Google로 로그인</a>
+      <a id="loginLink" href="#">Microsoft로 로그인</a>
     </div>
   </div>
 
@@ -138,7 +138,7 @@
 
   function showAnon() {
     $('anon').hidden = false;
-    $('loginLink').href = '/.auth/login/google?post_login_redirect_uri=' + here;
+    $('loginLink').href = '/.auth/login/aad?post_login_redirect_uri=' + here;
   }
 
   function showAuthed(principal) {
