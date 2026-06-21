@@ -193,7 +193,7 @@ body {
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
 }
-#objects .book-nav-strip .book-dots { grid-template-columns: repeat(6, auto); }
+#objects .book-nav-strip .book-dots { grid-template-columns: repeat(3, auto); justify-content: center; }
 #objects .book-progress {
   background: rgba(99, 70, 32, 0.10);
   border-color: rgba(99, 70, 32, 0.10);
@@ -3503,11 +3503,12 @@ body {
 }
 
 .memory-role {
-  margin-top: 18px;
+  margin-top: auto; /* 본문과 무관하게 항상 카드 하단으로 정렬 */
   padding: 14px 16px;
   border-radius: 18px;
   background: rgba(51,46,40,0.055);
   border: 1px solid rgba(99,91,81,0.10);
+  text-align: center;
 }
 
 .memory-role span {
@@ -3527,7 +3528,7 @@ body {
 }
 
 .pdf-slot {
-  margin-top: auto;
+  margin-top: 14px;
   padding-top: 16px;
   border-top: 1px solid rgba(99,91,81,0.14);
   color: rgba(51,46,40,0.54);
@@ -3806,7 +3807,7 @@ body {
 }
 
 .upload-title {
-  font-size: clamp(34px, 4.4vw, 58px);
+  font-size: clamp(24px, 3.4vw, 45px);
   line-height: 1.12;
   max-width: 780px;
   margin-left: auto;
@@ -4089,11 +4090,14 @@ body {
 }
 
 .book-page-title {
-  font-size: clamp(38px, 2.7vw, 46px);
+  font-size: clamp(25px, 1.85vw, 31px);
+  line-height: 1.2;
+  min-height: 2.4em; /* 2줄 기준 — 모든 페이지에서 본문 시작 위치 통일 */
 }
 
 .book-page-desc {
   font-size: 15px;
+  min-height: 5em; /* 3줄 기준 — 포인트 위 영역 높이 통일 */
 }
 
 .landmark-visual {
@@ -4107,8 +4111,12 @@ body {
 }
 
 .memory-role {
-  margin-top: 24px;
+  margin-top: auto;
   padding: 18px 20px;
+  min-height: 92px; /* 포인트 박스 높이 통일 (1~2줄 모두 동일 높이) */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .memory-role strong {
@@ -4167,7 +4175,7 @@ body {
 @media (max-width: 680px) {
   .upload-zone { min-height: 420px; border-radius: 24px; }
   .upload-icon { width: 78px; height: 78px; border-radius: 24px; font-size: 18px; }
-  .upload-title { font-size: 34px; }
+  .upload-title { font-size: 24px; }
   .book-shell { min-height: 600px; border-radius: 28px; }
   .flip-book, .book-fallback { min-height: 540px; }
   .book-page { width: min(82vw, 390px); height: 520px; }
@@ -5225,13 +5233,13 @@ end of keeper CSS */
         <div class="sec-eyebrow">③ 서비스 순서</div>
         <h2 class="sec-title">기억의 궁전, 여섯 걸음이면 됩니다</h2>
         <p class="sec-body">
-          PDF를 올리는 것부터 다시 떠올리기까지, 책장을 넘기듯 여섯 단계로 체험해 보세요.
+          PDF를 올리는 것부터 다시 떠올리기까지, 책장을 넘기듯 여섯 단계로 체험해 보세요.<br>
           각 단계는 우리가 실제로 제공하는 흐름 그대로입니다.
         </p>
       </div>
       <div class="book-toolbar">
         <div class="book-status-pill" id="bookStatusPill">체험 순서</div>
-        <div class="book-count"><strong id="bookCurrent">01</strong> / 06</div>
+        <div class="book-count"><strong id="bookCurrent">1</strong> / 3장</div>
         <div class="book-controls" aria-label="체험 순서 페이지 이동">
           <button type="button" class="round-btn" id="bookPrev" aria-label="이전 페이지">←</button>
           <button type="button" class="round-btn" id="bookNext" aria-label="다음 페이지">→</button>
@@ -5245,7 +5253,7 @@ end of keeper CSS */
           <article class="book-page is-active" data-density="hard" data-book-page data-page-index="0">
             <div class="book-page-inner">
               <div class="book-meta"><span>STEP 01</span><span>UPLOAD</span></div>
-              <div class="landmark-visual" aria-hidden="true"><span class="landmark-orb">上</span></div>
+              <div class="landmark-visual" aria-hidden="true"><span class="landmark-orb"></span></div>
               <p class="book-kicker" data-book-landmark>PDF 업로드</p>
               <h3 class="book-page-title" data-book-title>학습할 PDF를 올려주세요</h3>
               <p class="book-page-desc" data-book-desc>강의 자료, 교재, 논문 등 외우고 싶은 PDF를 드래그 앤 드롭하거나 선택해 업로드합니다. 한 번에 한 문서씩 집중해서 다룹니다.</p>
@@ -5254,13 +5262,13 @@ end of keeper CSS */
                 <strong data-book-role>드래그 앤 드롭으로 한 번에 업로드</strong>
               </div>
               <p class="pdf-slot" data-book-pdfnote>업로드 직후 다음 단계로 자동 연결됩니다.</p>
-              <div class="book-footer"><span>01 / 06</span><span>Upload</span></div>
+              <div class="book-footer"><span>1장</span><span>Upload</span></div>
             </div>
           </article>
           <article class="book-page" data-density="soft" data-book-page data-page-index="1">
             <div class="book-page-inner">
               <div class="book-meta"><span>STEP 02</span><span>ANALYZE</span></div>
-              <div class="landmark-visual" aria-hidden="true"><span class="landmark-orb">析</span></div>
+              <div class="landmark-visual" aria-hidden="true"><span class="landmark-orb"></span></div>
               <p class="book-kicker" data-book-landmark>AI 자동 분석</p>
               <h3 class="book-page-title" data-book-title>AI가 핵심 내용을 추출합니다</h3>
               <p class="book-page-desc" data-book-desc>업로드된 문서를 AI가 읽고 핵심 개념·키워드·흐름을 자동으로 분류합니다. 무엇이 중요한지 직접 골라낼 필요가 없습니다.</p>
@@ -5269,13 +5277,13 @@ end of keeper CSS */
                 <strong data-book-role>핵심 개념·키워드·흐름 자동 추출</strong>
               </div>
               <p class="pdf-slot" data-book-pdfnote>분석은 수 초 안에 끝납니다.</p>
-              <div class="book-footer"><span>02 / 06</span><span>Analyze</span></div>
+              <div class="book-footer"><span>1장</span><span>Analyze</span></div>
             </div>
           </article>
           <article class="book-page" data-density="soft" data-book-page data-page-index="2">
             <div class="book-page-inner">
               <div class="book-meta"><span>STEP 03</span><span>SELECT PLACE</span></div>
-              <div class="landmark-visual" aria-hidden="true"><span class="landmark-orb">都</span></div>
+              <div class="landmark-visual" aria-hidden="true"><span class="landmark-orb"></span></div>
               <p class="book-kicker" data-book-landmark>도시 · 랜드마크 선택</p>
               <h3 class="book-page-title" data-book-title>기억을 저장할 공간을 고르세요</h3>
               <p class="book-page-desc" data-book-desc>전국 84개 도시와 랜드마크 중에서 익숙하거나 마음에 드는 곳을 선택합니다. 익숙한 장소일수록 기억이 더 잘 붙습니다.</p>
@@ -5284,13 +5292,13 @@ end of keeper CSS */
                 <strong data-book-role>도시 84곳 + 권역별 랜드마크 프리셋</strong>
               </div>
               <p class="pdf-slot" data-book-pdfnote>3D 지도에서 직접 클릭해 선택할 수 있습니다.</p>
-              <div class="book-footer"><span>03 / 06</span><span>Select Place</span></div>
+              <div class="book-footer"><span>2장</span><span>Select Place</span></div>
             </div>
           </article>
           <article class="book-page" data-density="soft" data-book-page data-page-index="3">
             <div class="book-page-inner">
               <div class="book-meta"><span>STEP 04</span><span>PLACEMENT</span></div>
-              <div class="landmark-visual" aria-hidden="true"><span class="landmark-orb">配</span></div>
+              <div class="landmark-visual" aria-hidden="true"><span class="landmark-orb"></span></div>
               <p class="book-kicker" data-book-landmark>공간 배치</p>
               <h3 class="book-page-title" data-book-title>핵심 내용이 공간 곳곳에 놓입니다</h3>
               <p class="book-page-desc" data-book-desc>추출된 핵심 내용을 AI가 공간 안의 핫스팟에 자동 배치합니다. 벽면, 책상, 선반 등 시선이 머무는 곳마다 정보가 자리를 잡습니다.</p>
@@ -5299,13 +5307,13 @@ end of keeper CSS */
                 <strong data-book-role>핫스팟에 핵심 개념을 자동 배치</strong>
               </div>
               <p class="pdf-slot" data-book-pdfnote>배치된 내용은 직접 수정할 수도 있습니다.</p>
-              <div class="book-footer"><span>04 / 06</span><span>Placement</span></div>
+              <div class="book-footer"><span>2장</span><span>Placement</span></div>
             </div>
           </article>
           <article class="book-page" data-density="soft" data-book-page data-page-index="4">
             <div class="book-page-inner">
               <div class="book-meta"><span>STEP 05</span><span>WALK</span></div>
-              <div class="landmark-visual" aria-hidden="true"><span class="landmark-orb">歩</span></div>
+              <div class="landmark-visual" aria-hidden="true"><span class="landmark-orb"></span></div>
               <p class="book-kicker" data-book-landmark>3D 산책</p>
               <h3 class="book-page-title" data-book-title>공간을 걸어다니며 외웁니다</h3>
               <p class="book-page-desc" data-book-desc>1인칭 시점으로 공간을 자유롭게 거닐며 핫스팟을 클릭해 봅니다. 정해진 동선을 반복하면 공간의 순서가 곧 지식의 순서가 됩니다.</p>
@@ -5314,13 +5322,13 @@ end of keeper CSS */
                 <strong data-book-role>동선 = 기억의 순서 (장소법 핵심)</strong>
               </div>
               <p class="pdf-slot" data-book-pdfnote>마우스와 키보드로 자유롭게 이동할 수 있습니다.</p>
-              <div class="book-footer"><span>05 / 06</span><span>Walk</span></div>
+              <div class="book-footer"><span>3장</span><span>Walk</span></div>
             </div>
           </article>
           <article class="book-page" data-density="hard" data-book-page data-page-index="5">
             <div class="book-page-inner">
               <div class="book-meta"><span>STEP 06</span><span>RECALL</span></div>
-              <div class="landmark-visual" aria-hidden="true"><span class="landmark-orb">復</span></div>
+              <div class="landmark-visual" aria-hidden="true"><span class="landmark-orb"></span></div>
               <p class="book-kicker" data-book-landmark>복습 · 인출</p>
               <h3 class="book-page-title" data-book-title>다시 떠올리며 기억을 굳힙니다</h3>
               <p class="book-page-desc" data-book-desc>시간이 지난 뒤 같은 공간을 다시 찾습니다. 핫스팟의 내용을 먼저 떠올린 다음 확인하는 능동적 회상으로 장기 기억이 단단해집니다.</p>
@@ -5329,7 +5337,7 @@ end of keeper CSS */
                 <strong data-book-role>망각 곡선에 맞춘 복습 알림 제공</strong>
               </div>
               <p class="pdf-slot" data-book-pdfnote>문서를 더할수록 나만의 기억의 궁전이 넓어집니다.</p>
-              <div class="book-footer"><span>06 / 06</span><span>Recall</span></div>
+              <div class="book-footer"><span>3장</span><span>Recall</span></div>
             </div>
           </article>
         </div>
@@ -5337,7 +5345,7 @@ end of keeper CSS */
       <div class="book-nav-strip" aria-label="체험 순서 진행 정보">
         <div class="book-progress"><span id="bookProgressBar"></span></div>
         <div class="book-dots" id="bookDots" aria-label="단계 바로가기">
-            <button type="button" class="book-dot is-active" data-book-dot="0" aria-label="1단계로 이동">1</button><button type="button" class="book-dot" data-book-dot="1" aria-label="2단계로 이동">2</button><button type="button" class="book-dot" data-book-dot="2" aria-label="3단계로 이동">3</button><button type="button" class="book-dot" data-book-dot="3" aria-label="4단계로 이동">4</button><button type="button" class="book-dot" data-book-dot="4" aria-label="5단계로 이동">5</button><button type="button" class="book-dot" data-book-dot="5" aria-label="6단계로 이동">6</button>
+            <button type="button" class="book-dot is-active" data-book-dot="0" aria-label="1장으로 이동">1</button><button type="button" class="book-dot" data-book-dot="2" aria-label="2장으로 이동">2</button><button type="button" class="book-dot" data-book-dot="4" aria-label="3장으로 이동">3</button>
           </div>
         <p class="book-source" id="bookSourceText"><strong>6단계로 체험하는 기억의 궁전</strong><br>업로드부터 복습까지, 공간이 기억을 만듭니다.</p>
       </div>
@@ -5357,7 +5365,6 @@ end of keeper CSS */
     <div class="upload-trust" aria-label="업로드 안내">
       <span class="upload-trust-chip"><span class="trust-ico">🔒</span><strong>분석에만 사용</strong></span>
       <span class="upload-trust-chip"><span class="trust-ico">📄</span><strong>한 번에 1개</strong></span>
-      <span class="upload-trust-chip"><span class="trust-ico">⏱</span><strong>8분~10분</strong></span>
     </div>
 
     <div class="upload-selection" id="uploadSelection" hidden>
@@ -6622,13 +6629,16 @@ end of keeper CSS */
     if (!pages.length) return;
     currentBookPage = Math.max(0, Math.min(Number(index) || 0, pages.length - 1));
     pages.forEach((page, pageIndex) => page.classList.toggle('is-active', pageIndex === currentBookPage));
-    if (bookCurrent) bookCurrent.textContent = String(currentBookPage + 1).padStart(2, '0');
-    if (bookProgressBar) bookProgressBar.style.width = `${((currentBookPage + 1) / pages.length) * 100}%`;
+    // 2페이지 = 1장. 6페이지 → 3장 단위로 표시
+    const totalChapters = Math.ceil(pages.length / 2);
+    const chapter = Math.floor(currentBookPage / 2);
+    if (bookCurrent) bookCurrent.textContent = String(chapter + 1);
+    if (bookProgressBar) bookProgressBar.style.width = `${((chapter + 1) / totalChapters) * 100}%`;
     if (bookPrev) bookPrev.disabled = currentBookPage <= 0;
     if (bookNext) bookNext.disabled = currentBookPage >= pages.length - 1;
     if (bookDots) {
       bookDots.querySelectorAll('[data-book-dot]').forEach((dot) => {
-        dot.classList.toggle('is-active', Number(dot.dataset.bookDot) === currentBookPage);
+        dot.classList.toggle('is-active', Math.floor(Number(dot.dataset.bookDot) / 2) === chapter);
       });
     }
   }
