@@ -20,6 +20,7 @@ from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
+from . import cosmos
 from . import sketchfab as sk
 from . import storage
 
@@ -175,6 +176,7 @@ def health() -> dict:
         "azureVisionConfigured": bool(azure_endpoint and azure_key),
         "sketchfabConfigured": bool(sk.token()),
         "blobStorageConfigured": bool(os.getenv("AZURE_STORAGE_CONNECTION_STRING")),
+        "cosmosConfigured": cosmos.configured(),
         "openaiConfigured": bool(llm_chat_config()),
     }
 
@@ -453,20 +455,34 @@ _EMAIL_CLAIM_TYPES = {
     "name",
 }
 
+# 표시 이름·Entra object id 클레임(프로필 기록용). Microsoft(AAD) 전환 대비.
+_NAME_CLAIM_TYPES = {
+    "name",
+    "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name",
+}
+_OID_CLAIM_TYPES = {
+    "oid",
+    "http://schemas.microsoft.com/identity/claims/objectidentifier",
+}
 
-def _principal_user_id(request: Request) -> str | None:
+
+def _principal_claims(request: Request) -> list[dict]:
     """Easy Auth가 주입하는 서명된 principal(X-MS-CLIENT-PRINCIPAL, base64 JSON)에서
-    안정적인 사용자 식별값(이메일/이름)을 추출한다. NAME 헤더보다 이쪽을 우선한다."""
+    claims 배열을 꺼낸다. 헤더 없음/디코드 실패 시 빈 배열."""
     raw = (request.headers.get("X-MS-CLIENT-PRINCIPAL") or "").strip()
     if not raw:
-        return None
+        return []
     try:
         data = json.loads(base64.b64decode(raw))
     except Exception:
         log.warning("X-MS-CLIENT-PRINCIPAL 디코드 실패", exc_info=True)
-        return None
-    claims = data.get("claims") or []
-    for claim in claims:
+        return []
+    return data.get("claims") or []
+
+
+def _principal_user_id(request: Request) -> str | None:
+    """principal 클레임에서 안정적인 사용자 식별값(이메일/이름)을 추출. NAME 헤더보다 우선."""
+    for claim in _principal_claims(request):
         typ = (claim.get("typ") or "").lower()
         if typ in _EMAIL_CLAIM_TYPES or typ.endswith("/emailaddress") or typ.endswith("/name"):
             val = (claim.get("val") or "").strip()
@@ -475,9 +491,29 @@ def _principal_user_id(request: Request) -> str | None:
     return None
 
 
+def _principal_profile(request: Request) -> dict:
+    """프로필 기록용 부가 정보 추출: {displayName, oid}. (이메일은 require_login 이 따로 구함.)"""
+    display_name = None
+    oid = None
+    for claim in _principal_claims(request):
+        typ = (claim.get("typ") or "").lower()
+        val = (claim.get("val") or "").strip()
+        if not val:
+            continue
+        if oid is None and (typ in _OID_CLAIM_TYPES or typ.endswith("/objectidentifier")):
+            oid = val
+        elif display_name is None and typ in _NAME_CLAIM_TYPES:
+            display_name = val
+    return {"displayName": display_name, "oid": oid}
+
+
 def require_login(request: Request) -> str:
     """로그인 사용자 식별값을 반환. 익명(신원 헤더 없음)이면 401 → 서재 전용 게이트.
     우선순위: 서명된 principal 클레임 > NAME 헤더.
+
+    부수효과: 로그인 사용자를 users 컨테이너에 기록(멱등 upsert). Cosmos 미설정이면 조용히 패스.
+    (지금은 서재 호출마다 1회 point write — 비용 미미. Entra 인증 전환 단계에서 전용
+     /api/me 훅으로 옮기는 게 더 깔끔하다.)
 
     경고: 이 헤더들의 '신뢰'는 App Service Easy Auth 와 컨테이너 직접 노출 차단에서
     나온다. Easy Auth(미인증 허용 모드)는 켜두되, 컨테이너가 외부에 직접 노출되지
@@ -487,6 +523,9 @@ def require_login(request: Request) -> str:
         uid = (request.headers.get("X-MS-CLIENT-PRINCIPAL-NAME") or "").strip()
     if not uid:
         raise HTTPException(status_code=401, detail="로그인이 필요한 기능입니다.")
+    if cosmos.configured():
+        prof = _principal_profile(request)
+        cosmos.upsert_user(uid, display_name=prof.get("displayName"), oid=prof.get("oid"))
     return uid
 
 
@@ -509,6 +548,27 @@ def _reject_oversized_payload(*objects: Any) -> None:
             raise HTTPException(status_code=400, detail="저장할 데이터를 직렬화할 수 없습니다.") from exc
     if total > MAX_PALACE_BYTES:
         raise HTTPException(status_code=413, detail="저장할 데이터가 너무 큽니다.")
+
+
+@app.get("/api/me")
+def me(request: Request, user_id: str = Depends(require_login)) -> dict:
+    """로그인 사용자 프로필(저장된 users 레코드). require_login 이 로그인 시 upsert 하므로
+    여기선 읽어서 반환만 한다. Cosmos 미설정이면 헤더 클레임만으로 구성해 돌려준다."""
+    stored = cosmos.get_user(user_id)
+    if stored:
+        return {
+            "email": stored.get("email", user_id),
+            "displayName": stored.get("displayName") or user_id,
+            "avatarUrl": stored.get("avatarUrl") or "",
+            "provider": stored.get("provider"),
+        }
+    prof = _principal_profile(request)
+    return {
+        "email": user_id,
+        "displayName": prof.get("displayName") or user_id,
+        "avatarUrl": "",
+        "provider": None,
+    }
 
 
 @app.post("/api/library/save")

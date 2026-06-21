@@ -19,5 +19,9 @@ backend/uploads/
 # Sketchfab 가져오기 산출물(서버가 변환·생성한 GLB/핫스팟 — 로컬 전용)
 frontend/public/legacy/public/imported/
 
+# 로컬 테스트용 데이터(GitHub 미포함, 직접 받은 리서치/방 자료 — 커밋 대상 아님)
+frontend/public/legacy/data/
+frontend/public/legacy/public/assets/rooms/
+
 # 대용량 GLB 원본 백업(로컬 전용) — 배포본은 Draco 압축된 cozy.glb(<100MB)
 *.hires.glb.bak
