@@ -732,6 +732,7 @@
           const thin = Math.min(s.x, s.z), wide = Math.max(s.x, s.z);
           if (thin < roomMax * 0.028 && (s.y > roomH * 0.45 || wide > roomMax * 0.30)) return;  // 얇고 크게 선 면 = 벽·칸막이
           if (s.y < roomMax * 0.012 && wide > roomMax * 0.45) return;                            // 아주 납작·거대 = 바닥/천장 슬래브(러그는 더 작음)
+          if (s.y > roomH * 0.82 && wide > roomMax * 0.12) return;                               // 바닥~천장 전 높이로 큰 것 = 벽·기둥(전체높이 가구는 드묾) — 두꺼운 벽도 제외
           const ctr = b.getCenter(new THREE.Vector3());
           if (ctr.y > roomH * 0.72) return;   // 천장 부착물(조명·실링팬 등) 제외 — 마커가 천장에 찍히지 않게
           cand.push({ pos: ctr, name: c.name || "object", vol: s.x * s.y * s.z,
