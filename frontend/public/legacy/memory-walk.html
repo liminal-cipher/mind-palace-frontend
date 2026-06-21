@@ -1561,7 +1561,7 @@
     }
     (function(){ const b=document.getElementById("saveLibBtn"); if(b) b.addEventListener("click", saveToLibrary); })();
 
-    // ── 나가기 저장 안내: 저장 안 한 업로드 궁전에서 이탈 시 모달 + 탭닫기 beforeunload 백스톱 ──
+    // ── 나가기 저장 안내: 저장 안 한 업로드 궁전에서 돌아가기/지도/처음 버튼 이탈 시 모달(내부 방 이동엔 안 뜸) ──
     function mwIsDirty(){
       if (!MW_CAN_SAVE || MW_SAVED) return false;
       try { if (MW_PALACE_ID && (JSON.parse(localStorage.getItem("mp_lib_items")||"{}"))[MW_PALACE_ID]) return false; } catch(_){}
@@ -1595,7 +1595,6 @@
           showExitModal(function(){ btn.click(); });
         }, true);
       });
-      window.addEventListener("beforeunload", function(e){ if (mwIsDirty()) { e.preventDefault(); e.returnValue=""; } });
     })();
     // 서버(mnemonics 컨테이너)에서 이 궁전 의미부여를 불러와 localStorage 병합 — 다른 기기서도 보이게.
     async function loadServerMnemonics(palaceId){
