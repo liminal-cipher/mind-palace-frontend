@@ -759,6 +759,14 @@
       buildFurnRects(model, backs);   // 2D 평면도용 가구 발자국(footprint)
       // 같은 라벨 가까운 앵커 병합(수납장 패널 여러 개 → 하나)
       anchors = mergeAnchors(anchors, 1.0);
+      // 새 GLB 검출 품질 자가검사 — 콘솔·window로 진단(개발/검증용). 희박(<4)·편중(한 종류>5)이면 경고.
+      try {
+        const byT = {}; anchors.forEach(a => { const t = String(a.ko || "").replace(/ \d+$/, ""); byT[t] = (byT[t] || 0) + 1; });
+        const mx = Math.max(0, ...Object.values(byT));
+        const warn = anchors.length < 4 ? "sparse" : (mx > 5 ? "skewed(" + mx + ")" : "");
+        window.__mpDetectReport = { glb: (ROOM_GLB || "").split("/").pop(), count: anchors.length, byType: byT, warn };
+        console.info("[mp-detect]", window.__mpDetectReport.glb, "→", anchors.length, "개", byT, warn ? "⚠ " + warn : "✓");
+      } catch (_) {}
       setupSun();
       // 자체 방(바닥/벽)이 있으면 shell 생략(겹쳐서 z-fighting "이상함" 방지). 가구만 있는 GLB만 shell.
       if (!hasOwnRoom) buildShell(bounds, CEIL);
