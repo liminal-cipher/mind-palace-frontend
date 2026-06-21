@@ -16,51 +16,60 @@
     const withCity = (href, key) =>
       (CITY && key !== "explain") ? href + (href.indexOf("?") < 0 ? "?" : "&") + "city=" + encodeURIComponent(CITY) : href;
 
+    // home.html의 상단 네비와 동일한 번호 라벨로 통일(동일 서비스 느낌).
     const ITEMS = [
-      { key: "explain", label: "기술 설명",         icon: "📖", href: "home.html" },
-      { key: "browse",  label: "공간 둘러보기",      icon: "🗺", href: "region-select.html" },
-      { key: "create",  label: "나만의 공간 만들기", icon: "🏗", href: "compose.html" },
+      { key: "explain", label: "1 · 기술 설명",         href: "home.html" },
+      { key: "browse",  label: "2 · 공간 둘러보기",      href: "region-select.html" },
+      { key: "create",  label: "3 · 나만의 공간 만들기", href: "compose.html" },
     ];
 
+    // home.html 상단바와 동일한 어두운 테마(같은 서비스 느낌) — 콘텐츠 페이지엔 솔리드, 3D 몰입형엔 컴팩트.
     const css = `
-    .mpnav{position:fixed;top:0;left:0;right:0;height:46px;z-index:9000;display:flex;align-items:center;gap:7px;
-      padding:0 14px;background:rgba(245,241,234,.93);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
-      border-bottom:1px solid rgba(51,46,40,.12);box-shadow:0 2px 10px rgba(40,34,26,.08);
+    .mpnav{position:fixed;top:0;left:0;right:0;height:52px;z-index:9000;display:flex;align-items:center;
+      padding:0 28px;background:rgba(38,34,29,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+      border-bottom:1px solid rgba(99,91,81,.25);box-shadow:0 2px 14px rgba(0,0,0,.18);
       font-family:'Pretendard','Malgun Gothic','Apple SD Gothic Neo',system-ui,sans-serif;}
-    .mpnav .mpb{font-weight:900;font-size:13px;color:#2a241d;margin-right:8px;letter-spacing:-.01em;white-space:nowrap;}
-    .mpnav a{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border:1px solid rgba(51,46,40,.12);
-      border-radius:9px;background:rgba(51,46,40,.045);color:#2a241d;text-decoration:none;font-size:12.5px;
-      font-weight:700;cursor:pointer;transition:.15s;white-space:nowrap;}
-    .mpnav a:hover{border-color:rgba(181, 85, 47,.45);background:rgba(181, 85, 47,.10);transform:translateY(-1px);}
-    .mpnav a.on{background:#b5552f;border-color:#b5552f;color:#fff;cursor:default;}
-    .mpnav a.on:hover{transform:none;}
-    body.mpnav-pad{padding-top:46px !important;}
+    .mpnav .mpb{font-weight:700;font-size:16px;color:#f5f0e8;letter-spacing:-.01em;white-space:nowrap;text-decoration:none;}
+    .mpnav .mpright{margin-left:auto;display:flex;align-items:center;gap:24px;}
+    .mpnav a.mpsec{font-size:12.5px;color:rgba(245,240,232,.72);text-decoration:none;font-weight:600;
+      transition:color .2s;white-space:nowrap;cursor:pointer;}
+    .mpnav a.mpsec:hover{color:#f5f0e8;}
+    .mpnav a.mpsec.on{color:#fff;font-weight:800;}
+    body.mpnav-pad{padding-top:52px !important;}
     .mpnav.mpnav-float{left:50%;right:auto;transform:translateX(-50%);top:8px;height:auto;width:auto;
-      border-radius:13px;padding:6px 9px;gap:6px;box-shadow:0 6px 20px rgba(40,34,26,.18);}
+      padding:7px 14px;border-radius:13px;box-shadow:0 6px 22px rgba(0,0,0,.3);}
     .mpnav.mpnav-float .mpb{display:none;}
-    .mpnav .mpauth{margin-left:auto;display:flex;align-items:center;gap:6px;}
-    .mpnav .mpauth-login{background:#b5552f;border-color:#b5552f;color:#fff;}
-    .mpnav .mpauth-login:hover{filter:brightness(1.07);background:#b5552f;border-color:#b5552f;}
-    .mpnav .mpauth-acc{max-width:160px;overflow:hidden;text-overflow:ellipsis;}
+    .mpnav.mpnav-float .mpright{margin-left:0;gap:16px;}
+    .mpnav .mpauth{display:flex;align-items:center;gap:6px;}
+    .mpnav .mpauth-login{background:#b5552f;color:#fff;padding:7px 15px;border-radius:8px;font-size:12.5px;
+      font-weight:800;text-decoration:none;white-space:nowrap;}
+    .mpnav .mpauth-login:hover{filter:brightness(1.08);}
+    .mpnav .mpauth-acc{color:rgba(245,240,232,.85);text-decoration:none;font-size:12.5px;font-weight:700;
+      max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     .mpnav.mpnav-float .mpauth{display:none;}  /* 3D 몰입형 컴팩트 바엔 계정 숨김 */
-    @media(max-width:560px){.mpnav .mpb{display:none;}.mpnav a{padding:6px 9px;font-size:11.5px;}.mpnav{gap:5px;padding:0 9px;}}
+    @media(max-width:560px){.mpnav{padding:0 14px;}.mpnav .mpright{gap:14px;}.mpnav a.mpsec{font-size:11.5px;}}
     `;
     const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
 
     const nav = document.createElement("nav");
     nav.className = "mpnav";
     nav.setAttribute("aria-label", "주요 메뉴");
-    nav.innerHTML = `<span class="mpb">기억의 궁전</span>` + ITEMS.map((it) =>
+    nav.innerHTML = `<a class="mpb" href="${withCity("home.html", "explain")}">기억의 궁전</a>`;
+    // 우측 그룹: 번호 라벨 링크(home과 동일) + 계정. 몰입형 바엔 컴팩트.
+    const right = document.createElement("div");
+    right.className = "mpright";
+    right.innerHTML = ITEMS.map((it) =>
       (it.key === CUR)
-        ? `<a class="on" aria-current="page">${it.icon} ${it.label}</a>`
-        : `<a href="${withCity(it.href, it.key)}" title="${it.label}로 이동">${it.icon} ${it.label}</a>`
+        ? `<a class="mpsec on" aria-current="page">${it.label}</a>`
+        : `<a class="mpsec" href="${withCity(it.href, it.key)}" title="${it.label}로 이동">${it.label}</a>`
     ).join("");
-    // 오른쪽: Easy Auth 계정 섹션(로그인 → Microsoft / 로그인됨 → 마이페이지). 몰입형 바엔 숨김(CSS).
+    // Easy Auth 계정 섹션(로그인 → Microsoft / 로그인됨 → 마이페이지). 몰입형 바엔 숨김(CSS).
     const auth = document.createElement("div");
     auth.className = "mpauth";
     const back = encodeURIComponent(location.pathname + location.search);
     auth.innerHTML = `<a class="mpauth-login" href="/.auth/login/aad?post_login_redirect_uri=${back}">로그인</a>`;
-    nav.appendChild(auth);
+    right.appendChild(auth);
+    nav.appendChild(right);
     fetch("/.auth/me", { credentials: "include" })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
