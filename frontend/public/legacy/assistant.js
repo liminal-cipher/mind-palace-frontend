@@ -105,14 +105,13 @@
       chips.forEach(function (c){ var b = document.createElement("button"); b.className = "mp-chip"; b.textContent = c.label; b.onclick = function(){ if (c.say) addMsg(c.label, "me"); act(c); }; w.appendChild(b); });
       body.appendChild(w); body.scrollTop = body.scrollHeight; }
 
-    function setTheme(n){ set(LS_THEME, n); applyVars(n); addMsg("테마를 '" + PRESETS[n].name + "'(으)로 바꿨어요. 다른 화면에서도 그대로 유지돼요.", "bot"); themeChips(); }
+    function setTheme(n){ set(LS_THEME, n); applyVars(n); addMsg("테마를 '" + PRESETS[n].name + "'(으)로 바꿨어요.", "bot"); themeChips(); }
     function setZoom(z){ set(LS_ZOOM, z); applyZoom(z); addMsg(z ? ("화면 크기를 " + Math.round(parseFloat(z) * 100) + "%로 맞췄어요.") : "화면 크기를 기본으로 되돌렸어요.", "bot"); }
     function setLite(on){ set(LS_LITE, on ? "1" : "0"); applyLite(on); addMsg(on ? "가벼운 모드를 켰어요(그림자·효과 최소화)." : "가벼운 모드를 껐어요.", "bot"); }
 
     function themeChips(){ addChips([
-      { label:"묵향 세이지", act:"theme", v:"sage", say:1 }, { label:"학예 인디고", act:"theme", v:"indigo", say:1 }, { label:"박물관 클레이", act:"theme", v:"clay", say:1 },
-      { label:"글씨 크게", act:"zoom", v:"1.12", say:1 }, { label:"글씨 작게", act:"zoom", v:"0.92", say:1 }, { label:"기본 크기", act:"zoom", v:"", say:1 },
-      { label:"가벼운 모드", act:"lite", say:1 }
+      { label:"세이지", act:"theme", v:"sage", say:1 }, { label:"인디고", act:"theme", v:"indigo", say:1 }, { label:"클레이", act:"theme", v:"clay", say:1 },
+      { label:"글씨 크게", act:"zoom", v:"1.12", say:1 }, { label:"글씨 작게", act:"zoom", v:"0.92", say:1 }
     ]); }
     function navChips(){ var c = [
       { label:"구성 화면", act:"go", v:"compose.html", say:1 },
@@ -199,7 +198,7 @@
 
     function ruleReply(text){
       var t = (text || "").toLowerCase();
-      if (/테마|색|팔레트|분위기|톤|theme|컬러/.test(t) || text === "테마"){ addMsg("테마를 골라보세요. 고르면 모든 화면에 바로 적용되고 유지돼요.", "bot"); return themeChips(); }
+      if (/테마|색|팔레트|분위기|톤|theme|컬러/.test(t) || text === "테마"){ addMsg("테마를 골라보세요.", "bot"); return themeChips(); }
       if (/밝|어둡|글씨|크게|작게|크기|폰트|zoom/.test(t)){ addMsg("화면 크기를 조절해 드릴게요.", "bot"); return addChips([{label:"글씨 크게",act:"zoom",v:"1.12",say:1},{label:"글씨 작게",act:"zoom",v:"0.92",say:1},{label:"기본 크기",act:"zoom",v:"",say:1}]); }
       if (/가벼|렉|느려|성능|lite/.test(t)){ return setLite(get(LS_LITE,"0")!=="1"); }
       // 학습 커스텀(방 안에서만): "X를 3번에 연결" 직접 연결, "추천/미배치/커스텀" → 추천 칩
