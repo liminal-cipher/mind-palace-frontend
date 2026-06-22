@@ -54,6 +54,18 @@
     .mpnav .mpauth-acc{color:rgba(245,240,232,.85);text-decoration:none;font-size:12.5px;font-weight:700;
       max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     .mpnav.mpnav-float .mpauth{display:none;}  /* 3D 몰입형 컴팩트 바엔 계정 숨김 */
+    .mpnav .mpdd{position:relative;}
+    .mpnav .mpdd-t{display:inline-flex;align-items:center;gap:4px;}
+    .mpnav .mpcar{font-size:9px;opacity:.7;transition:transform .2s;}
+    .mpnav .mpdd.open .mpcar{transform:rotate(180deg);}
+    .mpnav .mpdd-menu{position:absolute;top:calc(100% + 12px);left:50%;transform:translateX(-50%) translateY(-6px);
+      min-width:214px;background:rgba(38,34,29,.97);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+      border:1px solid rgba(99,91,81,.3);border-radius:12px;box-shadow:0 14px 32px rgba(0,0,0,.36);padding:6px;
+      opacity:0;visibility:hidden;transition:opacity .18s,transform .18s,visibility .18s;z-index:9001;}
+    .mpnav .mpdd.open .mpdd-menu{opacity:1;visibility:visible;transform:translateX(-50%) translateY(0);}
+    .mpnav .mpdd-menu a{display:block;padding:9px 12px;border-radius:8px;color:rgba(245,240,232,.82);
+      font-size:12.5px;font-weight:600;text-decoration:none;white-space:nowrap;transition:background .15s,color .15s;}
+    .mpnav .mpdd-menu a:hover{background:rgba(181,85,47,.24);color:#fff;}
     @media(max-width:560px){.mpnav{padding:0 14px;}.mpnav .mpright{gap:14px;}.mpnav a.mpsec{font-size:11.5px;}}
     `;
     const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
@@ -63,13 +75,27 @@
     nav.setAttribute("aria-label", "주요 메뉴");
     nav.innerHTML = `<a class="mpb" href="${withCity("home.html", "explain")}">기억의 궁전</a>`;
     // 우측 그룹: 번호 라벨 링크(home과 동일) + 계정. 몰입형 바엔 컴팩트.
+    // '기술 설명'은 단일 링크가 아니라 하위 기술 문서로 가는 드롭다운(클릭 시 작은 팝업).
+    const TECH_SUB = [
+      { label: "🏛 전체 소개",          href: "home.html" },
+      { label: "🗺 3D 시스템 아키텍처",  href: "system-architecture.html" },
+      { label: "📍 3D 마커 만드는 법",   href: "how-markers-work.html" },
+      { label: "📦 바운딩 박스 시각화",  href: "bounding-box-visual.html" },
+    ];
     const right = document.createElement("div");
     right.className = "mpright";
-    right.innerHTML = ITEMS.map((it) =>
-      (it.key === CUR)
+    right.innerHTML = ITEMS.map((it) => {
+      if (it.key === "explain") {
+        return `<div class="mpdd">`
+          + `<a class="mpsec mpdd-t" role="button" aria-haspopup="true" aria-expanded="false" tabindex="0">${it.label} <span class="mpcar">▾</span></a>`
+          + `<div class="mpdd-menu" role="menu">`
+          + TECH_SUB.map((s) => `<a role="menuitem" href="${s.href}">${s.label}</a>`).join("")
+          + `</div></div>`;
+      }
+      return (it.key === CUR)
         ? `<a class="mpsec on" aria-current="page">${it.label}</a>`
-        : `<a class="mpsec" href="${withCity(it.href, it.key)}" title="${it.label}로 이동">${it.label}</a>`
-    ).join("");
+        : `<a class="mpsec" href="${withCity(it.href, it.key)}" title="${it.label}로 이동">${it.label}</a>`;
+    }).join("");
     // Easy Auth 계정 섹션(로그인 → Microsoft / 로그인됨 → 마이페이지). 몰입형 바엔 숨김(CSS).
     const auth = document.createElement("div");
     auth.className = "mpauth";
@@ -92,11 +118,28 @@
 
     document.body.insertBefore(nav, document.body.firstChild);
 
-    // 문서형(region-select·compose·glb-customizer)은 풀바+body 패딩,
-    // 3D 몰입형(vworld_map·memory-walk)은 코너 UI를 안 가리도록 가운데 떠있는 컴팩트 바.
+    // '기술 설명' 드롭다운 토글 — 클릭으로 열고, 바깥 클릭/Esc로 닫는다.
+    const dd = nav.querySelector(".mpdd");
+    if (dd) {
+      const t = dd.querySelector(".mpdd-t");
+      const setOpen = (o) => { dd.classList.toggle("open", o); t.setAttribute("aria-expanded", o ? "true" : "false"); };
+      t.addEventListener("click", (e) => { e.stopPropagation(); setOpen(!dd.classList.contains("open")); });
+      t.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpen(!dd.classList.contains("open")); }
+        else if (e.key === "Escape") setOpen(false);
+      });
+      document.addEventListener("click", (e) => { if (!dd.contains(e.target)) setOpen(false); });
+    }
+
+    // 문서형은 풀바+body 패딩. 지도(vworld_map)는 다른 페이지와 같은 솔리드 통일 바(브랜드+메뉴+계정)를
+    //   오버레이로 두고, 위쪽 떠있는 카드(안내·대시도크)를 바 아래로 내려 겹침 방지. 그 외 몰입형(memory-walk)은 컴팩트 플로트.
     const DOC = ["region-select", "compose", "glb-customizer"];
     if (DOC.includes(file)) {
       document.body.classList.add("mpnav-pad");
+    } else if (file === "vworld_map") {
+      const ov = document.createElement("style");
+      ov.textContent = "#status{top:62px !important;} .dash-dock{top:62px !important;}";
+      document.head.appendChild(ov);
     } else {
       nav.classList.add("mpnav-float");
     }

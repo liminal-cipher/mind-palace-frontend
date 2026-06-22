@@ -307,6 +307,58 @@
     </div>
   </div>
 
+  <!-- 두 번째 입력 경로: 사진 스캔(스캐너) + 삼각측량 -->
+  <div class="sechead"><div class="e">또 다른 입력 경로</div><h2>이름표 없는 방·내 진짜 방은?<br>사진으로 스캔합니다</h2></div>
+
+  <div class="step">
+    <span class="num">SCANNER</span>
+    <div class="head"><div class="badge">📷</div>
+      <div><h2>사진으로 좌표를 '만든다'</h2>
+      <div class="lead">방 스캐너 · Azure AI Vision 검출 + 삼각측량 → 핫스팟 JSON</div></div></div>
+    <p class="body">지금까지는 <b>3D 모델(GLB)에 좌표가 이미 들어 있는</b> 경우였어요. 그런데 모델에 <b>이름표가 전혀 없거나</b>(벽이 'Object_4'), <b>내 진짜 방을 찍은 사진</b>밖에 없을 땐? — '<b>방 스캐너</b>'가 나서요. 방을 <b>여러 각도에서 찍어</b> 각 사진을 <b>Azure AI Vision</b>에 보내 사물을 찾고(2D 박스), 그 사물의 <b>3D 좌표를 직접 계산</b>해 핫스팟 파일(JSON)을 만들어요. 방 시스템은 이 파일을 그대로 불러와 마커·동선을 깔죠.</p>
+    <div class="easy"><span class="ic">🛰️</span><span class="tx"><b>실제로 작동해요</b> — 서버에 Azure AI Vision이 켜져 있고, 검출 결과는 <b>의자·소파·화분·창문</b>처럼 정리돼 <b>실제 3D 좌표·신뢰도(confidence)</b>와 함께 저장됩니다.</span></div>
+  </div>
+
+  <!-- 삼각측량 하이라이트 -->
+  <div class="hl" style="background:linear-gradient(135deg,#15B86B,#0E8C56);box-shadow:0 14px 30px rgba(21,184,107,.28);">
+    <div class="tag">📐 TRIANGULATION · 두 시선이 만나는 점</div>
+    <h2>사진엔 깊이가 없어요.<br>그래서 '삼각측량'으로 3D를 복원해요</h2>
+    <p>3D 모델은 좌표가 <b>이미 들어 있어</b> 바로 읽지만, <b>사진은 평면(2D)</b>이라 "얼마나 멀리"가 없어요. 그래서 <b>여러 시점에서 같은 사물을 향해 쏜 시선(광선)이 만나는 점</b>을 그 사물의 3D 위치로 잡아요 — 측량사가 두 지점에서 같은 봉우리를 재 위치를 찾는 것과 똑같죠. 잘 수렴하면 <b>±몇 cm</b>까지 정확해요.</p>
+    <div class="viz" style="background:rgba(255,255,255,.12);">
+      <svg viewBox="0 0 300 150" aria-label="삼각측량 — 두 시점의 광선이 사물에서 교차">
+        <circle cx="150" cy="40" r="10" fill="#fff"/>
+        <text x="150" y="22" text-anchor="middle" font="700 12px Pretendard" fill="#fff">사물</text>
+        <g stroke="#fff" stroke-width="1.8" stroke-dasharray="5 3" opacity=".9">
+          <line x1="50" y1="112" x2="150" y2="40"/>
+          <line x1="250" y1="112" x2="150" y2="40"/>
+          <line x1="150" y1="120" x2="150" y2="40" opacity=".4"/>
+        </g>
+        <circle cx="150" cy="40" r="15" fill="none" stroke="#fff" stroke-width="1.4" opacity=".55"/>
+        <g fill="#fff">
+          <rect x="38" y="112" width="24" height="15" rx="3"/>
+          <rect x="238" y="112" width="24" height="15" rx="3"/>
+          <rect x="138" y="120" width="24" height="13" rx="3" opacity=".5"/>
+        </g>
+        <text x="50" y="108" text-anchor="middle" font="600 10px Pretendard" fill="rgba(255,255,255,.85)">샷 A</text>
+        <text x="250" y="108" text-anchor="middle" font="600 10px Pretendard" fill="rgba(255,255,255,.85)">샷 B</text>
+        <text x="150" y="146" text-anchor="middle" font="700 11px Pretendard" fill="#fff">두 시선이 만나는 점 = 3D 위치</text>
+      </svg>
+    </div>
+    <div class="vflow">
+      <div class="vstep"><div class="vi">📷</div><div class="vt">여러 각도 촬영</div><div class="vd">방을 빠짐없이 커버</div></div>
+      <div class="varr">→</div>
+      <div class="vstep"><div class="vi">🔎</div><div class="vt">Azure Vision</div><div class="vd">사물마다 2D 박스</div></div>
+      <div class="varr">→</div>
+      <div class="vstep"><div class="vi">📐</div><div class="vt">광선 교차</div><div class="vd">3D 좌표 ±몇 cm</div></div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="head"><div class="badge">🔀</div>
+      <div><h2>왜 길이 둘일까?</h2><div class="lead">좌표가 있으면 읽고, 없으면 삼각측량으로 만든다</div></div></div>
+    <p class="body"><b>모델(GLB)</b>은 좌표가 이미 있으니 <b>바로 읽어요</b>(삼각측량 불필요·무오차). <b>사진</b>은 좌표가 없으니 <b>삼각측량으로 복원</b>하죠. 게다가 스캐너는 1차로 <b>표면에 광선을 쏴 맞은 점</b>(베스트샷)을 쓰고, <b>가림이 의심될 때만</b> 삼각측량 수렴점으로 보정해요. 두 길의 결과는 <b>똑같은 정규화 좌표계</b>(가로 7.2·바닥 0)로 나와서, 스캐너 좌표·모델에서 읽은 좌표·손으로 고친 좌표가 서로 갈아끼워집니다.</p>
+  </div>
+
   <!-- 한계 -->
   <div class="note">
     <h3>🛟 솔직한 한계</h3>
