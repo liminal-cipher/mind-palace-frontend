@@ -637,6 +637,7 @@
     let bounds = new THREE.Box3();
     let anchors = [];           // {pos:Vector3, name, label, entityId?}
     let anchorsPreOrdered = false;  // 사용자 편집본은 저장된 순서 그대로(최근접 재정렬 금지)
+    let overrideActive = false;     // mw_edit 오버라이드(사용자 keep/demote 편집본) 활성 — 미바인딩 kept 자동배치 끔
     let spawnPos = null;
     let route = [];             // 경로 순 핫스팟 [{pos, entity, number, marker, related:[]}]
     let activeIdx = -1;
@@ -846,6 +847,7 @@
           label: String(h.detectedClass || h.object || "object").toLowerCase(), name: h.object || "",
           ko: h.ko || furnKO(h.detectedClass || h.object || ""), entityId: h.entityId || null }));
         anchorsPreOrdered = true;   // 저장된 슬롯 순서 = 사용자가 정한 동선
+        overrideActive = true;      // 이 오버라이드의 entityId 바인딩 = 완전한 '보임(keep)' 셋
         setStatus(`✎ 사용자 편집 핫스팟 ${anchors.length}개 적용 (개념 지도 클릭=편집)`);
         loadPalaceThenBuild();
         return;
@@ -1181,13 +1183,18 @@
       }
       // ③ 남은 엔티티는 rank 순서 = 동선 순서로 배정(걷는 순서가 곧 서사 순서가 되게).
       //    (기존 타입-친화 배정은 순서를 흩뜨려 1번 개념이 9번 지점에 가는 문제 → 폐기)
+      //    단, 사용자 편집본(오버라이드) 활성이면 자동배치하지 않는다 — 저장된 entityId 바인딩이
+      //    곧 완전한 '보임' 셋이라, 미바인딩 kept 를 자유 앵커에 자동배치하면 사용자가 삭제(demote)한
+      //    개념이 되살아난다. 미배치 kept 는 개념 지도 추천에서 다시 ＋연결할 수 있다.
       const freeAnchors = ordered.filter(a => !used.has(a));
-      let fi = 0;
-      for (const ent of entities) {
-        if (boundEnts.has(ent)) continue;
-        const a = freeAnchors[fi++];
-        if (!a) break;
-        used.add(a); entOf.set(a, ent);
+      if (!overrideActive) {
+        let fi = 0;
+        for (const ent of entities) {
+          if (boundEnts.has(ent)) continue;
+          const a = freeAnchors[fi++];
+          if (!a) break;
+          used.add(a); entOf.set(a, ent);
+        }
       }
       // 3) 모든 가구 = 걷는 순서 번호 핫스팟. 일부엔 학습 엔티티가 얹힘.
       //    (기존: 모든 마커를 눈높이 1.2~1.95m로 강제 → 러그·의자·카운터 소품에서 마커가
