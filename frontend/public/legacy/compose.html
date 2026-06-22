@@ -392,7 +392,21 @@
         var sp = lock.querySelector(".nl-spin"), t = lock.querySelector(".nl-t"), s2 = lock.querySelector(".nl-s");
         if (sp) sp.textContent = "📄";
         if (t) t.textContent = "아직 내용 없음";
-        if (s2) s2.innerHTML = "PDF를 업로드·분석하면 챕터별 장소·방 추천이 여기에 표시됩니다.<br><a href=\"home.html#upload\" style=\"color:var(--accent,#b5552f);font-weight:800;text-decoration:none\">📄 PDF 올리러 가기 →</a>";
+        if (s2) {
+          s2.innerHTML = "PDF를 업로드·분석하면 챕터별 장소·방 추천이 여기에 표시됩니다.<br><a href=\"home.html#upload\" style=\"color:var(--accent,#b5552f);font-weight:800;text-decoration:none\">📄 PDF 올리러 가기 →</a>" +
+            "<div style=\"margin-top:16px;display:flex;flex-direction:column;align-items:center;gap:5px\">" +
+            "<button id=\"demoTryBtn\" style=\"padding:10px 20px;border:0;border-radius:11px;background:var(--accent,#b5552f);color:#fff;font-weight:800;font-size:13.5px;cursor:pointer\">🎬 데모 데이터로 체험하기</button>" +
+            "<span style=\"font-size:11.5px;color:var(--muted)\">PDF 없이 샘플(한국사)로 전체 흐름을 둘러봅니다.</span></div>";
+          var db = document.getElementById("demoTryBtn");
+          if (db) db.onclick = function () {
+            db.disabled = true; db.textContent = "샘플 불러오는 중…";
+            fetch("public/data/korean_history.palace.json").then(function (r) { return r.json(); }).then(function (pal) {
+              try { var s = JSON.stringify(pal); sessionStorage.setItem("mp_palace", s); localStorage.setItem("mp_palace", s); } catch (_) {}
+              try { localStorage.setItem("mp_palace_demo", "1"); } catch (_) {}   // 데모 표식(나중에 실제 업로드와 구분/초기화용)
+              location.reload();
+            }).catch(function () { db.disabled = false; db.textContent = "🎬 데모 데이터로 체험하기"; if (msg) msg.textContent = "샘플을 불러오지 못했어요. 잠시 후 다시 시도하세요."; });
+          };
+        }
       }
     }
     window.addEventListener("mp-rag-ready", function () {
