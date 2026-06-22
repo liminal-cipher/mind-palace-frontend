@@ -401,11 +401,16 @@
             "<span style=\"font-size:11.5px;color:var(--muted)\">PDF 없이 샘플(한국사)로 전체 흐름을 둘러봅니다.</span></div>";
           var db = document.getElementById("demoTryBtn");
           if (db) db.onclick = function () {
-            db.disabled = true; db.textContent = "샘플 불러오는 중…";
+            db.disabled = true; db.textContent = "데모 방으로 입장 중…";
             fetch("public/data/korean_history.palace.json").then(function (r) { return r.json(); }).then(function (pal) {
               try { var s = JSON.stringify(pal); sessionStorage.setItem("mp_palace", s); localStorage.setItem("mp_palace", s); } catch (_) {}
               try { localStorage.setItem("mp_palace_demo", "1"); } catch (_) {}   // 데모 표식(나중에 실제 업로드와 구분/초기화용)
-              location.reload();
+              // 프리셋: 한국사 + 종로구 + 예쁘고 사물 인식이 정확한 'living' 방으로 바로 입장(쇼케이스).
+              var rid = (pal.rooms && pal.rooms[0] && pal.rooms[0].id) || "";
+              var u = "memory-walk.html?glb=" + encodeURIComponent("https://9aiteam1.blob.core.windows.net/models/living_room.glb")
+                    + "&city=jongno&lmName=" + encodeURIComponent("종로구")
+                    + (rid ? ("&room=" + encodeURIComponent(rid)) : "");
+              location.href = u;
             }).catch(function () { db.disabled = false; db.textContent = "🎬 데모 데이터로 체험하기"; if (msg) msg.textContent = "샘플을 불러오지 못했어요. 잠시 후 다시 시도하세요."; });
           };
         }
