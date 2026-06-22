@@ -1981,7 +1981,22 @@
               a.onclick=()=>{ $("quizModal").style.display="none"; goTo(idx); }; box.appendChild(document.createElement("br")); box.appendChild(a); } }
         });
         $("quizScore").textContent = `  ${j.score}/${j.total} 정답`; sb.textContent="다시 채점";
+        saveQuizResult(j);   // 결과를 계정에 기록(마이페이지 '내 퀴즈 기록') — 비로그인/실패는 조용히 무시
       } catch(_){ $("quizScore").textContent=" 채점 실패"; } finally { sb.disabled=false; }
+    }
+    // 채점 결과를 Mindpalace 백엔드(quiz_results)에 저장. 정답은 graphrag 만 알고, 여기엔 점수·오답 문항만.
+    function saveQuizResult(graded){
+      try {
+        if (!quizData || !quizData.quiz_id || !graded) return;
+        const wrong = (graded.results||[]).filter(r=>!r.correct).map(r=>{
+          const q = quizData.questions && quizData.questions[r.index];
+          return { question: (q && q.question) || "", answerText: r.answerText || "" };
+        });
+        fetch("/api/quiz/result", { method:"POST", credentials:"include",
+          headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({ quizId: quizData.quiz_id, score: graded.score||0, total: graded.total||0,
+            palaceId: MW_PALACE_ID||"", topic: quizTopic(), wrong }) }).catch(()=>{});
+      } catch(_){}
     }
     function findMarkerForText(text){ const t=String(text||""); let best=-1; (route||[]).forEach((h,i)=>{ if(h.entity&&h.entity.title&&t.includes(h.entity.title)) best=i; }); return best; }
     window.mpOpenQuiz = openQuiz;

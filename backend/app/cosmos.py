@@ -35,6 +35,9 @@ DB_NAME = os.getenv("AZURE_COSMOS_DB_NAME", "mindpalace")
 USERS = "users"
 LIBRARY = "library"
 MNEMONICS = "mnemonics"
+# 채점 결과(계정별 퀴즈 기록). graphrag 가 채점하고(정답 보유), 프론트는 점수/오답만 받아
+# 여기 저장한다(정답 불필요). doc id = quizId(재채점 시 덮어씀), pk /userId.
+QUIZ_RESULTS = "quiz_results"
 # graphrag 워커가 분석 1건마다 쓰는 컨테이너(같은 DB). 우리는 읽기만 한다.
 #   doc id = "{jobId}:analysis", pk /jobId, 필드 total_tokens·total_cost_usd·calls·by_model.
 USAGE = "usage"
@@ -137,6 +140,10 @@ def _library():
 
 def _mnemonics():
     return _container(MNEMONICS, "/userId")
+
+
+def _quiz_results():
+    return _container(QUIZ_RESULTS, "/userId")
 
 
 def _usage():
@@ -326,6 +333,80 @@ def delete_mnemonic(user_id: str, palace_id: str, spot: str, entity: str) -> boo
         return True
     except Exception:
         return False
+
+
+# ── 퀴즈 결과(계정별 채점 기록) — graphrag 채점 응답을 받아 점수/오답만 저장(정답 불필요). ──
+
+def save_quiz_result(
+    user_id: str,
+    quiz_id: str,
+    score: int,
+    total: int,
+    palace_id: str = "",
+    topic: str = "",
+    wrong: list[dict] | None = None,
+) -> dict | None:
+    """채점 1건 upsert. 같은 quiz_id 는 같은 id → 재채점 시 최신 결과로 갱신(멱등).
+    createdAt 은 최초 1회, gradedAt 은 매번 갱신. wrong=[{question, answerText}] 오답 목록."""
+    if not (user_id and quiz_id):
+        return None
+    cont = _quiz_results()
+    if cont is None:
+        return None
+    qid = re.sub(r"[/\\?#]", "_", str(quiz_id))[:200]
+    now = _now()
+    try:
+        existing = None
+        try:
+            existing = cont.read_item(item=qid, partition_key=user_id)
+        except Exception:
+            existing = None
+        doc = existing or {"id": qid, "userId": user_id, "createdAt": now}
+        doc.update(
+            {
+                "quizId": quiz_id,
+                "palaceId": palace_id or "",
+                "topic": topic or "",
+                "score": max(0, int(score or 0)),
+                "total": max(0, int(total or 0)),
+                "wrong": [
+                    {
+                        "question": str((w or {}).get("question") or "")[:1000],
+                        "answerText": str((w or {}).get("answerText") or "")[:1000],
+                    }
+                    for w in (wrong or [])
+                ][:50],
+                "gradedAt": now,
+            }
+        )
+        cont.upsert_item(doc)
+        return doc
+    except Exception:
+        log.warning("퀴즈 결과 저장 실패: user=%s quiz=%s", user_id, quiz_id, exc_info=True)
+        return None
+
+
+def list_quiz_results(user_id: str, palace_id: str | None = None) -> list[dict]:
+    """사용자 퀴즈 결과 목록(최신순, 단일 파티션 쿼리). palace_id 주면 그 궁전 것만."""
+    cont = _quiz_results()
+    if cont is None:
+        return []
+    try:
+        if palace_id:
+            q = "SELECT * FROM c WHERE c.userId=@u AND c.palaceId=@p"
+            params = [
+                {"name": "@u", "value": user_id},
+                {"name": "@p", "value": palace_id},
+            ]
+        else:
+            q = "SELECT * FROM c WHERE c.userId=@u"
+            params = [{"name": "@u", "value": user_id}]
+        items = list(cont.query_items(query=q, parameters=params, partition_key=user_id))
+        items.sort(key=lambda x: x.get("gradedAt", ""), reverse=True)
+        return items
+    except Exception:
+        log.warning("퀴즈 결과 목록 조회 실패: %s", user_id, exc_info=True)
+        return []
 
 
 # ── AI 토큰 사용량 — 분석(graphrag usage 읽기) + 대화(질의마다 누적). 표시는 토큰만($는 내부). ──
