@@ -48,7 +48,8 @@
     .imgwrap:hover .imgzoom,.imgzoom:focus-visible{opacity:.92;}
     .imglb{position:fixed;inset:0;z-index:99999;background:rgba(28,22,16,.88);display:flex;align-items:center;justify-content:center;cursor:zoom-out;padding:24px;}
     .imglb[hidden]{display:none;}
-    .imglb img{max-width:94vw;max-height:90vh;border-radius:10px;box-shadow:0 24px 70px rgba(0,0,0,.55);}
+    /* 뷰포트를 꽉 채우게 확대(작은 원본도 키움) — object-fit:contain으로 비율 유지·여백 레터박스, 그림자는 이미지에 밀착(drop-shadow). */
+    .imglb img{width:94vw;height:90vh;object-fit:contain;filter:drop-shadow(0 18px 45px rgba(0,0,0,.55));}
     .roommenu{position:fixed;top:58px;left:14px;z-index:60;width:min(330px,calc(100vw - 28px));max-height:78vh;overflow:auto;
       background:rgba(255,255,255,.97);border:1px solid var(--line);border-radius:13px;padding:6px;
       backdrop-filter:blur(10px);box-shadow:0 16px 40px rgba(40,34,26,.16);}
