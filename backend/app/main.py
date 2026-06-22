@@ -778,6 +778,47 @@ def mnemonic_delete(
     return {"ok": cosmos.delete_mnemonic(user_id, palace, spot, entity)}
 
 
+class QuizWrong(BaseModel):
+    question: str = Field(default="", max_length=2000)
+    answerText: str = Field(default="", max_length=2000)
+
+
+class QuizResultRequest(BaseModel):
+    quizId: str = Field(min_length=1, max_length=200)
+    score: int = Field(ge=0, le=10_000)
+    total: int = Field(ge=0, le=10_000)
+    palaceId: str = Field(default="", max_length=200)
+    topic: str = Field(default="", max_length=500)
+    wrong: list[QuizWrong] = Field(default_factory=list, max_length=50)
+
+
+@app.post("/api/quiz/result")
+def quiz_result_save(
+    payload: QuizResultRequest, user_id: str = Depends(require_login)
+) -> dict:
+    """채점 직후 결과를 계정에 기록(quizId 멱등 upsert — 재채점 시 갱신). 정답은 저장 안 함."""
+    doc = cosmos.save_quiz_result(
+        user_id,
+        payload.quizId,
+        payload.score,
+        payload.total,
+        palace_id=payload.palaceId,
+        topic=payload.topic,
+        wrong=[w.model_dump() for w in payload.wrong],
+    )
+    if doc is None:
+        raise HTTPException(status_code=503, detail="결과 저장에 실패했습니다(저장소 오류).")
+    return {"ok": True, "id": doc.get("id")}
+
+
+@app.get("/api/quiz/results")
+def quiz_results_list(
+    palace: str | None = None, user_id: str = Depends(require_login)
+) -> dict:
+    """이 사용자(+선택 palace)의 퀴즈 결과 목록 — 마이페이지 '내 퀴즈 기록'."""
+    return {"items": cosmos.list_quiz_results(user_id, palace)}
+
+
 # 마운트된 StaticFiles 는 위 http 미들웨어를 우회한다(Starlette). HTML·JS 는 배포마다 바뀌므로
 # 여기서 직접 Cache-Control:no-cache 를 붙여 브라우저가 옛 코드를 재사용하지 않게 한다(ETag로 미변경 시 304).
 class NoCacheStaticFiles(StaticFiles):
