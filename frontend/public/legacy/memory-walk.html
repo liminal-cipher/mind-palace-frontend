@@ -945,6 +945,7 @@
       window.__mwDemoted = CONTENT_LOCKED ? [] : (room.demoted||[]).slice();   // palace.json 미배치(demoted) — 새 핫스팟 추천 풀
       setStatus(CONTENT_LOCKED ? "④ 방 구성 마무리 중…" : `④ 학습 ${entities.length}개 배치·동선 구성 중…`);
       buildRoute(entities);
+      if (!CONTENT_LOCKED) { try { await visionLabelRoom(); } catch(_) {} }   // 입장 전: 번호 마커 박힌 방 사진을 GPT-4.1 비전에 보내 사물명을 '실제 픽셀'로 정확화(실패/미설정 시 기하학 추정 유지)
       if (CONTENT_LOCKED) lockContentUI();   // 학습 편집·추가 비활성 + "아직 내용 없음" 안내
       { const qb = $("quizBtn"); if (qb) qb.hidden = CONTENT_LOCKED || !(entities && entities.length); }   // 학습 내용 있을 때만 퀴즈 노출
     }
@@ -1222,6 +1223,60 @@
       else roomEntryView(true);                 // 직접 진입: 즉시 눈높이
       if (DASH) { try { openEditor(); } catch(e){ console.warn("dash openEditor 실패", e); } }   // 임베드 모드: 2D 대시보드 자동 표시
       else maybeTutorial(route);   // 첫 입장 학습 가이드(공부법·순서) — "다시 보지 않기" 전까지
+    }
+    // ── 비전 자동 명명 ── 검출 직후, 번호 마커가 박힌 방 사진(여러 각도)을 GPT-4.1 비전(/api/label-room)에
+    //   보내 번호별 한국어 가구명을 받아 교정한다. 기하학 추측(geomGuess)보다 '실제 픽셀' 기반이라 정확.
+    //   결과는 GLB별 localStorage 캐시 → 재입장 즉시. 미설정/실패/타임아웃이면 기존 이름 유지(무회귀).
+    function captureLabelViews() {
+      const shots = [];
+      try {
+        const savedPos = camera.position.clone(), savedTgt = controls.target.clone(), savedFov = camera.fov;
+        const center = bounds.getCenter(new THREE.Vector3()), sz = bounds.getSize(new THREE.Vector3());
+        const eyeY = bounds.min.y + Math.min(Math.max(sz.y * 0.5, 1.4), 1.95);
+        const yaws = [Math.PI / 4, 3 * Math.PI / 4, -3 * Math.PI / 4, -Math.PI / 4];   // 네 모서리 방향
+        const back = 0.30 * Math.min(sz.x, sz.z);
+        const cx = v => Math.min(Math.max(v, bounds.min.x + 0.25), bounds.max.x - 0.25);
+        const cz = v => Math.min(Math.max(v, bounds.min.z + 0.25), bounds.max.z - 0.25);
+        camera.fov = 64; camera.updateProjectionMatrix();
+        yaws.forEach(yaw => {
+          const dir = new THREE.Vector3(Math.sin(yaw), -0.14, Math.cos(yaw)).normalize();
+          const eye = new THREE.Vector3(cx(center.x - dir.x * back), eyeY, cz(center.z - dir.z * back));
+          camera.position.copy(eye); controls.target.copy(eye.clone().add(dir)); controls.update();
+          renderer.render(scene, camera);
+          shots.push(renderer.domElement.toDataURL("image/jpeg", 0.8));
+        });
+        camera.fov = savedFov; camera.position.copy(savedPos); controls.target.copy(savedTgt);
+        camera.updateProjectionMatrix(); controls.update();
+      } catch (_) {}
+      return shots;
+    }
+    function applyVisionLabels(labels) {
+      let n = 0;
+      route.forEach(h => { const v = labels[String(h.number)]; if (v && typeof v === "string") { h.ko = v; h.disp = null; h.visionLabeled = true; n++; } });
+      if (n) { try { buildObjectList(); } catch (_) {} try { updateRoomState(); } catch (_) {} try { if (activeIdx >= 0 && route[activeIdx]) showCard(route[activeIdx]); } catch (_) {} }
+      return n;
+    }
+    async function visionLabelRoom() {
+      if (CONTENT_LOCKED || !route || !route.length) return;
+      const ck = "mp_vision_labels:" + ((ROOM_GLB || "").split("/").pop() || "room");
+      let cached = null; try { cached = JSON.parse(localStorage.getItem(ck) || "null"); } catch (_) {}
+      if (cached && Object.keys(cached).length) { applyVisionLabels(cached); return; }   // 캐시 즉시
+      setStatus("⑤ 비전으로 사물 정확 인식 중… (수 초)");
+      const shots = captureLabelViews();
+      if (!shots.length) return;
+      try {
+        const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 38000);
+        const r = await fetch("/api/label-room", { method: "POST", headers: { "Content-Type": "application/json" }, signal: ctrl.signal,
+          body: JSON.stringify({ images: shots, numbers: route.map(h => h.number), context: (THEME && THEME.name) || "" }) });
+        clearTimeout(to);
+        if (!r.ok) return;
+        const j = await r.json();
+        if (j && j.configured && j.labels && Object.keys(j.labels).length) {
+          try { localStorage.setItem(ck, JSON.stringify(j.labels)); } catch (_) {}
+          const n = applyVisionLabels(j.labels);
+          setStatus(`⑤ 비전 인식 완료 — ${n}개 사물 정확 명명 · <b>다음 →</b>으로 시작`);
+        }
+      } catch (_) { /* 실패/타임아웃 → 기하학 추정 이름 유지(무회귀) */ }
     }
     // 방 전체가 한눈에 들어오는 넓은 조망(첫 화면·둘러보기). 방 안 모서리·천장 바로 아래에서
     //   반대편을 내려다본다 → 천장이 닫힌 방(cozy)도 내부가 다 보인다. instant=true면 즉시.

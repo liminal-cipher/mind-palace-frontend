@@ -125,6 +125,13 @@ class DetectRequest(BaseModel):
     height: int | None = Field(default=None, ge=1, le=20000)
 
 
+class LabelRoomRequest(BaseModel):
+    # 같은 방을 여러 각도에서 찍은(번호 마커 포함) 사진들 + 명명할 번호 목록 → GPT 비전이 번호별 한글 가구명.
+    images: list[str] = Field(max_length=6)          # base64(또는 data URL) 사진 최대 6장
+    numbers: list[int] = Field(default_factory=list, max_length=64)
+    context: str | None = Field(default=None, max_length=200)   # 방 주제(선택, 명명 힌트)
+
+
 def azure_vision_config() -> tuple[str, str]:
     endpoint = (
         os.getenv("AZURE_VISION_ENDPOINT")
@@ -403,6 +410,71 @@ def vision_label(payload: DetectRequest) -> dict:
     except (KeyError, IndexError, ValueError, TypeError, AttributeError):
         return {"configured": True, "label": None, "error": "parse"}
     return {"configured": True, "label": label or None}
+
+
+@app.post(
+    "/api/label-room",
+    dependencies=[Depends(rate_limit("label-room", limit=20, window_sec=60))],
+)
+def label_room(payload: LabelRoomRequest) -> dict:
+    """같은 방을 여러 각도에서 찍은 사진(번호 마커 포함)을 멀티모달 LLM(gpt-4.1/4o 비전)에 보내,
+    각 번호 마커가 가리키는 가구/사물의 한국어 명칭을 한 번에 받는다.
+    핫스팟 자동 명명을 기하학 추측 대신 '실제 픽셀'로 정확화. 미설정/오류면 labels={}로 폴백."""
+    cfg = llm_chat_config()
+    if not cfg:
+        return {"configured": False, "labels": {}}
+    imgs = [(i if i.strip().startswith("data:") else "data:image/jpeg;base64," + i.strip())
+            for i in (payload.images or []) if i and i.strip()][:6]
+    if not imgs:
+        return {"configured": True, "labels": {}}
+    nums = sorted({int(n) for n in (payload.numbers or []) if isinstance(n, int) and 0 < n < 1000})[:64]
+    ctx = (payload.context or "").strip()[:200]
+    system = (
+        "너는 실내 3D 방 사진에서 '번호 구슬(마커)'이 가리키는 가구·사물을 한국어로 정확히 명명하는 도우미다."
+        " 같은 방을 여러 각도에서 찍은 사진들이 주어진다. 각 번호가 붙은 바로 그 자리의 가구/사물 종류를"
+        " 한국어 일반명사(한두 단어)로 답한다. 사람·텍스트·UI·번호구슬 자체가 아니라, 그 마커가 얹힌 실제 가구를 본다."
+        " 마커가 가리키는 대상이 애매하면 가장 가까운 가구로, 정말 모르면 그 번호는 생략한다."
+    )
+    user_text = (
+        (("학습 방 주제: " + ctx + "\n") if ctx else "")
+        + "아래 사진들에서 각 번호 마커가 가리키는 가구/사물의 한국어 이름을 정하라."
+        + ((" 명명할 번호: " + ", ".join(str(n) for n in nums) + ".") if nums else "")
+        + ' JSON으로만: {"labels": {"1":"소파", "2":"책상"}} (확실한 번호만 포함, 값은 한국어 한두 단어).'
+    )
+    content: list[dict[str, Any]] = [{"type": "text", "text": user_text}]
+    content += [{"type": "image_url", "image_url": {"url": u}} for u in imgs]
+    body: dict[str, Any] = {
+        "messages": [
+            {"role": "system", "content": system},
+            {"role": "user", "content": content},
+        ],
+        "temperature": 0.0,
+        "max_tokens": 700,
+        "response_format": {"type": "json_object"},
+    }
+    if cfg.get("model"):
+        body["model"] = cfg["model"]
+    try:
+        resp = requests.post(cfg["url"], headers=cfg["headers"], json=body, timeout=(5, 40))
+    except requests.RequestException:
+        log.warning("label-room LLM 요청 실패", exc_info=True)
+        return {"configured": True, "labels": {}, "error": "request"}
+    if not resp.ok:
+        return {"configured": True, "labels": {}, "error": f"llm {resp.status_code}", "detail": (resp.text or "")[:200]}
+    try:
+        c = resp.json()["choices"][0]["message"]["content"]
+        parsed = json.loads(c)
+        raw = parsed.get("labels") if isinstance(parsed, dict) else None
+        labels: dict[str, str] = {}
+        if isinstance(raw, dict):
+            for k, v in raw.items():
+                ks = str(k).strip()
+                vs = str(v or "").strip()[:24]
+                if ks.isdigit() and vs:
+                    labels[ks] = vs
+        return {"configured": True, "labels": labels}
+    except (KeyError, IndexError, ValueError, TypeError, AttributeError):
+        return {"configured": True, "labels": {}, "error": "parse"}
 
 
 @app.post(
