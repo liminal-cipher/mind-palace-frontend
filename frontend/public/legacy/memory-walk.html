@@ -1111,14 +1111,31 @@
     // ── 동선 설계 + 엔티티 매핑 ──
     function buildRoute(entities) {
       if (!anchors.length) { setStatus("이 방에서 가구 앵커를 못 찾았습니다(이름 없는 GLB?)."); return; }
-      // 노드 수 보장: 가구 앵커가 학습 항목보다 적으면 바닥에 분산 좌표를 합성해 보강(과밀 방지 상한 24)
+      // 노드 수 보장: 가구 앵커가 학습 항목보다 적으면 보강.
+      //   (구) 빈 바닥 격자에 좌표를 뿌려 "허공/빈 바닥에 마커" 처럼 보이던 문제 →
+      //   (신) 검출된 실제 가구 '곁'(방 중심 쪽 0.6~0.9m)에 배치해 자연스럽게. 가구가 0개일 때만 바닥 격자 폴백.
       {
         const need = Math.min(entities.length, 24);
-        if (anchors.length < need) {
+        const ctr = bounds.getCenter(new THREE.Vector3());
+        const minSep = 0.5;
+        if (anchors.length < need && anchors.length > 0) {
+          const base = anchors.slice();   // 검출된 실제 가구만 기준
+          let bi = 0, guard = 0;
+          while (anchors.length < need && guard++ < need * 8) {
+            const src = base[bi % base.length]; bi++;
+            const dir = new THREE.Vector3(ctr.x - src.pos.x, 0, ctr.z - src.pos.z);
+            if (dir.lengthSq() < 1e-4) dir.set(Math.cos(bi), 0, Math.sin(bi));   // 중심과 겹치면 방사형
+            dir.normalize();
+            const off = 0.6 + 0.3 * (((bi * 0.6180339887) % 1));   // 0.6~0.9m, 결정적 변주(겹침 방지)
+            const x = src.pos.x + dir.x * off, z = src.pos.z + dir.z * off;
+            if (anchors.every(a => Math.hypot(a.pos.x - x, a.pos.z - z) > minSep))
+              anchors.push({ pos: new THREE.Vector3(x, src.pos.y, z), name: "기억 지점", label: "spot", ko: "기억 지점" });
+          }
+        }
+        if (anchors.length < need && anchors.length === 0) {   // 가구 전무 — 바닥 격자 폴백(최후)
           const s0 = bounds.getSize(new THREE.Vector3());
-          const minSep = Math.max(0.5, Math.min(s0.x, s0.z) * 0.12);
           const pad = Math.min(0.6, s0.x * 0.12), yy = bounds.min.y + Math.min(1.0, s0.y * 0.4);
-          const cells = Math.ceil(need * 1.8); // 디클러스터로 일부 탈락하므로 넉넉히 후보 생성
+          const cells = Math.ceil(need * 1.8);
           const cols = Math.max(2, Math.round(Math.sqrt(cells * (s0.x / Math.max(s0.z, 0.001)))));
           const rows = Math.max(2, Math.ceil(cells / cols));
           for (let r = 0; r < rows && anchors.length < need; r++)
