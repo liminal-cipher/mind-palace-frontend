@@ -350,7 +350,8 @@
       try { const s = JSON.stringify(PAL); localStorage.setItem("mp_palace", s); sessionStorage.setItem("mp_palace", s); } catch(_){}
     } else {
       let s = null; try { s = sessionStorage.getItem("mp_palace") || localStorage.getItem("mp_palace"); } catch(_) {}
-      if (s) { try { PAL = JSON.parse(s); try { localStorage.setItem("mp_palace", s); } catch(_){} $("msg").textContent = "업로드한 학습자료로 구성했습니다."; } catch(_) { PAL = null; } }
+      // 빈 팰리스(rooms 0개)는 '구성됨'으로 처리하지 않음 — 분석이 끝나기 전 빈 값이 들어와도 "구성했습니다(0챕터)"라고 거짓 표시 안 하고, 분석 중 잠금이 뜨게 둔다.
+      if (s) { try { const cand = JSON.parse(s); if (cand && cand.rooms && cand.rooms.length) { PAL = cand; try { localStorage.setItem("mp_palace", s); } catch(_){} $("msg").textContent = "업로드한 학습자료로 구성했습니다."; } } catch(_) { PAL = null; } }
       // PDF 미업로드 시 korean_history 데모를 끌어오지 않음 — 빈 팰리스(잠금 오버레이가 "아직 내용 없음" 안내).
       if (!PAL) PAL = PALACE_EXPLICIT ? await fetch(PALACE_URL).then(r=>r.json()) : { palace:{ title:"" }, rooms:[] };
     }
@@ -380,7 +381,7 @@
   /* ④ 구성 잠금/해금: PDF 추출 중이면 챕터 매칭을 잠그고, 완료(mp-rag-ready) 시 해금·재로드. */
   (function () {
     var explicit = !!new URLSearchParams(location.search).get("palace");
-    function hasPalace(){ try { return !!(sessionStorage.getItem("mp_palace") || localStorage.getItem("mp_palace")); } catch(_){ return false; } }
+    function hasPalace(){ try { var s=sessionStorage.getItem("mp_palace")||localStorage.getItem("mp_palace"); if(!s) return false; var p=JSON.parse(s); return !!(p && p.rooms && p.rooms.length); } catch(_){ return false; } }   // 빈 팰리스(rooms 0)는 '미구성' 취급 → 분석 중 잠금이 정상 표시되게
     function getJob(){ try { return JSON.parse(localStorage.getItem("mp_rag_job") || "null"); } catch (_) { return null; } }
     function ragPending(){ var j = getJob(); return !!(j && j.jobId && !j.done && !hasPalace()); }
     var lock = document.getElementById("nodeLock"), grid = document.getElementById("grid"), msg = document.getElementById("msg");

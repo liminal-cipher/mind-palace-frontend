@@ -854,7 +854,7 @@
   /* ④ 노드 잠금/해금: PDF 추출 중이면 노드(학습 내용) 잠금, 완료(mp-rag-ready) 시 해금·재로드.
      방 둘러보기·선택은 그대로 가능, 노드만 분석 완료 후 표시. */
   (function () {
-    function hasPalace(){ try { return !!(sessionStorage.getItem("mp_palace") || localStorage.getItem("mp_palace")); } catch(_){ return false; } }
+    function hasPalace(){ try { var s=sessionStorage.getItem("mp_palace")||localStorage.getItem("mp_palace"); if(!s) return false; var p=JSON.parse(s); return !!(p && p.rooms && p.rooms.length); } catch(_){ return false; } }   // 빈 팰리스(rooms 0)는 '미구성' 취급
     function getJob(){ try { return JSON.parse(localStorage.getItem("mp_rag_job") || "null"); } catch (_) { return null; } }
     function ragPending(){ var j = getJob(); return !!(j && j.jobId && !j.done && !hasPalace()); }
     var lock = document.getElementById("nodeLock");
