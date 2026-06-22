@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>시스템 아키텍처 · 기억의 궁전</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+<style>
+  :root{
+    --blue:#3182F6; --blue-d:#1B64DA; --blue-soft:#E8F1FE;
+    --ink:#191F28; --gray7:#4E5968; --gray5:#8B95A1; --gray4:#B0B8C1; --gray3:#D1D6DB;
+    --bg:#FFFFFF; --bg2:#F7F8FA; --bg3:#F2F4F6;
+    --r:22px; --shadow:0 2px 8px rgba(20,30,55,.06), 0 1px 2px rgba(20,30,55,.04);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;word-break:keep-all;overflow-wrap:break-word;-webkit-tap-highlight-color:transparent;}
+  html{scroll-behavior:smooth;}
+  body{font-family:'Pretendard',-apple-system,'Apple SD Gothic Neo','Malgun Gothic',sans-serif;
+    background:var(--bg2);color:var(--ink);line-height:1.6;letter-spacing:-.01em;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:560px;margin:0 auto;padding:0 20px 80px;}
+  h1,h2,h3{letter-spacing:-.03em;text-wrap:balance;} p{text-wrap:pretty;}
+
+  .hero{padding:62px 0 30px;text-align:center;}
+  .hero .eyebrow{display:inline-block;font-size:13px;font-weight:700;color:var(--blue);
+    background:var(--blue-soft);padding:7px 14px;border-radius:999px;margin-bottom:20px;}
+  .hero h1{font-size:33px;font-weight:800;line-height:1.34;margin-bottom:15px;}
+  .hero h1 b{color:var(--blue);}
+  .hero .sub{font-size:16px;color:var(--gray7);font-weight:500;line-height:1.62;}
+
+  /* 전체 흐름 다이어그램 */
+  .arch{background:var(--bg);border-radius:var(--r);box-shadow:var(--shadow);padding:24px 20px 26px;margin:6px 0 14px;}
+  .arch .ttl{font-size:13px;font-weight:700;color:var(--gray5);margin-bottom:18px;text-align:center;}
+  .node{border-radius:16px;padding:15px 16px;display:flex;align-items:center;gap:13px;position:relative;}
+  .node .ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:19px;flex:none;}
+  .node .tx .t{font-size:15.5px;font-weight:800;}
+  .node .tx .d{font-size:12.5px;font-weight:600;margin-top:1px;}
+  /* 별도(협업) 모듈 = 뮤트 */
+  .node.ext{background:var(--bg3);}
+  .node.ext .ic{background:#fff;color:var(--gray7);}
+  .node.ext .tx .t{color:var(--gray7);} .node.ext .tx .d{color:var(--gray5);}
+  /* 우리 구현 = 강조 */
+  .node.ours{background:linear-gradient(135deg,#3182F6,#1B64DA);box-shadow:0 12px 26px rgba(49,130,246,.30);}
+  .node.ours .ic{background:rgba(255,255,255,.2);color:#fff;}
+  .node.ours .tx .t{color:#fff;font-size:17px;} .node.ours .tx .d{color:rgba(255,255,255,.9);}
+  .node.ours .ours-tag{position:absolute;top:-10px;right:12px;background:#0B1B3A;color:#fff;font-size:11px;font-weight:800;
+    padding:4px 10px;border-radius:999px;box-shadow:0 4px 10px rgba(0,0,0,.2);}
+  .node.sub{background:var(--bg2);border:1px dashed var(--gray3);margin-left:34px;}
+  .node.sub .ic{width:32px;height:32px;font-size:15px;background:#fff;color:var(--blue);}
+  .node.sub .tx .t{font-size:14px;color:var(--gray7);} .node.sub .tx .d{font-size:11.5px;color:var(--gray5);}
+  /* 연결선(데이터) */
+  .conn{display:flex;flex-direction:column;align-items:center;padding:7px 0;}
+  .conn .arr{color:var(--gray4);font-size:15px;line-height:1;}
+  .conn .what{font-size:11.5px;font-weight:700;color:var(--gray5);background:var(--bg3);padding:3px 9px;border-radius:8px;margin-bottom:3px;}
+  .conn.toBlue .what{background:var(--blue-soft);color:var(--blue-d);}
+  .branch{display:flex;align-items:center;gap:8px;margin:6px 0 0 34px;}
+  .branch .el{color:var(--gray4);font-size:13px;}
+
+  .legend{display:flex;gap:16px;justify-content:center;margin:4px 0 30px;font-size:12.5px;font-weight:600;}
+  .legend .it{display:flex;align-items:center;gap:6px;color:var(--gray7);}
+  .legend .sw{width:13px;height:13px;border-radius:4px;}
+  .sw-ext{background:var(--gray3);} .sw-ours{background:var(--blue);}
+
+  /* 모듈 상세 카드 */
+  .mod{background:var(--bg);border-radius:var(--r);box-shadow:var(--shadow);padding:24px 22px;margin-bottom:16px;position:relative;}
+  .mod.ours{border:2px solid var(--blue);}
+  .mod .mh{display:flex;align-items:center;gap:12px;margin-bottom:6px;}
+  .mod .mb{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:19px;flex:none;background:var(--bg3);color:var(--gray7);}
+  .mod.ours .mb{background:var(--blue-soft);color:var(--blue);}
+  .mod h2{font-size:19px;font-weight:800;}
+  .mod .role{font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;background:var(--bg3);color:var(--gray5);}
+  .mod.ours .role{background:var(--blue);color:#fff;}
+  .io{margin-top:14px;display:flex;flex-direction:column;gap:9px;}
+  .io .row{display:flex;gap:10px;align-items:flex-start;font-size:14px;}
+  .io .k{flex:none;width:46px;font-weight:800;color:var(--gray5);font-size:12px;padding-top:2px;}
+  .io .v{color:var(--gray7);font-weight:500;line-height:1.55;} .io .v b{color:var(--ink);font-weight:700;}
+  .moat{margin-top:14px;background:var(--bg2);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--gray7);font-weight:500;line-height:1.6;}
+  .moat b{color:var(--blue-d);font-weight:800;}
+  .pipe{margin-top:13px;display:flex;flex-wrap:wrap;gap:6px;}
+  .pipe .p{font-size:12px;font-weight:700;color:var(--blue-d);background:var(--blue-soft);padding:6px 10px;border-radius:9px;}
+  .modlink{display:inline-flex;align-items:center;gap:6px;margin-top:14px;font-size:13.5px;font-weight:800;color:var(--blue);text-decoration:none;}
+
+  .sechead{text-align:center;margin:40px 0 16px;}
+  .sechead .e{font-size:13px;font-weight:700;color:var(--blue);}
+  .sechead h2{font-size:23px;font-weight:800;margin-top:6px;}
+
+  footer{text-align:center;color:var(--gray5);font-size:13px;font-weight:500;margin-top:40px;line-height:1.7;}
+  footer b{color:var(--gray7);}
+  @media(max-width:420px){ .hero h1{font-size:27px;} .mod h2{font-size:17px;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section class="hero">
+    <span class="eyebrow">기억의 궁전 · 시스템 아키텍처</span>
+    <h1>PDF 한 장이<br><b>걸어 다니는 3D 공간</b>이 되기까지</h1>
+    <p class="sub">4개 모듈이 차례로 손을 거쳐요.<br>그중 <b style="color:var(--blue)">3D</b>가 우리가 만든 부분이에요.</p>
+  </section>
+
+  <!-- 전체 흐름 -->
+  <div class="arch">
+    <div class="ttl">전체 데이터 흐름</div>
+
+    <div class="node ext">
+      <div class="ic">📄</div>
+      <div class="tx"><div class="t">PDF 전처리</div><div class="d">텍스트·이미지 추출 · 청킹</div></div>
+    </div>
+
+    <div class="conn"><span class="what">텍스트 · 이미지</span><span class="arr">▼</span></div>
+
+    <div class="node ext">
+      <div class="ic">🕸️</div>
+      <div class="tx"><div class="t">GraphRAG <span style="font-weight:600;color:var(--gray5)">+ 방 나누기</span></div><div class="d">개념 그래프 인덱싱 · 의미 클러스터링→챕터</div></div>
+    </div>
+    <div class="branch"><span class="el">└─</span>
+      <div class="node sub" style="flex:1;margin:0;">
+        <div class="ic">💬</div>
+        <div class="tx"><div class="t">RAG · 학습용 챗봇</div><div class="d">질의응답 · 의미부여 · 퀴즈</div></div>
+      </div>
+    </div>
+
+    <div class="conn toBlue"><span class="what">palace.json · 방+개념 구조</span><span class="arr">▼</span></div>
+
+    <div class="node ours">
+      <span class="ours-tag">★ 우리 구현</span>
+      <div class="ic">🎮</div>
+      <div class="tx"><div class="t">3D 공간</div><div class="d">방 GLB + 마커 파이프라인 → 1인칭 학습</div></div>
+    </div>
+
+    <div class="conn"><span class="arr" style="margin-top:9px">▼</span><span class="what" style="background:var(--blue-soft);color:var(--blue-d)">걸으며 학습하는 기억의 궁전</span></div>
+  </div>
+
+  <div class="legend">
+    <span class="it"><span class="sw sw-ext"></span>별도 모듈(협업)</span>
+    <span class="it"><span class="sw sw-ours"></span>우리 구현 범위</span>
+  </div>
+
+  <!-- 모듈 상세 -->
+  <div class="sechead"><div class="e">MODULES</div><h2>모듈별로 보면</h2></div>
+
+  <!-- PDF -->
+  <div class="mod">
+    <div class="mh"><div class="mb">📄</div><h2 style="flex:1">PDF 전처리</h2><span class="role">별도</span></div>
+    <div class="io">
+      <div class="row"><span class="k">입력</span><span class="v">학습용 <b>PDF 문서</b></span></div>
+      <div class="row"><span class="k">처리</span><span class="v">텍스트·이미지 추출 → <b>의미 단위로 청킹</b>(쪼개기)</span></div>
+      <div class="row"><span class="k">출력</span><span class="v">정제된 <b>텍스트 조각 + 이미지</b></span></div>
+    </div>
+  </div>
+
+  <!-- GraphRAG -->
+  <div class="mod">
+    <div class="mh"><div class="mb">🕸️</div><h2 style="flex:1">GraphRAG <span style="font-size:14px;color:var(--gray5)">+ 방 나누기</span></h2><span class="role">별도</span></div>
+    <div class="io">
+      <div class="row"><span class="k">입력</span><span class="v">텍스트 조각 + 이미지</span></div>
+      <div class="row"><span class="k">처리</span><span class="v">개념·관계 추출해 <b>그래프 인덱싱</b> → 의미가 가까운 것끼리 <b>클러스터링해 '방(챕터)'으로 나눔</b></span></div>
+      <div class="row"><span class="k">출력</span><span class="v"><b>palace.json</b> — 방 목록 + 각 방의 학습 개념·이미지·관계</span></div>
+    </div>
+    <div class="moat">🏰 <b>핵심 경쟁력(moat)</b> — ① 의미 거리로 '방 구조'를 짜고 ② 개념을 의미에 맞게 배치하며 ③ 비슷한 개념의 간섭을 피하게 배열해요.</div>
+    <!-- RAG sub -->
+    <div class="mod" style="margin:16px 0 0;box-shadow:none;border:1px dashed var(--gray3);background:var(--bg2);">
+      <div class="mh"><div class="mb" style="font-size:16px">💬</div><h2 style="flex:1;font-size:16px">RAG · 학습용 챗봇</h2><span class="role">하위</span></div>
+      <div class="io">
+        <div class="row"><span class="k">역할</span><span class="v">방 안에서 <b>질의응답</b>, 사물↔개념 <b>의미부여</b>, <b>퀴즈</b> 생성 — 같은 그래프를 근거로</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3D (우리) -->
+  <div class="mod ours">
+    <div class="mh"><div class="mb">🎮</div><h2 style="flex:1">3D 공간</h2><span class="role">★ 우리 구현</span></div>
+    <div class="io">
+      <div class="row"><span class="k">입력</span><span class="v"><b>palace.json</b>(방·개념) + <b>방 GLB</b>(3D 모델)</span></div>
+      <div class="row"><span class="k">처리</span><span class="v">방 GLB의 가구를 인식해 <b>학습 마커</b>를 만드는 <b>마커 파이프라인</b></span></div>
+      <div class="row"><span class="k">출력</span><span class="v">1인칭으로 <b>걸으며 학습</b>하는 3D 공간 (마커 = 학습 개념)</span></div>
+    </div>
+    <div class="pipe">
+      <span class="p">정규화</span><span class="p">사물 검출</span><span class="p">이름(이름신뢰+비전)</span><span class="p">겹침 정리</span><span class="p">동선 순서</span><span class="p">표면 부착</span><span class="p">카메라</span>
+    </div>
+    <a class="modlink" href="how-markers-work.html">마커 파이프라인 7단계 자세히 보기 →</a>
+  </div>
+
+  <footer>
+    <b>PDF 전처리 · GraphRAG</b>는 학습 내용을 '방·개념 구조'로 만들고,<br>
+    <b style="color:var(--blue)">3D</b>는 그 구조를 <b>실제로 걸어 다니는 공간</b>으로 구현해요.<br>
+    <span style="opacity:.7">기억의 궁전 · System Architecture</span>
+  </footer>
+
+</div>
+</body>
+</html>
