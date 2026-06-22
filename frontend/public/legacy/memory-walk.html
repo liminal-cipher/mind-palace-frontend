@@ -1052,7 +1052,12 @@
       // ⓪ 전역 공간 분산: 방 크기에 비례한 최소 간격으로 뭉친 마커를 솎아낸다(최소 0.6m).
       const _sz = bounds.getSize(new THREE.Vector3());
       const MIN_SEP = Math.min(1.1, Math.max(0.6, 0.10 * Math.max(_sz.x, _sz.z)));
-      const decl = declusterAnchors(anchors, MIN_SEP);
+      const decl0 = declusterAnchors(anchors, MIN_SEP);
+      // 추가 솎기: 바닥 평면(XZ)에서 거의 겹치는 마커 제거 — 바닥물체(러그)와 공중물체(벽 수납장/그림)가
+      //   같은 바닥 자리에 겹쳐 "동일 자리 중복 마커"로 보이던 것 해결. 3D 거리만 보면 높이차 때문에 안 걸러졌음.
+      //   0.42m로 좁게 → 카페·교실의 떨어진 의자(≥0.5m)는 보존, 겹친 것만 정리(가중치 높은 쪽 유지).
+      const decl = [];
+      for (const a of decl0) { if (decl.every(k => Math.hypot(k.pos.x - a.pos.x, k.pos.z - a.pos.z) >= 0.42)) decl.push(a); }
       const feat = decl.map(a => { const d = a.pos.clone().sub(eye);
         return { a, depth: d.dot(fwd), lat: d.dot(right) }; });
       // 클래스별 군집
@@ -1367,6 +1372,7 @@
       "carpet":"러그", "rug":"러그", "pillow":"쿠션", "cushion":"쿠션", "blanket":"담요",
       "television":"TV", "monitor":"모니터", "laptop":"노트북", "computer":"컴퓨터", "speaker":"스피커",
       "piano":"피아노", "guitar":"기타", "trash":"휴지통", "cup":"컵",
+      "box":"상자", "basket":"바구니", "bottle":"병", "bag":"가방", "tray":"쟁반",
       "board":"칠판", "book":"책" };
     const furnKO = label => { const l = String(label||"").toLowerCase(); for (const k in FURN_KO) if (l.includes(k)) return FURN_KO[k]; return label || "가구"; };
     // 노드 이름이 가구 종류를 안 담아도(예: "Object_12"), 부모 그룹·조상 이름까지 훑어 종류를 추론.
