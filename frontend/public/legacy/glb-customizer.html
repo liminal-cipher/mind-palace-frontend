@@ -903,6 +903,13 @@
       Array.prototype.forEach.call(document.querySelectorAll("#rpDots .rp-dot"), function (b, j) { b.classList.toggle("on", j === i); });
     }
     var shotsCache = {};   // glb → 4컷(한 번 찍으면 재사용, 재오픈 시 즉시)
+    // 미리 찍어둔 내부 4컷(정적 이미지) 자동 표시용 — 실시간 캡처 없이 즉시. assets/room-shots/<id>-1~4.jpg
+    function preShotUrls(id){ var b="public/assets/room-shots/"+id+"-"; return [b+"1.jpg",b+"2.jpg",b+"3.jpg",b+"4.jpg"]; }
+    function tryPreShots(id){
+      return Promise.all(preShotUrls(id).map(function(u){
+        return new Promise(function(res){ var im=new Image(); im.onload=function(){ res(im.naturalWidth>1?u:null); }; im.onerror=function(){ res(null); }; im.src=u; });
+      })).then(function(arr){ return arr.filter(Boolean); });
+    }
     function thumbHtml(thumb0, badge) {
       return '<img src="' + thumb0 + '" alt="" referrerpolicy="no-referrer" style="width:100%;height:100%;object-fit:cover">' +
         (badge ? '<div class="rp-loading" style="position:absolute;bottom:10px;right:10px;font-size:11.5px;background:rgba(42,36,29,.82);color:#fff;padding:5px 11px;border-radius:8px">' + badge + '</div>' : '');
@@ -940,17 +947,32 @@
       var ap = document.getElementById("rpApply"); if (ap) ap.style.display = curDesignId ? "" : "none";
       modal.hidden = false;
       var w = document.getElementById("rpImgWrap");
-      if (shotsCache[glb] && shotsCache[glb].length) { showShots(shotsCache[glb]); return; }   // 이미 찍은 방
-      if (thumb0) {
-        // 썸네일 즉시(대기 0) + 4컷은 버튼 눌렀을 때만 — 더는 자동으로 안 돈다.
-        w.innerHTML = thumbHtml(thumb0, "") +
-          '<button id="rpCapBtn" style="position:absolute;bottom:10px;right:10px;border:0;border-radius:9px;background:rgba(42,36,29,.85);color:#fff;font-weight:700;font-size:12px;padding:7px 12px;cursor:pointer">🔄 내부 4컷 둘러보기</button>';
-        var cb = document.getElementById("rpCapBtn"); if (cb) cb.onclick = function () { startCapture(glb, thumb0); };
+      if (shotsCache[glb] && shotsCache[glb].length) { showShots(shotsCache[glb]); return; }   // 이미 찍은/불러온 방
+
+      // 썸네일 즉시 표시(대기 0)
+      w.innerHTML = thumb0 ? thumbHtml(thumb0, "") : '<div class="rp-loading">미리보기 불러오는 중…</div>';
+
+      function showThumbWithButton(){
+        if (thumb0) {
+          w.innerHTML = thumbHtml(thumb0, "") +
+            '<button id="rpCapBtn" style="position:absolute;bottom:10px;right:10px;border:0;border-radius:9px;background:rgba(42,36,29,.85);color:#fff;font-weight:700;font-size:12px;padding:7px 12px;cursor:pointer">🔄 내부 4컷 둘러보기</button>';
+          var cb = document.getElementById("rpCapBtn"); if (cb) cb.onclick = function () { startCapture(glb, thumb0); };
+        } else {
+          w.innerHTML = '<div class="rp-loading">방 미리보기 — 아래 <b>🔄 내부 4컷 둘러보기</b>로 내부를 보거나 <b>이 방으로 적용</b>으로 바로 쓰세요.</div>' +
+            '<button id="rpCapBtn" style="position:absolute;bottom:10px;right:10px;border:0;border-radius:9px;background:rgba(42,36,29,.85);color:#fff;font-weight:700;font-size:12px;padding:7px 12px;cursor:pointer">🔄 내부 4컷 둘러보기</button>';
+          var cb2 = document.getElementById("rpCapBtn"); if (cb2) cb2.onclick = function () { startCapture(glb, null); };
+        }
+      }
+
+      // 미리 찍어둔 정적 4컷이 있으면 자동으로 캐러셀 표시(실시간 캡처 0초). 없으면 썸네일+수동 버튼으로 폴백.
+      if (curDesignId) {
+        tryPreShots(curDesignId).then(function (urls) {
+          if (expectGlb !== glb) return;                 // 그새 다른 방을 열었으면 무시
+          if (urls.length >= 1) { shotsCache[glb] = urls; showShots(urls); }
+          else showThumbWithButton();
+        });
       } else {
-        // 썸네일 없는 방(커스텀 등)도 자동 캡처하지 않음 — 버튼 눌러야만 캡처(수동) → 무한 "촬영 중" 원천 차단.
-        w.innerHTML = '<div class="rp-loading">방 미리보기 — 아래 <b>🔄 내부 4컷 둘러보기</b>로 내부를 보거나 <b>이 방으로 적용</b>으로 바로 쓰세요.</div>' +
-          '<button id="rpCapBtn" style="position:absolute;bottom:10px;right:10px;border:0;border-radius:9px;background:rgba(42,36,29,.85);color:#fff;font-weight:700;font-size:12px;padding:7px 12px;cursor:pointer">🔄 내부 4컷 둘러보기</button>';
-        var cb2 = document.getElementById("rpCapBtn"); if (cb2) cb2.onclick = function () { startCapture(glb, null); };
+        showThumbWithButton();
       }
     };
     function close(){ if (captureTimer) { clearTimeout(captureTimer); captureTimer = null; } modal.hidden = true; document.getElementById("rpFrame").src = "about:blank"; shots = []; }

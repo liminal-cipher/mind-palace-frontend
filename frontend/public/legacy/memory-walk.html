@@ -1483,7 +1483,8 @@
           : "이 자리에 기억을 배치할 수 있어요. (학습 항목 미지정)";
       }
       // ✨ 의미부여: 학습 개념이 있을 때(PDF 분석 후)만 노출 — 사물에 개념을 연결해 기억 장면 생성.
-      const mn = $("cMnemo"); if (mn) mn.hidden = !(!CONTENT_LOCKED && (!!e || (window.__mwEntities||[]).length > 0));
+      const mn = $("cMnemo"); if (mn) { mn.hidden = !(!CONTENT_LOCKED && (!!e || (window.__mwEntities||[]).length > 0));
+        if (!mn.hidden) mn.textContent = findMnemoForSpot(h) ? "✨ 의미 부여 다시 보기" : "✨ 의미부여"; }   // 이미 만든 게 있으면 '다시 보기'
       $("card").style.display = "block";
     }
     let _quizPrompted = false;
@@ -1595,6 +1596,13 @@
     let MW_ACCT = "guest";
     try { fetch("/.auth/me",{credentials:"include"}).then(r=>r.ok?r.json():null).then(d=>{ const cp=!d?null:(Array.isArray(d)?d[0]:(d.clientPrincipal||d)); if(cp&&(cp.userId||cp.user_id)) MW_ACCT=String(cp.userId||cp.user_id).slice(0,40); }).catch(()=>{}); } catch(_){}
     function mnemoKey(h, node){ return "mp_mnemo:" + MW_ACCT + ":" + (MW_PALACE_ID||"_") + ":" + dispName(h) + ":" + ((node&&(node.title||node.id))||""); }
+    // 이 사물에 이미 만들어둔 의미부여(어느 학습 개념으로든)가 있나? — 버튼 '다시 보기' 표시 + 재열람용.
+    function findMnemoForSpot(h){
+      try { const pre = "mp_mnemo:" + MW_ACCT + ":" + (MW_PALACE_ID||"_") + ":" + dispName(h) + ":";
+        for (let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k && k.indexOf(pre)===0){ const v=localStorage.getItem(k); if(v) return {key:k, md:v}; } }
+      } catch(_){}
+      return null;
+    }
 
     // ── 내 서재 저장: 현재 세션 스냅샷(궁전 + designs + 의미부여 + 노드편집)을 우리 DB(Cosmos+Blob)에 ──
     function _collectLS(predicate){ const out={}; try { for (let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if (k && predicate(k)){ const v=localStorage.getItem(k); if (v!=null) out[k]=v; } } } catch(_){} return out; }
@@ -1716,11 +1724,13 @@
     }
     function openMnemo(){
       const h = route[activeIdx]; if(!h) return;
-      $("mnemoHd").textContent = `✨ 의미부여 — «${dispName(h)}»`;
+      const existing = findMnemoForSpot(h);
+      $("mnemoHd").textContent = (existing ? "✨ 의미부여 다시 보기 — " : "✨ 의미부여 — ") + `«${dispName(h)}»`;
       $("mnemoBody").innerHTML = "";
       const getNode = buildConceptPicker(h);
-      // 매칭된 개념이고 저장된 장면이 있으면 즉시 표시(다시 눌러도 보임)
-      if (h.entity){ const k=mnemoKey(h,h.entity); let c=null; try{c=localStorage.getItem(k);}catch(_){} if(c) renderMnemo(c,k); }
+      // 저장된 장면이 있으면 즉시 표시(다시 눌러도 보임) — h.entity 우선, 없으면 이 지점의 다른 개념으로 만든 것이라도.
+      if (h.entity){ const k=mnemoKey(h,h.entity); let c=null; try{c=localStorage.getItem(k);}catch(_){} if(c) renderMnemo(c,k); else if(existing) renderMnemo(existing.md, existing.key); }
+      else if (existing){ renderMnemo(existing.md, existing.key); }
       $("mnemoGen").onclick = () => {
         const node = getNode();
         if (!node){ $("mnemoBody").innerHTML = `<div style="color:#b06a3a">먼저 연결할 학습 개념을 고르세요.</div>`; return; }
