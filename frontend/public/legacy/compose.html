@@ -351,7 +351,9 @@
     } else {
       let s = null; try { s = sessionStorage.getItem("mp_palace") || localStorage.getItem("mp_palace"); } catch(_) {}
       // 빈 팰리스(rooms 0개)는 '구성됨'으로 처리하지 않음 — 분석이 끝나기 전 빈 값이 들어와도 "구성했습니다(0챕터)"라고 거짓 표시 안 하고, 분석 중 잠금이 뜨게 둔다.
-      if (s) { try { const cand = JSON.parse(s); if (cand && cand.rooms && cand.rooms.length) { PAL = cand; try { localStorage.setItem("mp_palace", s); } catch(_){} $("msg").textContent = "업로드한 학습자료로 구성했습니다."; } } catch(_) { PAL = null; } }
+      if (s) { try { const cand = JSON.parse(s); if (cand && cand.rooms && cand.rooms.length) { PAL = cand; try { localStorage.setItem("mp_palace", s); } catch(_){}
+        let _demo=false; try { _demo = localStorage.getItem("mp_palace_demo")==="1"; } catch(_){}
+        $("msg").textContent = _demo ? "🎬 데모(샘플) 데이터로 구성했어요 — 둘러본 뒤 PDF를 올리면 내 자료로 바뀝니다." : "업로드한 학습자료로 구성했습니다."; } } catch(_) { PAL = null; } }
       // PDF 미업로드 시 korean_history 데모를 끌어오지 않음 — 빈 팰리스(잠금 오버레이가 "아직 내용 없음" 안내).
       if (!PAL) PAL = PALACE_EXPLICIT ? await fetch(PALACE_URL).then(r=>r.json()) : { palace:{ title:"" }, rooms:[] };
     }
