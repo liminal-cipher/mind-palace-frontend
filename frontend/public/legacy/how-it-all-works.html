@@ -462,6 +462,43 @@
   </footer>
 
 </div>
+<style id="moredetail-style">
+  .moredetail{margin-top:10px;}
+  .moredetail>summary{cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:6px;
+    font-weight:800;font-size:13px;color:#B25400;background:#FBE7D1;border:1px solid #F0D9BE;
+    border-radius:999px;padding:8px 15px;user-select:none;-webkit-tap-highlight-color:transparent;transition:.15s;}
+  .moredetail>summary:hover{filter:brightness(.98);}
+  .moredetail>summary::-webkit-details-marker{display:none;}
+  .moredetail>summary::after{content:'▾';opacity:.65;margin-left:2px;font-size:11px;}
+  .moredetail[open]>summary{background:#F0E7D8;color:#6B5E4D;}
+  .moredetail[open]>summary::after{content:'▴';}
+  .moredetail>*{margin-top:13px !important;}
+  .modehint{margin:14px 0 2px;font-size:12.5px;color:#9A8C78;}
+</style>
+<script>
+(function(){
+  // 각 섹션의 '상세(기술·근거)'를 토글로 접어, 기본은 쉬운 설명만 보이게. 클릭 시 펼침.
+  function build(){
+    var steps=document.querySelectorAll('.step'); if(!steps.length) return;
+    steps.forEach(function(step){
+      if(step.querySelector(':scope > .moredetail')) return;
+      var head=step.querySelector(':scope > .head'), easy=step.querySelector(':scope > .easy');
+      var det=document.createElement('details'); det.className='moredetail';
+      var sum=document.createElement('summary'); sum.textContent='🔍 자세한 기술·근거 보기';
+      det.appendChild(sum);
+      [].slice.call(step.children).forEach(function(el){
+        if(el===head||el===easy||el===det) return;
+        if(el.classList&&el.classList.contains('num')) return;
+        det.appendChild(el);
+      });
+      if(det.children.length<=1) return;            // 옮길 상세가 없으면 토글 미생성
+      if(head&&easy){ head.parentNode.insertBefore(easy, head.nextSibling); } // 쉬운 설명을 위로
+      step.appendChild(det);
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', build); else build();
+})();
+</script>
 <script src="nav.js" defer></script>
 </body>
 </html>
