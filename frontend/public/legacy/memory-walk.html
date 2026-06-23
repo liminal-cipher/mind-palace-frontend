@@ -873,7 +873,7 @@
 
     // ── 학습 개념 이미지·캡션 해석 (PDF 추출 엔티티 대응) ──
     //   PDF 추출 엔티티는 e.image/e.caption이 없고 images:[{path,caption}]·summary를 가진다.
-    //   이미지: PDF figure(백엔드 /images/{palaceId}/{파일명}) > concept-photos(제목 매칭) > e.image > 테마 공통.
+    //   이미지: PDF figure(백엔드 /images/{palaceId}/{파일명})만 사용. 없으면 텍스트만(폴백 없음).
     //   캡션:   e.caption > images[0].caption > summary.
     let CONCEPT_PHOTOS = {}, MW_IMG_BASE = "", MW_PALACE_ID = "", MW_JOB_ID = "", MW_LOADED_PALACE = null, MW_CAN_SAVE = false, MW_SAVED = false, _cpLoaded = false;
     async function loadConceptPhotos(){ if (_cpLoaded) return; _cpLoaded = true;
@@ -887,11 +887,11 @@
       if (MW_IMG_BASE && MW_PALACE_ID) return MW_IMG_BASE.replace(/\/+$/, "") + "/images/" + encodeURIComponent(MW_PALACE_ID) + "/" + encodeURIComponent(fn);
       return "";
     }
-    // 이미지: PDF figure(graphrag 추출) > concept-photos(제목 매칭) > e.image. 마땅한 게 없으면 빈 문자열(텍스트만).
-    //   ※ 랜드마크 공통 사진(THEME.cardImage=광화문 등) 폴백은 제거 — 모든 개념이 같은 사진으로 뜨던 문제 해결.
+    // 이미지: 실제 추출 figure(graphrag deliverables/라이브 잡)만. 못 찾으면 빈 문자열(텍스트만).
+    //   ※ concept-photos(제목 매칭 위키/웹 검색)·e.image 등 모든 폴백 제거 — 받은 적 없는(검색된)
+    //     사진이 뜨던 문제 해결. 진짜 figure 가 없는 개념은 이미지 없이 텍스트만 보여준다.
     function entImage(e){ if (!e) return "";
-      const cp = CONCEPT_PHOTOS[e.title] || CONCEPT_PHOTOS[e.id];
-      return _figURL(e) || (cp && (cp.thumb || cp.full)) || _imgUrl(e.image || e.img || e.thumb) || ""; }
+      return _figURL(e) || ""; }
     function entCaption(e){ if (!e) return "";
       return e.caption || (Array.isArray(e.images) && e.images[0] && e.images[0].caption) || e.summary || ""; }
 
@@ -935,7 +935,7 @@
           (function(){ try { return localStorage.getItem("mp_graphrag_base"); } catch(_) { return null; } })() ||
           "https://3d-mindpalace-ai-backend-h3gze8h7hfhqg3h8.canadacentral-01.azurewebsites.net";
       }
-      loadConceptPhotos();   // 개념 대표사진(제목 매칭) 비동기 로드
+      // concept-photos(제목 매칭 위키/웹 사진) 로드 제거 — 검색된 사진 폴백을 아예 쓰지 않는다.
       const rid = P.get("room");
       const room = (palace.rooms||[]).find(r => r.id === rid) || (palace.rooms||[])[0];
       if (!room) { setStatus("팰리스에 방이 없습니다."); return; }
@@ -1643,7 +1643,7 @@
         $("cType").textContent = e.type || "";
         $("cTitle").textContent = e.title;
         $("cFurn").textContent = `📍 ${dispName(h)}에 배치`;
-        setCardImage(entImage(e));   // PDF figure > concept-photos > e.image > 랜드마크 공통
+        setCardImage(entImage(e));   // 실제 추출 figure만 (폴백 없음 — 없으면 이미지 미표시)
         // 카드 본문(cCap)은 개념 내용(summary)으로, 이미지 캡션은 사진 밑(cImgCap)에 작게.
         // 기존엔 cCap 이 entCaption(이미지 캡션 우선)이라 그림 있는 개념은 내용 대신 사진 캡션이 떴다.
         (function(){
