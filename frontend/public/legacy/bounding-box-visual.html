@@ -197,7 +197,7 @@ const FURN = [
   { g:table,   ko:"식탁",   ai:"식탁",  via:"이름표 'Table'", concept:"훈민정음 1443" },
   { g:chair1,  ko:"의자",   ai:"의자",  via:"기하 패스(모양)", concept:"임진왜란 1592" },
   { g:chair2,  ko:"의자2",  ai:"의자",  via:"기하 패스(모양)", concept:"병자호란 1636" },
-  { g:plant,   ko:"화분",   ai:"우산",  via:"모호어→비전 재명명", concept:"갑오개혁 1894" },
+  { g:plant,   ko:"화분",   weak:true,  via:"정밀 명명(약한 마커)", concept:"갑오개혁 1894" },
   { g:cabinet, ko:"수납장", ai:"수납장",via:"기하 패스(모양)", concept:"3·1운동 1919" },
 ];
 FURN.forEach(f=>{ f.center = centerOf(f.g); });
@@ -301,8 +301,8 @@ function drawOverlay(){
   og.clearRect(0,0,ov.width,ov.height);
   const s=step;
   if(s===6){
-    FURN.forEach((f)=>{ const amb=f.ai!==f.ko; const nm=(nameReveal||!amb)? f.ko : f.ai;
-      tag(f.center, nm, -44, (amb && !nameReveal) ? "rgba(224,115,15,.95)" : "rgba(255,255,255,.96)", (amb&&!nameReveal)? "#fff":"#191F28"); });
+    FURN.forEach((f)=>{ const weak=f.weak; const nm=(weak && !nameReveal)? "정밀 확인…" : f.ko;
+      tag(f.center, nm, -44, (weak && !nameReveal) ? "rgba(224,115,15,.95)" : "rgba(255,255,255,.96)", (weak&&!nameReveal)? "#fff":"#191F28"); });
     if(crossOn){
       const p=project(FURN[4].center); if(p.vis){ const R=58*DPR;
         og.fillStyle="rgba(20,16,10,0.42)"; og.fillRect(0,0,ov.width,ov.height); og.clearRect(p.x-R,p.y-R,2*R,2*R);
@@ -310,7 +310,7 @@ function drawOverlay(){
         og.strokeStyle="rgba(255,40,40,.95)"; og.lineWidth=2.2*DPR; og.beginPath();
         og.moveTo(p.x-R*0.4,p.y); og.lineTo(p.x+R*0.4,p.y); og.moveTo(p.x,p.y-R*0.4); og.lineTo(p.x,p.y+R*0.4); og.stroke();
         og.beginPath(); og.arc(p.x,p.y,R*0.16,0,Math.PI*2); og.stroke();
-        tag(FURN[4].center, "‘우산’ → 화분", 78, "rgba(21,184,107,.96)", "#fff");
+        tag(FURN[4].center, "화분 ✓", 78, "rgba(21,184,107,.96)", "#fff");
       }
     }
   } else if(s===7){ FURN.forEach((f,i)=> numBadge(f.center, orderOf[i])); }
@@ -333,7 +333,7 @@ const STEPS = {
      wt:"좌표 산출",wv:"Box3 center",wd:"메쉬 피벗은 모델러 임의라 기준 안 됨 → AABB 중심=부피 한가운데=사람이 느끼는 무게중심. 정점만 읽어 오차 0."},
   5:{no:"STEP 5",h:"세그멘테이션 — 겹친 건 하나로",p:'소파가 여러 조각이면 마커가 겹쳐요. <span class="em">같은 자리(0.42m)</span>면 하나로 합쳐 ‘한 사물=한 마커’.',
      wt:"겹침 컷(평면)",wv:"XZ 0.42m",wd:"높이 버리고 위에서 본 거리만 → 러그(바닥)+벽 그림(공중) 같은 자리 중복 해결. 의자 간격(≥0.5m)보다 좁게 잡아 떨어진 의자는 보존."},
-  6:{no:"STEP 6",h:"이름 — 4컷 배치 + 정밀",p:'네 모서리 4컷을 AI에 <span class="em">1번</span> → 번호별 이름. 애매한 건(우산?) <span class="em">512² 십자선</span>으로 ‘이 좌표’만 → 화분.',
+  6:{no:"STEP 6",h:"이름 — 4컷 배치 + 정밀",p:'네 모서리 4컷을 AI에 <span class="em">1번</span> → 번호별 이름. 작거나 가린 <span class="em">약한 마커</span>는 <span class="em">512² 십자선</span>으로 그 자리만 정밀 확인.',
      wt:"명명 호출",wv:"4컷·1콜 + 정밀",wd:"4컷 묶어 1콜(비용↓)+GLB캐시. 정밀은 512² 클로즈업+빨간 십자(α0.95)로 옆 큰 가구 오명명 방지. temperature 0=정확·재현."},
   7:{no:"STEP 7",h:"동선·번호 — 걷는 순서",p:'입장 시점(긴 축 끝)에서 <span class="em">가까움+직진</span>으로 한 바퀴. 걷는 순서 = 외우는 순서.',
      wt:"순서 점수",wv:"−dist + turn×0.7",wd:"turn=진행·목표 방향 내적(직진+1/U턴−1). 0.7은 거리↔turn 환산 → 두 후보 거리차 1.4m 이내면 ‘덜 꺾이는 쪽’ 승(지그재그 억제)."},
