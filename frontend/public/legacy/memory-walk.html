@@ -358,6 +358,39 @@
     #quizActions .qz-submit{padding:11px 20px;border:0;border-radius:11px;background:var(--accent,#b5552f);color:#fff;font-weight:800;font-size:13.5px;cursor:pointer;}
     #quizActions .qz-submit:disabled{opacity:.62;cursor:wait;}
     #quizActions .qz-scoretxt{font-weight:900;font-size:14px;color:#2a241d;}
+    #quizActions .qz-ghost{padding:11px 14px;border:1.5px solid rgba(51,46,40,.2);border-radius:11px;background:none;color:#6b6258;font-weight:700;font-size:13px;cursor:pointer;}
+    #quizActions .qz-ghost:hover{border-color:var(--accent,#b5552f);color:var(--accent,#b5552f);}
+    #quizBody .qz-setup{display:flex;flex-direction:column;gap:16px;}
+    #quizBody .qz-field{display:flex;flex-direction:column;gap:8px;}
+    #quizBody .qz-flabel{font-weight:800;font-size:12.5px;color:#6b6258;}
+    #quizBody .qz-seg{display:flex;gap:7px;flex-wrap:wrap;}
+    #quizBody .qz-seg button{min-width:46px;padding:9px 13px;border:1.5px solid rgba(51,46,40,.16);border-radius:10px;background:#fff;color:#2a241d;font:inherit;font-size:13.5px;font-weight:700;cursor:pointer;}
+    #quizBody .qz-seg button:hover{border-color:rgba(181,85,47,.5);}
+    #quizBody .qz-seg button.sel{background:var(--accent,#b5552f);color:#fff;border-color:var(--accent,#b5552f);}
+    #quizBody .qz-types{display:flex;gap:8px;flex-wrap:wrap;}
+    #quizBody .qz-type{display:inline-flex;align-items:center;gap:7px;padding:9px 13px;border:1.5px solid rgba(51,46,40,.16);border-radius:10px;background:#fff;font-size:13.5px;font-weight:700;color:#2a241d;cursor:pointer;}
+    #quizBody .qz-type:has(input:checked){border-color:var(--accent,#b5552f);background:rgba(181,85,47,.1);}
+    #quizBody .qz-type input{accent-color:var(--accent,#b5552f);width:16px;height:16px;margin:0;}
+    #quizBody .qz-head{margin-bottom:14px;display:flex;flex-direction:column;gap:5px;}
+    #quizBody .qz-mode{align-self:flex-start;font-size:11.5px;font-weight:800;border-radius:999px;padding:3px 11px;}
+    #quizBody .qz-mode.ok{color:#27734a;background:rgba(47,143,78,.12);}
+    #quizBody .qz-mode.warn{color:#9a6a1e;background:rgba(196,140,40,.16);}
+    #quizBody .qz-meta{font-size:12px;color:#6b6258;}
+    #quizBody .qz-q.r-ok{border-color:rgba(47,143,78,.55);}
+    #quizBody .qz-q.r-no{border-color:rgba(192,70,62,.55);}
+    #quizBody .qz-check{margin-top:11px;padding:7px 15px;border:1.5px solid var(--accent,#b5552f);border-radius:9px;background:none;color:var(--accent,#b5552f);font:inherit;font-size:12.5px;font-weight:800;cursor:pointer;}
+    #quizBody .qz-check:hover{background:rgba(181,85,47,.08);}
+    #quizBody .qz-check:disabled{opacity:.55;cursor:wait;}
+    #quizBody .qz-evi{margin-top:16px;border-top:1px dashed rgba(51,46,40,.2);padding-top:12px;}
+    #quizBody .qz-evi-toggle{border:0;background:none;color:#6b6258;font:inherit;font-size:12.5px;font-weight:800;cursor:pointer;padding:0;}
+    #quizBody .qz-evi-toggle:hover{color:var(--accent,#b5552f);}
+    #quizBody .qz-evi-list{margin-top:10px;display:flex;flex-direction:column;gap:9px;}
+    #quizBody .qz-evi-list[hidden]{display:none;}
+    #quizBody .qz-evi-card{border:1px solid rgba(51,46,40,.12);border-radius:10px;padding:10px 12px;background:#fff;}
+    #quizBody .qz-evi-card .ec-meta{font-size:11px;color:#9a8f82;font-weight:700;margin-bottom:3px;}
+    #quizBody .qz-evi-card h4{margin:0 0 3px;font-size:13px;color:#2a241d;}
+    #quizBody .qz-evi-card .ec-text{font-size:12px;color:#6b6258;line-height:1.55;margin:0;}
+    #quizBody .qz-evi-empty{font-size:12px;color:#9a8f82;margin-top:8px;line-height:1.5;}
   </style>
 
   <div class="status" id="status">로드 중…</div>
@@ -2021,23 +2054,48 @@
     window.mpOpenMnemonic = () => { if (activeIdx < 0 || !route[activeIdx]) { const i = route.findIndex(h => h.entity); goTo(i >= 0 ? i : 0); } openMnemo(); };
 
     // ── 📝 인룸 퀴즈 — graphrag /quiz/json 로 이 방 학습내용 퀴즈 생성, /quiz/grade 채점, 오답은 마커로 복습 ──
-    let quizData = null;
+    let quizData = null, lastQuizTopic = "";
     function quizTopic(){ const t = (window.__mwEntities||[]).map(e=>e&&e.title).filter(Boolean); return t.slice(0,12).join(", ") || (THEME&&THEME.name) || ""; }
-    async function openQuiz(){
-      $("quizModal").style.display="block"; $("quizActions").innerHTML="";
-      $("quizBody").innerHTML = `<div style="color:#7a7066">📝 이 방의 학습 내용으로 퀴즈를 만드는 중…</div>`;
+    function openQuiz(){ $("quizModal").style.display="block"; renderQuizSetup(); }
+    // 퀴즈 설정 화면 — 주제·문제 수·유형 선택(백엔드 /quiz/json 파라미터 topic/count/quiz_types로 전달).
+    function renderQuizSetup(){
+      $("quizBody").innerHTML =
+        `<div class="qz-setup">`
+        + `<div class="qz-field"><span class="qz-flabel">주제</span>`
+          + `<input id="qzTopic" class="qz-in" placeholder="비우면 이 방 전체" value="${esc2(quizTopic())}" autocomplete="off"></div>`
+        + `<div class="qz-field"><span class="qz-flabel">문제 수</span><div class="qz-seg" id="qzCount">`
+          + [3,5,8,10].map(n=>`<button type="button" data-count="${n}"${n===5?' class="sel"':''}>${n}</button>`).join("")
+          + `</div></div>`
+        + `<div class="qz-field"><span class="qz-flabel">문제 유형</span><div class="qz-types" id="qzTypes">`
+          + Object.keys(QZ_TYPE_LABEL).map(k=>`<label class="qz-type"><input type="checkbox" value="${k}" checked>${QZ_TYPE_LABEL[k]}</label>`).join("")
+          + `</div></div>`
+        + `</div>`;
+      $("quizBody").querySelectorAll("#qzCount button").forEach(b=>b.addEventListener("click",()=>{   // 문제 수 단일 선택
+        $("quizBody").querySelectorAll("#qzCount button").forEach(x=>x.classList.toggle("sel", x===b)); }));
+      $("quizActions").innerHTML = `<button id="quizGenBtn" class="qz-submit">📝 퀴즈 만들기</button>`;
+      $("quizGenBtn").onclick = generateQuiz;
+    }
+    function quizBackBtn(){ $("quizActions").innerHTML = `<button id="quizBackBtn" class="qz-ghost">← 설정으로</button>`; $("quizBackBtn").onclick = renderQuizSetup; }
+    async function generateQuiz(){
+      const topic = ($("qzTopic") ? $("qzTopic").value : "").trim();
+      const cBtn = $("quizBody").querySelector("#qzCount button.sel");
+      const count = cBtn ? parseInt(cBtn.dataset.count,10) : null;
+      const types = [].map.call($("quizBody").querySelectorAll("#qzTypes input:checked"), el=>el.value);
+      if (!types.length){ alert("문제 유형을 하나 이상 선택해 주세요."); return; }
+      lastQuizTopic = topic;   // 메타 라인(주제 · N문항)에 사용
+      $("quizBody").innerHTML = `<div style="color:#7a7066">📝 퀴즈를 만드는 중…</div>`; $("quizActions").innerHTML="";
       let job=null; try { job=JSON.parse(localStorage.getItem("mp_rag_job")||"null"); } catch(_){}
       const snapshot = (job && job.jobId) ? job.jobId : (MW_PALACE_ID || "korean_history");
       try {
-        // 문제 수·유형 등 생성 기본값은 백엔드(/quiz/json)가 정한다 — 프론트는 주제·스냅샷만 넘기고 UI만 담당.
-        const r = await fetch(MNEMO_BASE+"/quiz/json", { method:"POST", headers:{"Content-Type":"application/json"},
-          body: JSON.stringify({ topic: quizTopic(), snapshot }) });
-        if (!r.ok){ $("quizBody").innerHTML = `<div style="color:#b06a3a">퀴즈 기능이 아직 백엔드에 연결되지 않았어요 (${r.status}). graphrag에 /quiz/json 추가 후 작동합니다.</div>`; return; }
+        const body = { topic, snapshot, quiz_types: types };
+        if (count) body.count = count;
+        const r = await fetch(MNEMO_BASE+"/quiz/json", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body) });
+        if (!r.ok){ $("quizBody").innerHTML = `<div style="color:#b06a3a">퀴즈 기능이 아직 백엔드에 연결되지 않았어요 (${r.status}). graphrag에 /quiz/json 추가 후 작동합니다.</div>`; quizBackBtn(); return; }
         const j = await r.json(); quizData = j;
         trackUsage("quiz", j.usage);   // 퀴즈 생성에 쓴 토큰 누적
-        if (!j.questions || !j.questions.length){ $("quizBody").innerHTML = `<div style="color:#b06a3a">이 방에서 만들 퀴즈가 없어요.</div>`; return; }
+        if (!j.questions || !j.questions.length){ $("quizBody").innerHTML = `<div style="color:#b06a3a">이 방에서 만들 퀴즈가 없어요. 유형이나 주제를 바꿔보세요.</div>`; quizBackBtn(); return; }
         renderQuizQuestions(j.questions);
-      } catch(_){ $("quizBody").innerHTML = `<div style="color:#b03636">퀴즈 생성 실패 — 잠시 후 다시 시도하세요.</div>`; }
+      } catch(_){ $("quizBody").innerHTML = `<div style="color:#b03636">퀴즈 생성 실패 — 잠시 후 다시 시도하세요.</div>`; quizBackBtn(); }
     }
     const QZ_TYPE_LABEL = { multiple_choice:"객관식", true_false:"OX", short_answer:"단답형" };
     // 보기 라벨 — OX는 밋밋한 'O/X' 대신 의미를 함께 보여 가독성↑(채점 값은 그대로 index).
@@ -2050,7 +2108,12 @@
       return esc2(c);
     }
     function renderQuizQuestions(qs){
-      $("quizBody").innerHTML = qs.map((q,i)=>{
+      const j = quizData || {};
+      const modeBadge = (j.mode === "llm_verified")
+        ? `<span class="qz-mode ok">✓ LLM 검증 통과</span>`
+        : `<span class="qz-mode warn">⚠ 대체(fallback) 모드${j.warning ? `: ${esc2(j.warning)}` : ""}</span>`;
+      const header = `<div class="qz-head">${modeBadge}<div class="qz-meta">주제: ${esc2(lastQuizTopic || "전체")} · ${qs.length}문항</div></div>`;
+      const cards = qs.map((q,i)=>{
         const type = q.type || (q.choices && q.choices.length ? "multiple_choice" : "short_answer");
         const badge = QZ_TYPE_LABEL[type] || "문제";
         let body;
@@ -2062,39 +2125,74 @@
             `<label class="qz-opt"><input type="radio" name="qz${i}" data-qi="${i}" value="${ci}"><span>${qzOptLabel(q,c)}</span></label>`
           ).join("") + `</div>`;
         }
-        return `<div class="qz-q">`
+        return `<div class="qz-q" data-qi="${i}">`
           + `<div class="qz-qhead"><span class="qz-num">Q${i+1}</span><span class="qz-badge">${badge}</span></div>`
           + `<div class="qz-question">${esc2(q.question||"")}</div>`
           + body
+          + `<button type="button" class="qz-check" data-qi="${i}">채점</button>`
           + `<div class="qz-res" data-qi="${i}"></div></div>`;
       }).join("");
-      $("quizActions").innerHTML = `<button id="quizSubmit" class="qz-submit">채점하기</button><span id="quizScore" class="qz-scoretxt"></span>`;
-      $("quizSubmit").onclick = gradeQuiz;
+      $("quizBody").innerHTML = header + cards + renderEvidence();
+      $("quizBody").querySelectorAll(".qz-check").forEach(btn=>btn.addEventListener("click",()=>{   // 문제별 채점
+        const qi = btn.dataset.qi, a = collectOne(qi);
+        if (a == null){ btn.textContent="답을 선택/입력해 주세요"; setTimeout(()=>{ btn.textContent="채점"; },1200); return; }
+        gradeAnswers({ [qi]: a }, [btn], false);
+      }));
+      const et = $("quizBody").querySelector(".qz-evi-toggle");   // 근거 토글
+      if (et) et.onclick = ()=>{ const l=$("quizBody").querySelector(".qz-evi-list"); if(l) l.hidden=!l.hidden; };
+      $("quizActions").innerHTML = `<button id="quizSubmit" class="qz-submit">전체 채점</button><button id="quizResetBtn" class="qz-ghost">⚙ 다시 설정</button><span id="quizScore" class="qz-scoretxt"></span>`;
+      $("quizSubmit").onclick = ()=>gradeAnswers(collectAnswers(), [$("quizSubmit")], true);
+      $("quizResetBtn").onclick = renderQuizSetup;
+    }
+    // 근거(Evidence) — 백엔드가 /quiz/json 응답에 evidence를 포함하면 자동 표시. 템플릿 quiz.html의 근거 서랍 대응(현재 미포함 → 안내).
+    function renderEvidence(){
+      const ev = quizData && quizData.evidence;
+      if (!ev || !ev.length){
+        return `<div class="qz-evi"><div class="qz-evi-empty">📎 근거 자료는 백엔드(/quiz/json)가 evidence를 제공하면 여기에 표시됩니다.</div></div>`;
+      }
+      const cards = ev.map((it,i)=>`<div class="qz-evi-card"><div class="ec-meta">${i+1} · ${esc2(it.source||"")}</div><h4>${esc2(it.title||"")}</h4><p class="ec-text">${esc2(it.text||"")}</p></div>`).join("");
+      return `<div class="qz-evi"><button type="button" class="qz-evi-toggle">📎 사용된 근거 ${ev.length}건 ▾</button><div class="qz-evi-list" hidden>${cards}</div></div>`;
+    }
+    function collectOne(qi){
+      const inp = document.querySelector(`#quizBody .qz-in[data-qi="${qi}"]`);
+      if (inp) return inp.value.trim() || null;
+      const radio = document.querySelector(`#quizBody input[type=radio][data-qi="${qi}"]:checked`);
+      return radio ? radio.value : null;
     }
     function collectAnswers(){ const ans={};
       document.querySelectorAll("#quizBody .qz-in").forEach(el=>{ if(el.value.trim()) ans[el.dataset.qi]=el.value.trim(); });
       document.querySelectorAll('#quizBody input[type=radio]:checked').forEach(el=>{ ans[el.dataset.qi]=el.value; });
       return ans; }
-    async function gradeQuiz(){
+    function applyOneResult(res){
+      const card = document.querySelector(`#quizBody .qz-q[data-qi="${res.index}"]`);
+      if (card){ card.classList.remove("r-ok","r-no"); card.classList.add(res.correct?"r-ok":"r-no"); }
+      const box = document.querySelector(`#quizBody .qz-res[data-qi="${res.index}"]`); if(!box) return;
+      box.className = "qz-res " + (res.correct ? "ok" : "no");
+      box.innerHTML = `<b>${res.correct ? "✓ 정답" : "✗ 오답"}</b>`
+        + (res.answerText ? ` · 정답: <b>${esc2(res.answerText)}</b>` : "")
+        + (res.explanation ? `<div class="qz-explain">${esc2(res.explanation)}</div>` : "");
+      if (!res.correct){ const q=quizData.questions[res.index]; const idx=findMarkerForText(((q&&q.question)||"")+" "+(res.answerText||""));
+        if (idx>=0){ const a=document.createElement("a"); a.textContent="📍 관련 마커로 복습"; a.className="qz-review";
+          a.onclick=()=>{ $("quizModal").style.display="none"; goTo(idx); }; box.appendChild(a); } }
+    }
+    function updateQuizScore(){
+      const graded = document.querySelectorAll("#quizBody .qz-q.r-ok, #quizBody .qz-q.r-no").length;
+      const ok = document.querySelectorAll("#quizBody .qz-q.r-ok").length;
+      const sc = $("quizScore"); if (sc) sc.textContent = graded ? `  ${ok}/${graded} 정답` : "";
+    }
+    // 문제별/전체 채점 공통 — answers 부분집합 채점 가능(템플릿 quiz.html의 check-btn/grade-btn 동작). 점수는 채점된 카드로 누적.
+    async function gradeAnswers(answers, btns, isAll){
       if (!quizData || !quizData.quiz_id) return;
-      const answers = collectAnswers(); if (!Object.keys(answers).length) return;
-      const sb=$("quizSubmit"); sb.disabled=true; sb.textContent="채점 중…";
+      if (!Object.keys(answers).length) return;
+      btns.forEach(b=>{ if(b) b.disabled=true; });
+      const sub = isAll ? $("quizSubmit") : null; if (sub) sub.textContent="채점 중…";
       try {
         const r = await fetch(MNEMO_BASE+"/quiz/grade", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({ quiz_id: quizData.quiz_id, answers }) });
         const j = await r.json();
-        (j.results||[]).forEach(res=>{
-          const box = document.querySelector(`#quizBody .qz-res[data-qi="${res.index}"]`); if(!box) return;
-          box.className = "qz-res " + (res.correct ? "ok" : "no");
-          box.innerHTML = `<b>${res.correct ? "✓ 정답" : "✗ 오답"}</b>`
-            + (res.answerText ? ` · 정답: <b>${esc2(res.answerText)}</b>` : "")
-            + (res.explanation ? `<div class="qz-explain">${esc2(res.explanation)}</div>` : "");
-          if (!res.correct){ const q=quizData.questions[res.index]; const idx=findMarkerForText(((q&&q.question)||"")+" "+(res.answerText||""));
-            if (idx>=0){ const a=document.createElement("a"); a.textContent="📍 관련 마커로 복습"; a.className="qz-review";
-              a.onclick=()=>{ $("quizModal").style.display="none"; goTo(idx); }; box.appendChild(a); } }
-        });
-        $("quizScore").textContent = `  ${j.score}/${j.total} 정답`; sb.textContent="다시 채점";
-        saveQuizResult(j);   // 결과를 계정에 기록(마이페이지 '내 퀴즈 기록') — 비로그인/실패는 조용히 무시
-      } catch(_){ $("quizScore").textContent=" 채점 실패"; } finally { sb.disabled=false; }
+        (j.results||[]).forEach(applyOneResult);
+        updateQuizScore();
+        if (isAll){ if (sub) sub.textContent="다시 채점"; saveQuizResult(j); }
+      } catch(_){ if (sub) sub.textContent="채점 실패"; } finally { btns.forEach(b=>{ if(b) b.disabled=false; }); }
     }
     // 채점 결과를 Mindpalace 백엔드(quiz_results)에 저장. 정답은 graphrag 만 알고, 여기엔 점수·오답 문항만.
     function saveQuizResult(graded){
@@ -2107,7 +2205,7 @@
         fetch("/api/quiz/result", { method:"POST", credentials:"include",
           headers:{ "Content-Type":"application/json" },
           body: JSON.stringify({ quizId: quizData.quiz_id, score: graded.score||0, total: graded.total||0,
-            palaceId: MW_PALACE_ID||"", topic: quizTopic(), wrong }) }).catch(()=>{});
+            palaceId: MW_PALACE_ID||"", topic: lastQuizTopic||quizTopic(), wrong }) }).catch(()=>{});
       } catch(_){}
     }
     function findMarkerForText(text){ const t=String(text||""); let best=-1; (route||[]).forEach((h,i)=>{ if(h.entity&&h.entity.title&&t.includes(h.entity.title)) best=i; }); return best; }
