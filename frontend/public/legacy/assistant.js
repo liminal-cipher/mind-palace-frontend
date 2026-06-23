@@ -90,7 +90,7 @@
     ".mp-msg{max-width:86%;padding:9px 12px;border-radius:13px;font-size:13px;line-height:1.5;}",
     ".mp-msg.bot{align-self:flex-start;background:var(--panel2,#fff);border:1px solid var(--line);color:var(--text);border-bottom-left-radius:5px;}",
     ".mp-msg.me{align-self:flex-end;background:var(--accent,#b5552f);color:#fff;border-bottom-right-radius:5px;}",
-    ".mp-chips{display:flex;flex-wrap:wrap;gap:6px;position:sticky;bottom:0;background:var(--bg,#f5f1ea);padding:7px 0 3px;z-index:1;}",
+    ".mp-chips{display:flex;flex-wrap:wrap;gap:6px;padding:7px 0 3px;}",
     ".mp-chip{cursor:pointer;border:1px solid var(--line);background:var(--panel2,#fff);color:var(--text);border-radius:999px;",
       "padding:6px 11px;font:inherit;font-size:12px;font-weight:700;}",
     ".mp-chip:hover{border-color:var(--accent);background:rgba(181, 85, 47,.10);}",

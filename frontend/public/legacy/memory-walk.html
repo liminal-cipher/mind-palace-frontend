@@ -1806,6 +1806,35 @@
     function _collectLS(predicate){ const out={}; try { for (let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if (k && predicate(k)){ const v=localStorage.getItem(k); if (v!=null) out[k]=v; } } } catch(_){} return out; }
     // opts.silent: 개념 지도 "저장하고 적용"이 부르는 조용한 모드 — 제목 prompt·alert·버튼UI 없이
     //   기존 제목 유지로 덮어쓰기(없으면 자동 생성). 성공 시 true 반환.
+    // 내 서재 저장 제목 입력 — 브라우저 기본 prompt() 대신 커스텀 팝업(showExitModal과 동일 스타일).
+    //   resolve(문자열)=저장, resolve(null)=취소.
+    function askSaveTitle(defTitle){
+      return new Promise(function(resolve){
+        if (document.getElementById("mwSaveModal")) { resolve(null); return; }
+        const ov=document.createElement("div"); ov.id="mwSaveModal";
+        ov.style.cssText="position:fixed;inset:0;z-index:99999;background:rgba(20,16,12,.55);display:flex;align-items:center;justify-content:center;padding:24px;font-family:'Pretendard','Malgun Gothic',sans-serif;";
+        ov.innerHTML='<div role="dialog" aria-modal="true" aria-label="내 서재에 저장" style="background:#fbf7f1;border-radius:16px;max-width:380px;width:100%;padding:20px;box-shadow:0 18px 60px rgba(0,0,0,.4);color:#2a241d;">'
+          +'<b style="font-size:15px">💾 내 서재에 저장</b>'
+          +'<p style="font-size:13px;color:#6b6258;line-height:1.6;margin:10px 0 12px">저장할 제목을 입력해 주세요.</p>'
+          +'<input id="mwSaveTitle" type="text" aria-label="저장할 제목" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid rgba(51,46,40,.25);border-radius:10px;font-size:14px;color:#2a241d;background:#fff;outline:none" />'
+          +'<div style="display:flex;gap:8px;margin-top:16px">'
+          +'<button id="mwSaveCancel" style="flex:1;padding:10px;border:1px solid rgba(51,46,40,.2);border-radius:10px;background:none;color:#7a7066;font-weight:700;font-size:13px;cursor:pointer">취소</button>'
+          +'<button id="mwSaveOk" style="flex:1;padding:10px;border:0;border-radius:10px;background:var(--accent,#b5552f);color:#fff;font-weight:800;font-size:13px;cursor:pointer">저장</button>'
+          +'</div></div>';
+        document.body.appendChild(ov);
+        const inp=document.getElementById("mwSaveTitle");
+        inp.value=defTitle||""; setTimeout(()=>{ inp.focus(); inp.select(); }, 0);
+        let done=false;
+        const close=(val)=>{ if(done) return; done=true; ov.remove(); resolve(val); };
+        ov.addEventListener("click",e=>{ if(e.target===ov) close(null); });
+        document.getElementById("mwSaveCancel").onclick=()=>close(null);
+        document.getElementById("mwSaveOk").onclick=()=>close(inp.value);
+        inp.addEventListener("keydown",e=>{
+          if(e.key==="Enter"&&!e.isComposing){ e.preventDefault(); close(inp.value); }
+          else if(e.key==="Escape"){ e.preventDefault(); close(null); }
+        });
+      });
+    }
     async function saveToLibrary(opts){
       opts = opts || {}; const silent = !!opts.silent;
       const warn = (m)=>{ if(!silent) alert(m); };
@@ -1827,7 +1856,9 @@
         let saved=""; try { if(MW_PALACE_ID){ saved=(JSON.parse(localStorage.getItem("mp_lib_titles")||"{}"))[MW_PALACE_ID]||""; } } catch(_){}
         title=(saved||defTitle||"내 궁전").trim();
       } else {
-        title=(prompt("내 서재에 저장할 제목:", defTitle)||"").trim();
+        const entered = await askSaveTitle(defTitle);
+        if (entered === null) return false;   // 취소
+        title=(entered||"").trim();
         if(!title) return false;
       }
       const btn = silent ? null : document.getElementById("saveLibBtn"); const old=btn?btn.textContent:"";
