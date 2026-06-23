@@ -10,10 +10,11 @@
   function $(id) { return document.getElementById(id); }
   function esc2(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" })[c]; }); }
   function cfg() { return window.mpQuizConfig || {}; }
-  function ragBase() {
-    if (cfg().base) return cfg().base;
-    try { var j = JSON.parse(localStorage.getItem("mp_rag_job") || "null"); if (j && j.base) return j.base; } catch (e) {}
-    return window.MP_RAG_BASE || "https://3d-mindpalace-ai-backend-h3gze8h7hfhqg3h8.canadacentral-01.azurewebsites.net";
+  // 퀴즈 API 베이스 — graphrag 잡 서버(mp_rag_job.base)를 거치지 않고 고정 백엔드(quiz API)로 보낸다.
+  //   (잡 서버엔 /quiz/json 이 없어 404가 났음. 어떤 자료로 낼지는 snapshot 으로 본문에 전달.)
+  //   다른 엔드포인트로 보내려면 window.MP_QUIZ_BASE 지정.
+  function quizBase() {
+    return cfg().base || window.MP_QUIZ_BASE || "https://3d-mindpalace-ai-backend-h3gze8h7hfhqg3h8.canadacentral-01.azurewebsites.net";
   }
   function snapshotKey() {
     if (cfg().snapshot) return cfg().snapshot;
@@ -145,7 +146,7 @@
     $("quizBody").innerHTML = '<div style="color:#7a7066">📝 퀴즈를 만드는 중…</div>'; $("quizActions").innerHTML = "";
     var body = { topic: topic, snapshot: snapshotKey(), quiz_types: types };
     if (count) body.count = count;
-    fetch(ragBase() + "/quiz/json", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+    fetch(quizBase() + "/quiz/json", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
       .then(function (r) {
         if (!r.ok) { $("quizBody").innerHTML = '<div style="color:#b06a3a">퀴즈 기능이 아직 백엔드에 연결되지 않았어요 (' + r.status + '). graphrag에 /quiz/json 추가 후 작동합니다.</div>'; quizBackBtn(); return null; }
         return r.json();
@@ -240,7 +241,7 @@
     if (!Object.keys(answers).length) return;
     btns.forEach(function (b) { if (b) b.disabled = true; });
     var sub = isAll ? $("quizSubmit") : null; if (sub) sub.textContent = "채점 중…";
-    fetch(ragBase() + "/quiz/grade", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ quiz_id: quizData.quiz_id, answers: answers }) })
+    fetch(quizBase() + "/quiz/grade", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ quiz_id: quizData.quiz_id, answers: answers }) })
       .then(function (r) { return r.json(); })
       .then(function (j) {
         (j.results || []).forEach(applyOneResult);
