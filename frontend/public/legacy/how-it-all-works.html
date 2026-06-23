@@ -368,15 +368,22 @@
       <div><h2>숫자로 보는 작업량</h2><div class="lead">방 하나에 몇 번·몇 장 일하나</div></div></div>
     <p class="body"><b>📸 스크린샷</b> — 자동 이름 짓기는 방을 <span class="o">네 모서리 4장</span> 찍어 AI에 <b>딱 1번</b>. '정밀'은 <span class="o">마커 1개당 1장</span>(512×512)씩. 방 스캐너는 <b>고정 장수가 아니라</b>, 빠짐없이 덮이게 <span class="o">방 크기에 맞춰 자동으로 더</span> 찍어요. <b>가장 먼 칸부터</b> 채우는 건 적은 장수로 방을 최대한 덮어 촬영 비용을 아끼려는 것이고, 이웃 칸끼리 약 <b>60% 겹치게</b> 해 사이가 비지 않게 해요(형상 복원이 아니라 '빠짐없이 보였나'만 보면 되니 60%로 충분). 사물마다 <b>15° 벌려 한 번 더</b> 찍는 건 두 시선이 만나 위치를 정확히 잡게 하는 여유분이에요.</p>
     <div class="viz">
-      <svg viewBox="0 0 300 116" aria-label="스캐너 시점계획 — 방 크기 비례 촬영">
-        <rect x="18" y="12" width="264" height="74" rx="8" fill="#fff" stroke="#DCD2C4"/>
-        <g stroke="#EFE6D8" stroke-width="1"><line x1="84" y1="12" x2="84" y2="86"/><line x1="150" y1="12" x2="150" y2="86"/><line x1="216" y1="12" x2="216" y2="86"/><line x1="18" y1="49" x2="282" y2="49"/></g>
-        <path d="M84 79 L54 22 L116 22 Z" fill="#E0730F" opacity=".13"/>
-        <path d="M150 79 L120 22 L182 22 Z" fill="#E0730F" opacity=".13"/>
-        <path d="M216 79 L186 22 L248 22 Z" fill="#E0730F" opacity=".13"/>
-        <g fill="#E0730F"><circle cx="84" cy="79" r="7"/><circle cx="150" cy="79" r="7"/><circle cx="216" cy="79" r="7"/></g>
-        <g fill="#fff" font="800 9px Pretendard" text-anchor="middle"><text x="84" y="82">2</text><text x="150" y="82">1</text><text x="216" y="82">3</text></g>
-        <text x="150" y="104" class="lbl-s" text-anchor="middle">가장 먼 칸부터 · 인접 ~60% 겹침 · 방 클수록 더 (사물마다 15° 더)</text>
+      <svg viewBox="0 0 300 122" aria-label="네 모서리 4컷 → AI 한 번 → 번호별 이름">
+        <rect x="14" y="22" width="118" height="78" rx="8" fill="#fff" stroke="#DCD2C4"/>
+        <circle cx="73" cy="61" r="3" fill="#C9B89E"/>
+        <g stroke="#E0730F" stroke-width="1" opacity=".45">
+          <line x1="30" y1="36" x2="73" y2="61"/><line x1="116" y1="36" x2="73" y2="61"/>
+          <line x1="30" y1="86" x2="73" y2="61"/><line x1="116" y1="86" x2="73" y2="61"/>
+        </g>
+        <g fill="#E0730F"><circle cx="30" cy="36" r="8"/><circle cx="116" cy="36" r="8"/><circle cx="30" cy="86" r="8"/><circle cx="116" cy="86" r="8"/></g>
+        <g fill="#fff" font="800 9px Pretendard" text-anchor="middle"><text x="30" y="39">1</text><text x="116" y="39">2</text><text x="30" y="89">3</text><text x="116" y="89">4</text></g>
+        <path d="M138 61 L160 61" stroke="#DCD2C4" stroke-width="2"/><polygon points="160,61 152,57 152,65" fill="#DCD2C4"/>
+        <rect x="164" y="44" width="60" height="34" rx="8" fill="#FBE7D1" stroke="#E0730F"/>
+        <text x="194" y="59" text-anchor="middle" font="800 10px Pretendard" fill="#B25400">GPT-4.1</text>
+        <text x="194" y="71" text-anchor="middle" class="lbl-s">비전 · 1콜</text>
+        <path d="M226 61 L246 61" stroke="#DCD2C4" stroke-width="2"/><polygon points="246,61 238,57 238,65" fill="#DCD2C4"/>
+        <g class="lbl-s"><text x="250" y="49">1 식탁</text><text x="250" y="63">2 소파</text><text x="250" y="77">3 의자…</text></g>
+        <text x="73" y="116" class="lbl-s" text-anchor="middle">네 모서리 4컷을 묶어 AI 1콜 → 번호별 이름</text>
       </svg>
     </div>
     <p class="body" style="margin-top:14px;"><b>🔢 개수</b> — 가구 최대 <b>22개</b> 인식, 동선엔 <b>최대 16개</b>. 22는 한 방을 한 바퀴 돌며 외울 '정거장'의 경험적 상한이에요(쪼개진 메쉬가 수백 개면 외울 게 폭발하니까) — 부피 큰 가구부터 채워 22에서 끊고, 모자라면 동선 합성으로 메워요. 동선 16은 사람이 한 번에 떠올릴 수 있는 한계(7±2 + 공간 단서)인데, 학습할 내용이 16개를 넘으면 사용자 데이터를 버릴 수 없어 그 수까지는 허용하고 그 위로는 신뢰도순으로 잘라요. 마커가 겹치면 <b>황금각 137.5°</b>로 흩뿌려요 — 가장 무리수에 가까운 각이라 점을 돌려 찍어도 겹치거나 일렬로 안 서고 매번 가장 넓은 빈틈으로 들어가거든요(해바라기 씨앗이 박히는 원리). 무작위가 아니라 늘 같은 결과로 고르게 퍼지죠.</p>
@@ -428,9 +435,9 @@
   <!-- 실제 작동 예시 -->
   <div class="sechead"><div class="e">실제로 돌려봤어요</div><h2>경복궁 방 — 받자마자 자동 인식</h2></div>
   <div class="step">
-    <p class="body" style="margin-top:0;">한국사 프리셋 <b>경복궁 방</b>(GLB)을 처음 열었을 때예요. 업로드·세팅 없이 <span class="o">가구 12개에 번호 마커가 자동으로</span> 박히고 동선까지 짜였어요. (학습 개념은 PDF를 분석하면 이 마커 위에 얹혀요.)</p>
-    <img class="shot" src="shots/02_room-markers.png" alt="경복궁 방 — 가구 12개에 자동 마커" loading="lazy">
-    <div class="shotcap">GLB를 처음 받은 직후 — 소파·식탁·노란 의자·화분·창문에 번호 마커가 자동 배치</div>
+    <p class="body" style="margin-top:0;">방 파일(GLB) 하나만 열면, 업로드·세팅 없이 <span class="o">가구마다 번호 마커가 자동으로</span> 박히고 동선까지 짜여요. (학습 개념은 PDF를 분석하면 이 마커 위에 얹혀요.)</p>
+    <img class="shot" src="shots/naming-result.svg" alt="자동 명명 결과 — 가구마다 번호·한국어 이름·시점 라벨" loading="lazy">
+    <div class="shotcap">가구마다 번호·한국어 이름이 자동 — 번호=걷는 순서, '의자/의자2'=같은 종류 구분, '뒤 왼쪽/앞 오른쪽'=보는 방향</div>
     <div class="markers">
       <span class="mk">1 식탁</span><span class="mk">2 뒤 왼쪽 화분</span><span class="mk">3 소파</span>
       <span class="mk">4 뒤 오른쪽 창문</span><span class="mk">5 화분</span><span class="mk">6 뒤 왼쪽 의자2</span>
