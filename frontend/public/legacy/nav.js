@@ -19,7 +19,7 @@
     const CUR = { "region-select": "browse",
                   "compose": "create", "glb-customizer": "create", "vworld_map": "create", "memory-walk": "create",
                   "bounding-box-visual": "explain", "how-it-all-works": "explain", "how-markers-work": "explain",
-                  "how-route-works": "explain", "system-architecture": "explain" }[file];
+                  "how-route-works": "explain", "system-architecture": "explain", "pipeline-overview": "explain" }[file];
     if (CUR === undefined) return; // 등록 안 된 페이지(home 포함)엔 주입 안 함
 
     const withCity = (href, key) =>
