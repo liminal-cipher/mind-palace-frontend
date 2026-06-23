@@ -365,8 +365,47 @@
     <div class="head"><div class="badge">📊</div>
       <div><h2>숫자로 보는 작업량</h2><div class="lead">방 하나에 몇 번·몇 장 일하나</div></div></div>
     <p class="body"><b>📸 스크린샷</b> — 자동 이름 짓기는 방을 <span class="o">네 모서리 4장</span> 찍어 AI에 <b>딱 1번</b>. '정밀'은 <span class="o">마커 1개당 1장</span>(512×512)씩. 방 스캐너는 <b>고정 장수가 아니라</b>, 빠짐없이 덮이게 <span class="o">방 크기에 맞춰 자동으로 더</span> 찍어요(가장 먼 칸부터·약 60% 겹침, 사물마다 15° 벌려 한 번 더).</p>
-    <p class="body"><b>🔢 개수</b> — 가구 최대 <b>22개</b> 인식, 동선엔 <b>최대 16개</b>. 마커가 겹치면 <b>황금각 137.5°</b>로 흩뿌려요.</p>
-    <p class="body"><b>🎥 카메라</b> — 핫스팟 누를 때마다 <b>28방향</b>을 따져 가장 잘 보이는 자리를 골라 <b>0.9초</b> 활공해요.</p>
+    <div class="viz">
+      <svg viewBox="0 0 300 116" aria-label="스캐너 시점계획 — 방 크기 비례 촬영">
+        <rect x="18" y="12" width="264" height="74" rx="8" fill="#fff" stroke="#DCD2C4"/>
+        <g stroke="#EFE6D8" stroke-width="1"><line x1="84" y1="12" x2="84" y2="86"/><line x1="150" y1="12" x2="150" y2="86"/><line x1="216" y1="12" x2="216" y2="86"/><line x1="18" y1="49" x2="282" y2="49"/></g>
+        <path d="M84 79 L54 22 L116 22 Z" fill="#E0730F" opacity=".13"/>
+        <path d="M150 79 L120 22 L182 22 Z" fill="#E0730F" opacity=".13"/>
+        <path d="M216 79 L186 22 L248 22 Z" fill="#E0730F" opacity=".13"/>
+        <g fill="#E0730F"><circle cx="84" cy="79" r="7"/><circle cx="150" cy="79" r="7"/><circle cx="216" cy="79" r="7"/></g>
+        <g fill="#fff" font="800 9px Pretendard" text-anchor="middle"><text x="84" y="82">2</text><text x="150" y="82">1</text><text x="216" y="82">3</text></g>
+        <text x="150" y="104" class="lbl-s" text-anchor="middle">가장 먼 칸부터 · 인접 ~60% 겹침 · 방 클수록 더 (사물마다 15° 더)</text>
+      </svg>
+    </div>
+    <p class="body" style="margin-top:14px;"><b>🔢 개수</b> — 가구 최대 <b>22개</b> 인식, 동선엔 <b>최대 16개</b>. 마커가 겹치면 <b>황금각 137.5°</b>로 흩뿌려요.</p>
+    <div class="viz">
+      <svg viewBox="0 0 300 94" aria-label="검출 22 → 동선 16 · 황금각 분산">
+        <circle cx="44" cy="46" r="25" fill="#fff" stroke="#DCD2C4"/>
+        <text x="44" y="43" text-anchor="middle" font="800 17px Pretendard" fill="#5E5346">22</text>
+        <text x="44" y="59" text-anchor="middle" class="lbl-s">검출</text>
+        <line x1="74" y1="46" x2="104" y2="46" stroke="#DCD2C4" stroke-width="2"/><polygon points="104,46 96,42 96,50" fill="#DCD2C4"/>
+        <text x="89" y="37" text-anchor="middle" class="lbl-s">추림</text>
+        <circle cx="138" cy="46" r="25" fill="#FBE7D1" stroke="#E0730F"/>
+        <text x="138" y="43" text-anchor="middle" font="800 17px Pretendard" fill="#B25400">16</text>
+        <text x="138" y="59" text-anchor="middle" class="lbl-s">동선</text>
+        <text x="245" y="15" text-anchor="middle" class="lbl-s">겹치면 황금각 137.5°</text>
+        <g fill="#E0730F"><circle cx="249" cy="56" r="3"/><circle cx="240" cy="61" r="3"/><circle cx="246" cy="46" r="3"/><circle cx="253" cy="66" r="3"/><circle cx="229" cy="53" r="3"/><circle cx="261" cy="47" r="3"/><circle cx="235" cy="70" r="3"/></g>
+        <text x="245" y="90" text-anchor="middle" class="lbl-s">고르게 흩뿌림</text>
+      </svg>
+    </div>
+    <p class="body" style="margin-top:14px;"><b>🎥 카메라</b> — 핫스팟 누를 때마다 <b>28방향</b>을 따져 가장 잘 보이는 자리를 골라 <b>0.9초</b> 활공해요.</p>
+    <div class="viz">
+      <svg viewBox="0 0 300 116" aria-label="카메라 28방향 평가 후 best 자리">
+        <circle cx="70" cy="58" r="36" fill="none" stroke="#DCD2C4" stroke-width="2" stroke-dasharray="2 6"/>
+        <circle cx="70" cy="58" r="9" fill="#241C12"/>
+        <g stroke="#DCD2C4" stroke-width="1.6" opacity=".7"><line x1="70" y1="58" x2="42" y2="38"/><line x1="70" y1="58" x2="96" y2="84"/><line x1="70" y1="58" x2="40" y2="70"/></g>
+        <line x1="70" y1="58" x2="104" y2="36" stroke="#E0730F" stroke-width="2.6"/>
+        <text x="110" y="34" font-size="15">📷</text>
+        <text x="160" y="50" class="lbl-s">28방향 평가 →</text>
+        <text x="160" y="66" class="lbl-s">가장 트인 1곳 →</text>
+        <text x="160" y="82" class="lbl-s">0.9초 활공</text>
+      </svg>
+    </div>
     <div class="easy"><span class="ic">💡</span><span class="tx"><b>쉽게 말하면</b> — 명명은 <b>방 4장 1번</b>, 정밀은 <b>사물마다 1장</b>, 스캐너는 <b>방 클수록 더</b>, 카메라는 <b>매번 28방향</b>을 다 따져요.</span></div>
   </div>
 
