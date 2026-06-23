@@ -108,8 +108,44 @@
       <a href="#s5"><span class="n">5</span>카메라</a>
       <a href="#s6"><span class="n">6</span>위치 관리·저장</a>
       <a href="#s7"><span class="n">7</span>백엔드·한계</a>
+      <a href="#s8"><span class="n">8</span>세그멘테이션</a>
+      <a href="#s9"><span class="n">9</span>숫자로</a>
       <a href="#glo"><span class="n">？</span>용어집</a>
     </div>
+  </div>
+
+  <!-- 전체 과정 인포그래픽 -->
+  <div class="step" style="padding:24px 18px;">
+    <div class="head" style="margin-bottom:4px;"><div class="badge">📈</div>
+      <div><h2>한 장으로 보는 전체 과정</h2><div class="lead">방 입력부터 학습·저장까지 · 실제 수치</div></div></div>
+    <svg viewBox="0 0 480 876" role="img" aria-label="전체 파이프라인 인포그래픽" style="margin-top:10px;">
+      <line x1="46" y1="56" x2="46" y2="826" stroke="#E0730F" stroke-width="3" opacity=".3"/>
+      <g><circle cx="46" cy="56" r="17" fill="#E0730F"/><text x="46" y="61" text-anchor="middle" font="800 14px Pretendard" fill="#fff">1</text>
+        <rect x="76" y="24" width="392" height="64" rx="14" fill="#fff" stroke="#DCD2C4"/><text x="100" y="64" font-size="22">📥</text>
+        <text x="136" y="50" font="800 15px Pretendard" fill="#241C12">입력</text><text x="136" y="72" font="600 12.5px Pretendard" fill="#B25400">3D 방(GLB) 또는 방 사진</text></g>
+      <g><circle cx="46" cy="166" r="17" fill="#E0730F"/><text x="46" y="171" text-anchor="middle" font="800 14px Pretendard" fill="#fff">2</text>
+        <rect x="76" y="134" width="392" height="64" rx="14" fill="#fff" stroke="#DCD2C4"/><text x="100" y="174" font-size="22">📐</text>
+        <text x="136" y="160" font="800 15px Pretendard" fill="#241C12">정규화</text><text x="136" y="182" font="600 12.5px Pretendard" fill="#B25400">가로 폭 7.2로 통일 · 바닥 0</text></g>
+      <g><circle cx="46" cy="276" r="17" fill="#E0730F"/><text x="46" y="281" text-anchor="middle" font="800 14px Pretendard" fill="#fff">3</text>
+        <rect x="76" y="244" width="392" height="64" rx="14" fill="#fff" stroke="#DCD2C4"/><text x="100" y="284" font-size="22">🔍</text>
+        <text x="136" y="270" font="800 15px Pretendard" fill="#241C12">가구 검출</text><text x="136" y="292" font="600 12.5px Pretendard" fill="#B25400">이름표 + 모양 · <tspan font-weight="800">최대 22개</tspan></text></g>
+      <g><circle cx="46" cy="386" r="17" fill="#E0730F"/><text x="46" y="391" text-anchor="middle" font="800 14px Pretendard" fill="#fff">4</text>
+        <rect x="76" y="354" width="392" height="64" rx="14" fill="#fff" stroke="#DCD2C4"/><text x="100" y="394" font-size="22">📦</text>
+        <text x="136" y="380" font="800 15px Pretendard" fill="#241C12">위치·좌표</text><text x="136" y="402" font="600 12.5px Pretendard" fill="#B25400">상자 중심(모델) / 삼각측량(사진)</text></g>
+      <g><circle cx="46" cy="496" r="17" fill="#E0730F"/><text x="46" y="501" text-anchor="middle" font="800 14px Pretendard" fill="#fff">5</text>
+        <rect x="76" y="464" width="392" height="64" rx="14" fill="#fff" stroke="#DCD2C4"/><text x="100" y="504" font-size="22">🏷️</text>
+        <text x="136" y="490" font="800 15px Pretendard" fill="#241C12">이름 짓기</text><text x="136" y="512" font="600 12.5px Pretendard" fill="#B25400"><tspan font-weight="800">4컷→AI 1회</tspan> · 정밀 마커당 1장</text></g>
+      <g><circle cx="46" cy="606" r="17" fill="#E0730F"/><text x="46" y="611" text-anchor="middle" font="800 14px Pretendard" fill="#fff">6</text>
+        <rect x="76" y="574" width="392" height="64" rx="14" fill="#fff" stroke="#DCD2C4"/><text x="100" y="614" font-size="22">🚶</text>
+        <text x="136" y="600" font="800 15px Pretendard" fill="#241C12">번호·동선</text><text x="136" y="622" font="600 12.5px Pretendard" fill="#B25400">입장 시점 부채꼴 · <tspan font-weight="800">최대 16개</tspan></text></g>
+      <g><circle cx="46" cy="716" r="17" fill="#E0730F"/><text x="46" y="721" text-anchor="middle" font="800 14px Pretendard" fill="#fff">7</text>
+        <rect x="76" y="684" width="392" height="64" rx="14" fill="#fff" stroke="#DCD2C4"/><text x="100" y="724" font-size="22">🎥</text>
+        <text x="136" y="710" font="800 15px Pretendard" fill="#241C12">카메라</text><text x="136" y="732" font="600 12.5px Pretendard" fill="#B25400"><tspan font-weight="800">28방향</tspan> 평가 · 0.9초 활공</text></g>
+      <g><circle cx="46" cy="826" r="17" fill="#E0730F"/><text x="46" y="831" text-anchor="middle" font="800 14px Pretendard" fill="#fff">8</text>
+        <rect x="76" y="794" width="392" height="64" rx="14" fill="#FBE7D1" stroke="#E0730F"/><text x="100" y="834" font-size="22">📚</text>
+        <text x="136" y="820" font="800 15px Pretendard" fill="#241C12">학습·저장</text><text x="136" y="842" font="600 12.5px Pretendard" fill="#B25400">개념 얹기 · 내 서재(Cosmos) 영속화</text></g>
+    </svg>
+    <div class="easy"><span class="ic">📸</span><span class="tx"><b>스크린샷은?</b> 명명은 <b>방 4장 1번</b>, 정밀은 <b>사물마다 1장</b>, 스캐너는 <b>방 클수록 더</b> 찍어요. (전부 실제 코드 검증값)</span></div>
   </div>
 
   <!-- 0 두 갈래 입력 (하이라이트) -->
@@ -261,6 +297,41 @@
     <p class="body">서버는 사물 검출(Azure Vision), 이름 짓기(GPT-4.1 비전), 내 서재 저장(Cosmos+Blob)을 맡아요. 쓰는 AI 모델은 코드가 아니라 <b>설정값</b>으로 정해지죠. 그리고 학습 자료(PDF)는 <b>GraphRAG</b>가 의미로 분석해 방·개념으로 만들어요.</p>
     <p class="body"><b>솔직한 한계</b> — 얇은 사물 뒤에 큰 배경(커튼)이 있으면 비전이 배경을 잡을 수 있어요. 그땐 그 사물만 <b>'정밀' 버튼</b>으로 다시 잡고, 자동이 어긋난 방은 <b>손편집</b>으로 받쳐요(①계층).</p>
     <div class="easy"><span class="ic">💡</span><span class="tx"><b>쉽게 말하면</b> — 똑똑한 AI도 가끔 틀리니, <b>정밀 버튼·손편집</b>이라는 안전장치를 같이 뒀어요.</span></div>
+  </div>
+
+  <!-- 8 세그멘테이션·바운딩박스 -->
+  <div class="step" id="s8">
+    <span class="num">기술 8</span>
+    <div class="head"><div class="badge">🧩</div>
+      <div><h2>세그멘테이션 &amp; 바운딩 박스</h2><div class="lead">'어디까지가 한 사물'인가 + 상자로 좌표 잡기</div></div></div>
+    <p class="body"><b>바운딩 박스</b> — 가구 조각의 <span class="o">모든 점을 감싸는 가장 작은 상자</span>를 씌워, 그 <b>한가운데를 위치</b>로, <b>상자 모양</b>을 '가구냐 벽이냐' 단서로 써요(렌더링 없이 점만 읽어 오차 0). 사진일 땐 AI가 화면에 <b>2D 박스</b>를 그리고 거기로 광선을 쏴 3D로 바꿔요.</p>
+    <p class="body"><b>세그멘테이션</b> — "어떤 조각들이 한 사물인가"를 묶는 문제예요(부정확은 좌표가 아니라 대부분 여기서). <span class="o">한 가구가 여러 조각</span>이면 마커가 겹쳐 → 가까운 건 합치고(0.5~1.0m·위에서 본 0.42m), <span class="o">여러 가구가 한 덩어리</span>면 좌표가 뭉쳐 → 통짜 메쉬는 빼고 사진·손편집으로 받쳐요(점이 한 덩어리라 기하학만으론 못 쪼갬).</p>
+    <div class="viz">
+      <svg viewBox="0 0 300 100" aria-label="바운딩 박스 중심과 겹침 정리">
+        <rect x="22" y="30" width="78" height="44" rx="6" fill="#fff" stroke="#DCD2C4"/>
+        <rect x="30" y="38" width="62" height="28" rx="3" fill="none" stroke="#E0730F" stroke-dasharray="4 3"/>
+        <circle cx="61" cy="52" r="4" fill="#E0730F"/>
+        <text x="61" y="92" class="lbl-s" text-anchor="middle">상자 중심 = 위치</text>
+        <circle cx="176" cy="46" r="13" fill="#241C12" opacity=".5"/>
+        <circle cx="188" cy="50" r="13" fill="#E0730F" opacity=".7"/>
+        <text x="225" y="46" class="lbl" text-anchor="middle">→</text>
+        <circle cx="262" cy="48" r="13" fill="#E0730F"/>
+        <text x="219" y="92" class="lbl-s" text-anchor="middle">겹친 둘 → 하나로</text>
+      </svg>
+    </div>
+    <div class="easy"><span class="ic">💡</span><span class="tx"><b>쉽게 말하면</b> — 물건마다 '딱 맞는 상자'를 씌워 가운데를 찍고, <b>겹친 건 합치되 통짜로 붙은 건 못 쪼개</b> 사진·손편집으로 도와요.</span></div>
+    <a class="more" href="bounding-box-visual.html">→ 바운딩 박스 시각화 페이지</a>
+  </div>
+
+  <!-- 9 숫자로 -->
+  <div class="step" id="s9">
+    <span class="num">기술 9</span>
+    <div class="head"><div class="badge">📊</div>
+      <div><h2>숫자로 보는 작업량</h2><div class="lead">방 하나에 몇 번·몇 장 일하나</div></div></div>
+    <p class="body"><b>📸 스크린샷</b> — 자동 이름 짓기는 방을 <span class="o">네 모서리 4장</span> 찍어 AI에 <b>딱 1번</b>. '정밀'은 <span class="o">마커 1개당 1장</span>(512×512)씩. 방 스캐너는 <b>고정 장수가 아니라</b>, 빠짐없이 덮이게 <span class="o">방 크기에 맞춰 자동으로 더</span> 찍어요(가장 먼 칸부터·약 60% 겹침, 사물마다 15° 벌려 한 번 더).</p>
+    <p class="body"><b>🔢 개수</b> — 가구 최대 <b>22개</b> 인식, 동선엔 <b>최대 16개</b>. 마커가 겹치면 <b>황금각 137.5°</b>로 흩뿌려요.</p>
+    <p class="body"><b>🎥 카메라</b> — 핫스팟 누를 때마다 <b>28방향</b>을 따져 가장 잘 보이는 자리를 골라 <b>0.9초</b> 활공해요.</p>
+    <div class="easy"><span class="ic">💡</span><span class="tx"><b>쉽게 말하면</b> — 명명은 <b>방 4장 1번</b>, 정밀은 <b>사물마다 1장</b>, 스캐너는 <b>방 클수록 더</b>, 카메라는 <b>매번 28방향</b>을 다 따져요.</span></div>
   </div>
 
   <!-- 용어집 -->

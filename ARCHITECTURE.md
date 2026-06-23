@@ -272,4 +272,19 @@ const score = open*1.0 + facing*1.1 + dist*0.4 + cont*1.25;     // 연속성 가
 
 ---
 
+## 13. 실제 작업의 양 (수치)
+
+**📸 스크린샷:**
+- 자동 명명(`captureLabelViews` → `POST /api/label-room`): 방을 **4각도**(yaw ±π/4·±3π/4, fov 64) 렌더 → **1회** 호출. GLB별 캐시(`mp_vision_labels:{glb}`).
+- 정밀 명명(`precisePointOffscreen` → `POST /api/vision-label`): 마커 **1개당 512×512 오프스크린 1장**.
+- 스캐너(`personal-room-scanner-3d.html`): 고정 장수 없음 — **시점계획**(farthest-point 샘플링 + 인접 ~60% 겹침, 예산 ∝ 방 유효셀 수) × 방향(`DIRS`) + **2차 사물별 ≥15° 보강 촬영**(삼각측량 최적각 6~10°, Gallup CVPR'08). 검출 박스는 **3×3=9점**(fr=[0.32,0.5,0.68]) 레이캐스트 후 최근접 깊이 ±0.4m 군집 평균.
+
+**🔢 개수·분산:** 가구 인식 상한 **22**(`TARGET`), 동선 마커 상한 **max(엔티티수, 16)**(`CAP`), 마커 분산 **황금각 137.5°**(2.39996323 rad).
+
+**🎯 위치 신뢰:** RMS<0.5m만 인정 / 가림 보정은 RMS<0.35m + 적중점-수렴점 0.6m 이상 이격 시.
+
+**🎥 카메라:** 핫스팟 클릭마다 **28방향** 레이캐스트 평가(`clearViewPos`), `flyTo` **900ms** easeInOutCubic.
+
+---
+
 *근거: `frontend/public/legacy/memory-walk.html`, `personal-room-scanner-3d.html`, `backend/app/main.py` (실제 소스) + 멀티 에이전트 소스 대조 검증(라인번호·전역변수명 정정 반영) + 라이브 엔드포인트 점검. 작성 2026-06-23.*
