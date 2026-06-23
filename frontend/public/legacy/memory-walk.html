@@ -3138,8 +3138,8 @@
       const q = (text || "").trim(); if (!q) return null;
       let job = null; try { job = JSON.parse(localStorage.getItem("mp_rag_job") || "null"); } catch(_){}
       let url, body;
-      if (job && job.base && job.jobId && job.done !== false) { url = job.base + "/jobs/" + encodeURIComponent(job.jobId) + "/query"; body = { question: q, method: "auto" }; }
-      else { url = MNEMO_BASE + "/query"; body = { question: q, snapshot: MW_PALACE_ID || "korean_history", method: "auto" }; }
+      if (job && job.base && job.jobId && job.done !== false) { url = job.base + "/jobs/" + encodeURIComponent(job.jobId) + "/query"; body = { question: q, method: "local" }; }
+      else { url = MNEMO_BASE + "/query"; body = { question: q, snapshot: MW_PALACE_ID || "korean_history", method: "local" }; }   // local 이라야 sources.entities 동반(auto→global이면 sources 비어 출처 칩이 안 뜸)
       try {
         const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 25000);
         const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal: ctrl.signal });

@@ -1113,10 +1113,10 @@
         let url, body;
         if (job && job.base && job.jobId && job.done !== false) {  // 업로드 PDF(라이브 잡)면 그 잡으로 질의
           url = job.base + "/jobs/" + encodeURIComponent(job.jobId) + "/query";
-          body = { question: q, method: "auto" };
+          body = { question: q, method: "local" };   // local 이라야 답변에 Entities() 인용→sources.entities 동반(auto는 global로 빠져 sources가 비어 칩이 안 떴음)
         } else {                                                    // 아니면 쇼케이스 스냅샷으로 질의
           url = MNEMO_BASE + "/query";
-          body = { question: q, snapshot: MAP_PALACE_ID, method: "auto" };
+          body = { question: q, snapshot: MAP_PALACE_ID, method: "local" };
         }
         try {
           const ctrl = new AbortController();
