@@ -3137,14 +3137,25 @@
     window.mpAssistantAsk = async (text, ctx) => {
       const q = (text || "").trim(); if (!q) return null;
       let job = null; try { job = JSON.parse(localStorage.getItem("mp_rag_job") || "null"); } catch(_){}
-      let url, body;
-      if (job && job.base && job.jobId && job.done !== false) { url = job.base + "/jobs/" + encodeURIComponent(job.jobId) + "/query"; body = { question: q, method: "local" }; }
-      else { url = MNEMO_BASE + "/query"; body = { question: q, snapshot: MW_PALACE_ID || "korean_history", method: "local" }; }   // local 이라야 sources.entities 동반(auto→global이면 sources 비어 출처 칩이 안 뜸)
-      try {
+      // 쇼케이스(데모 스냅샷) 질의 — 항상 고정 백엔드(QUIZ_API)로. 잡 서버 base 로 보내면 /query+snapshot 이 없어 404가 났음(퀴즈 위젯과 동일 이슈).
+      const showcase = { url: QUIZ_API + "/query", body: { question: q, snapshot: MW_PALACE_ID || "korean_history", method: "local" } };
+      // 업로드 PDF(라이브 잡)가 유효하면 그 잡으로 먼저 질의(local 이라야 sources.entities 동반→개념 칩).
+      const primary = (job && job.base && job.jobId && job.done !== false)
+        ? { url: job.base + "/jobs/" + encodeURIComponent(job.jobId) + "/query", body: { question: q, method: "local" } }
+        : showcase;
+      async function askOnce(spec){
         const ctrl = new AbortController(); const to = setTimeout(() => ctrl.abort(), 25000);
-        const r = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body), signal: ctrl.signal });
-        clearTimeout(to);
-        if (!r.ok) return { text: "학습 답변을 가져오지 못했어요 (" + r.status + "). 분석이 끝났는지 확인해 주세요." };
+        try { return await fetch(spec.url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(spec.body), signal: ctrl.signal }); }
+        catch(_) { return null; } finally { clearTimeout(to); }
+      }
+      // 이미 분석이 끝났던 잡(done===true)이 만료·삭제(404 등)된 경우에만 데모 스냅샷으로 폴백.
+      //   (아직 분석 중인 잡은 폴백하지 않고 "분석 끝났는지 확인" 안내를 유지 → 엉뚱한 데모 답변 방지.)
+      const jobWasDone = !!(job && job.done === true);
+      let r = await askOnce(primary);
+      if ((!r || !r.ok) && primary !== showcase && jobWasDone) r = await askOnce(showcase);
+      if (!r) return { text: "요청이 지연됐어요. 잠시 후 다시 물어봐 주세요." };
+      if (!r.ok) return { text: "학습 답변을 가져오지 못했어요 (" + r.status + "). 분석이 끝났는지 확인해 주세요." };
+      try {
         const j = await r.json();
         trackUsage("chat", j.usage);   // 이 질의가 쓴 토큰을 사용자 계정에 누적(마이페이지 표시용)
         const ans = (j.answer || "").replace(/\s*\[Data:[^\]]*\]/g, "").trim();   // GraphRAG 인용 토큰 정리

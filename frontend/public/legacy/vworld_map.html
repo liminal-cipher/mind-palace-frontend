@@ -1105,35 +1105,36 @@
       //   memory-walk 의 window.mpAssistantAsk 와 동일 구조. 방(route) 컨텍스트가 없으므로
       //   관련 개념 칩은 그 개념이 속한 챕터의 랜드마크 '입장' 칩으로 만든다(매칭 실패 시 칩 없음).
       const MAP_PALACE_ID = (PAL && PAL.palace && PAL.palace.id) || "korean_history";
-      const MNEMO_BASE = (function () {
-        try { const j = JSON.parse(localStorage.getItem("mp_rag_job") || "null"); if (j && j.base) return j.base; } catch (_) {}
-        return "https://3d-mindpalace-ai-backend-h3gze8h7hfhqg3h8.canadacentral-01.azurewebsites.net";
-      })();
+      // 쇼케이스(데모 스냅샷) 질의는 항상 고정 백엔드로 보낸다.
+      //   (잡 서버 base 로 보내면 /query+snapshot 이 없어 404 가 났음 — 퀴즈 위젯과 동일한 이슈.)
+      const MNEMO_BASE = "https://3d-mindpalace-ai-backend-h3gze8h7hfhqg3h8.canadacentral-01.azurewebsites.net";
       window.mpAssistantAsk = async (text, ctx) => {
         const q = (text || "").trim();
         if (!q) return null;
         let job = null;
         try { job = JSON.parse(localStorage.getItem("mp_rag_job") || "null"); } catch (_) {}
-        let url, body;
-        if (job && job.base && job.jobId && job.done !== false) {  // 업로드 PDF(라이브 잡)면 그 잡으로 질의
-          url = job.base + "/jobs/" + encodeURIComponent(job.jobId) + "/query";
-          body = { question: q, method: "local" };   // local 이라야 답변에 Entities() 인용→sources.entities 동반(auto는 global로 빠져 sources가 비어 칩이 안 떴음)
-        } else {                                                    // 아니면 쇼케이스 스냅샷으로 질의
-          url = MNEMO_BASE + "/query";
-          body = { question: q, snapshot: MAP_PALACE_ID, method: "local" };
-        }
-        try {
+        // 쇼케이스(데모 스냅샷) 질의 — 잡이 없거나, 잡 질의가 실패하면 이걸로 폴백.
+        const showcase = { url: MNEMO_BASE + "/query", body: { question: q, snapshot: MAP_PALACE_ID, method: "local" } };
+        // 업로드 PDF(라이브 잡)가 유효하면 그 잡으로 먼저 질의(local 이라야 sources.entities 동반→개념 칩).
+        const primary = (job && job.base && job.jobId && job.done !== false)
+          ? { url: job.base + "/jobs/" + encodeURIComponent(job.jobId) + "/query", body: { question: q, method: "local" } }
+          : showcase;
+        async function askOnce(spec) {
           const ctrl = new AbortController();
           const to = setTimeout(() => ctrl.abort(), 25000);
-          const r = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body),
-            signal: ctrl.signal,
-          });
-          clearTimeout(to);
-          if (!r.ok)
-            return { text: "학습 답변을 가져오지 못했어요 (" + r.status + "). 분석이 끝났는지 확인해 주세요." };
+          try {
+            return await fetch(spec.url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(spec.body), signal: ctrl.signal });
+          } catch (_) { return null; } finally { clearTimeout(to); }
+        }
+        // 이미 분석이 끝났던 잡(done===true)이 만료·삭제(404 등)된 경우에만 데모 스냅샷으로 폴백.
+        //   (아직 분석 중인 잡은 폴백하지 않고 "분석 끝났는지 확인" 안내를 유지 → 엉뚱한 데모 답변 방지.)
+        const jobWasDone = !!(job && job.done === true);
+        let r = await askOnce(primary);
+        if ((!r || !r.ok) && primary !== showcase && jobWasDone) r = await askOnce(showcase);
+        if (!r) return { text: "요청이 지연됐어요. 잠시 후 다시 물어봐 주세요." };
+        if (!r.ok)
+          return { text: "학습 답변을 가져오지 못했어요 (" + r.status + "). 분석이 끝났는지 확인해 주세요." };
+        try {
           const j = await r.json();
           const ans = (j.answer || "").replace(/\s*\[Data:[^\]]*\]/g, "").trim(); // GraphRAG 인용 토큰 정리
           // 관련 개념 → 그 개념이 배정된 챕터의 랜드마크 '입장' 칩(act:"go" = 그 방으로 이동)
