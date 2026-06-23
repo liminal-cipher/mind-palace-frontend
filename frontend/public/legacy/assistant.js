@@ -97,16 +97,18 @@
     ".mp-foot{display:flex;gap:7px;padding:11px 13px;border-top:1px solid var(--line);background:var(--panel2,#fff);}",
     ".mp-foot input{flex:1;border:1px solid var(--line);border-radius:999px;padding:8px 13px;font:inherit;font-size:13px;background:var(--bg,#f5f1ea);color:var(--text);outline:none;}",
     ".mp-foot button{border:0;border-radius:50%;width:36px;height:36px;cursor:pointer;background:var(--accent,#b5552f);color:#fff;font-size:15px;}",
-    ".mp-bar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 13px;border-top:1px solid var(--line);background:var(--bg,#f5f1ea);}",
-    ".mp-bar .barlabel{width:100%;font-size:11px;font-weight:800;color:var(--muted);}",
-    ".mp-bar button{cursor:pointer;border:1px solid var(--line);background:var(--panel2,#fff);color:var(--text);border-radius:999px;padding:5px 10px;font:inherit;font-size:11px;font-weight:700;line-height:1.2;}",
-    ".mp-bar button:hover{border-color:var(--accent);}",
-    ".mp-bar .barmaster[aria-pressed=true],.mp-bar .barmaster[aria-expanded=true]{background:var(--accent,#b5552f);color:#fff;border-color:var(--accent);}",
-    ".mp-bar .baropts{display:flex;flex-wrap:wrap;align-items:center;gap:6px;width:100%;}",
-    ".mp-bar .baropts[hidden]{display:none;}",
-    ".mp-bar .barrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;width:100%;}",
-    ".mp-bar .vseg{display:inline-flex;gap:4px;}",
-    ".mp-bar button.is-active{background:var(--accent,#b5552f);color:#fff;border-color:var(--accent);}"
+    ".mp-tools{border-top:1px solid var(--line);background:var(--bg,#f5f1ea);}",
+    ".mp-toolbar{display:flex;flex-wrap:wrap;gap:6px;padding:7px 13px;}",
+    ".mp-tchip{cursor:pointer;border:1px solid var(--line);background:var(--panel2,#fff);color:var(--text);border-radius:999px;padding:5px 10px;font:inherit;font-size:11px;font-weight:700;line-height:1.2;}",
+    ".mp-tchip:hover{border-color:var(--accent);}",
+    ".mp-tchip[aria-expanded=true]{background:var(--accent,#b5552f);color:#fff;border-color:var(--accent);}",
+    ".mp-topts{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:0 13px 9px;}",
+    ".mp-topts[hidden]{display:none;}",
+    ".mp-topts .barrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;width:100%;}",
+    ".mp-topts .vseg{display:inline-flex;gap:4px;}",
+    ".mp-topts button{cursor:pointer;border:1px solid var(--line);background:var(--panel2,#fff);color:var(--text);border-radius:999px;padding:5px 10px;font:inherit;font-size:11px;font-weight:700;line-height:1.2;}",
+    ".mp-topts button:hover{border-color:var(--accent);}",
+    ".mp-topts button.is-active,.mp-topts .vmaster[aria-pressed=true]{background:var(--accent,#b5552f);color:#fff;border-color:var(--accent);}"
     ].join("");
     var st = document.createElement("style"); st.id = "mp-asst-style"; st.textContent = STYLE; document.head.appendChild(st);
 
@@ -116,10 +118,13 @@
       '<section class="mp-panel" id="mpPanel" role="dialog" aria-label="기억의 궁전 도우미">' +
         '<div class="mp-hd"><span class="d">宮</span><div><div class="t">기억의 궁전 도우미</div><div class="s">● 온라인 · 테마 도우미</div></div><button class="x" id="mpClose" aria-label="닫기">×</button></div>' +
         '<div class="mp-body" id="mpBody"></div>' +
-        '<div class="mp-bar" id="mpTheme">' +
-          '<span class="barlabel">🎨 테마 · 글씨</span>' +
-          '<button type="button" class="barmaster" id="mpThemeToggle" aria-expanded="false" aria-label="테마·글씨 메뉴 열기">바꾸기</button>' +
-          '<div class="baropts" id="mpThemeOpts" hidden>' +
+        '<div class="mp-tools">' +
+          '<div class="mp-toolbar">' +
+            '<button type="button" class="mp-tchip" id="mpThemeToggle" aria-expanded="false" aria-controls="mpThemeOpts" aria-label="테마·글씨 메뉴">🎨 테마·글씨</button>' +
+            '<button type="button" class="mp-tchip" id="mpNavToggle" aria-expanded="false" aria-controls="mpNavOpts" aria-label="화면 이동 메뉴">🧭 화면 이동</button>' +
+            '<button type="button" class="mp-tchip" id="mpVoiceToggle" aria-expanded="false" aria-controls="mpVoiceOpts" aria-label="음성 안내 메뉴">🔈 음성 안내</button>' +
+          '</div>' +
+          '<div class="mp-topts" id="mpThemeOpts" hidden>' +
             '<div class="barrow">' +
               '<button type="button" data-theme="sage">세이지</button>' +
               '<button type="button" data-theme="indigo">인디고</button>' +
@@ -131,16 +136,9 @@
               '<button type="button" data-zoom="0.92">글씨 작게</button>' +
             '</div>' +
           '</div>' +
-        '</div>' +
-        '<div class="mp-bar" id="mpNav">' +
-          '<span class="barlabel">🧭 화면 이동</span>' +
-          '<button type="button" class="barmaster" id="mpNavToggle" aria-expanded="false" aria-label="화면 이동 메뉴 열기">이동하기</button>' +
-          '<div class="baropts" id="mpNavOpts" hidden></div>' +
-        '</div>' +
-        '<div class="mp-bar" id="mpVoice">' +
-          '<span class="barlabel">🔈 음성 안내 (시각 접근성)</span>' +
-          '<button type="button" class="barmaster vmaster" id="mpVoiceToggle" aria-pressed="false" aria-label="음성 안내 켜기">음성 안내 켜기</button>' +
-          '<div class="baropts" id="mpVoiceOpts" hidden>' +
+          '<div class="mp-topts" id="mpNavOpts" hidden></div>' +
+          '<div class="mp-topts" id="mpVoiceOpts" hidden>' +
+            '<button type="button" class="vmaster" id="mpVoiceMaster" aria-pressed="false" aria-label="음성 안내 켜기">음성 안내 켜기</button>' +
             '<button type="button" id="mpVoiceGender" aria-label="목소리 전환 (현재 여성)">목소리: 여성</button>' +
             '<span class="vseg" role="group" aria-label="읽기 속도">' +
               '<button type="button" data-tts-speed="slow" aria-label="느리게 읽기">느리게</button>' +
@@ -319,32 +317,35 @@
     document.getElementById("mpLaunch").onclick = function(){ toggle(!panel.classList.contains("open")); };
     document.getElementById("mpClose").onclick = function(){ toggle(false); };
     document.getElementById("mpSend").onclick = function(){ var v = input.value.trim(); if (!v) return; addMsg(v, "me"); input.value = ""; setTimeout(function(){ getReply(v); }, 120); };
-    input.addEventListener("keydown", function(e){ if (e.key === "Enter") document.getElementById("mpSend").click(); });
+    // 한글 IME 조합 중 Enter는 '조합 확정'이므로 전송하지 않음(Mac에서 마지막 글자 중복 전송 방지)
+    input.addEventListener("keydown", function(e){ if (e.key === "Enter" && !e.isComposing && e.keyCode !== 229) document.getElementById("mpSend").click(); });
 
-    // ── 테마·글씨 토글 (펼치면 테마/글씨 크기 변경) ──
+    // ── 푸터 도구 아코디언(테마·글씨 / 화면 이동 / 음성 안내) — 한 번에 하나만 펼쳐 공간 절약 ──
+    var TOOLS = [
+      { btn: document.getElementById("mpThemeToggle"), opts: document.getElementById("mpThemeOpts") },
+      { btn: document.getElementById("mpNavToggle"),   opts: document.getElementById("mpNavOpts") },
+      { btn: document.getElementById("mpVoiceToggle"), opts: document.getElementById("mpVoiceOpts") }
+    ];
+    function openTool(which){ // which: 펼칠 opts 요소(없으면 전부 닫기)
+      TOOLS.forEach(function(t){ if (!t.btn || !t.opts) return;
+        var on = (t.opts === which);
+        t.opts.hidden = !on;
+        t.btn.setAttribute("aria-expanded", on ? "true" : "false");
+      });
+    }
+    TOOLS.forEach(function(t){ if (t.btn && t.opts) t.btn.addEventListener("click", function(){ openTool(t.opts.hidden ? t.opts : null); }); });
+
+    // 테마·글씨
     (function themeWire(){
-      var tToggle = document.getElementById("mpThemeToggle");
-      var tOpts   = document.getElementById("mpThemeOpts");
-      if (!tToggle || !tOpts) return;
+      var tOpts = document.getElementById("mpThemeOpts"); if (!tOpts) return;
       markThemeActive();
-      [].forEach.call(tOpts.querySelectorAll("[data-theme]"), function(b){
-        b.addEventListener("click", function(){ act({ act:"theme", v:b.getAttribute("data-theme") }); }); // setTheme → markThemeActive
-      });
-      [].forEach.call(tOpts.querySelectorAll("[data-zoom]"), function(b){
-        b.addEventListener("click", function(){ act({ act:"zoom", v:b.getAttribute("data-zoom") }); });
-      });
-      tToggle.addEventListener("click", function(){
-        var open = tOpts.hidden; tOpts.hidden = !open;
-        tToggle.setAttribute("aria-expanded", open ? "true" : "false");
-        tToggle.setAttribute("aria-label", open ? "테마·글씨 메뉴 닫기" : "테마·글씨 메뉴 열기");
-      });
+      [].forEach.call(tOpts.querySelectorAll("[data-theme]"), function(b){ b.addEventListener("click", function(){ act({ act:"theme", v:b.getAttribute("data-theme") }); }); });
+      [].forEach.call(tOpts.querySelectorAll("[data-zoom]"),  function(b){ b.addEventListener("click", function(){ act({ act:"zoom",  v:b.getAttribute("data-zoom") }); }); });
     })();
 
-    // ── 화면 이동 토글 (펼치면 다른 화면으로 바로 이동) ──
+    // 화면 이동 (현재 화면 제외)
     (function navWire(){
-      var nToggle = document.getElementById("mpNavToggle");
-      var nOpts   = document.getElementById("mpNavOpts");
-      if (!nToggle || !nOpts) return;
+      var nOpts = document.getElementById("mpNavOpts"); if (!nOpts) return;
       var DEST = [
         { label:"구성 화면", v:"compose.html" },
         { label:"방 디자인 스튜디오", v:"glb-customizer.html" },
@@ -353,28 +354,21 @@
       ];
       var here = (location.pathname.split("/").pop() || "").toLowerCase();
       DEST.forEach(function(d){
-        if (d.v.toLowerCase() === here) return; // 현재 화면은 제외
+        if (d.v.toLowerCase() === here) return;
         var b = document.createElement("button");
         b.type = "button"; b.textContent = d.label;
         b.addEventListener("click", function(){ act({ act:"go", v:d.v }); });
         nOpts.appendChild(b);
       });
-      nToggle.addEventListener("click", function(){
-        var open = nOpts.hidden;
-        nOpts.hidden = !open;
-        nToggle.setAttribute("aria-expanded", open ? "true" : "false");
-        nToggle.setAttribute("aria-label", open ? "화면 이동 메뉴 닫기" : "화면 이동 메뉴 열기");
-      });
     })();
 
     // ── 음성 안내(TTS) 컨트롤 배선 (mpTTS 엔진은 defer로 늦게 로드될 수 있어 상태를 재동기화) ──
     (function voiceWire(){
-      var vToggle  = document.getElementById("mpVoiceToggle");
-      var vOpts    = document.getElementById("mpVoiceOpts");
+      var vMaster  = document.getElementById("mpVoiceMaster");
       var vGender  = document.getElementById("mpVoiceGender");
       var vSpatial = document.getElementById("mpVoiceSpatial");
       var vSpeeds  = [].slice.call(panel.querySelectorAll("#mpVoiceOpts [data-tts-speed]"));
-      if (!vToggle) return;
+      if (!vMaster) return;
       function syncState(){
         if (!window.mpTTS) return;
         var st = window.mpTTS.getState();
@@ -386,12 +380,11 @@
         vSpatial.setAttribute("aria-label", st.spatial ? "공간음향 끄기" : "공간음향 켜기");
       }
       syncState(); setTimeout(syncState, 600); setTimeout(syncState, 1500); // 엔진 로드 후 따라잡기
-      vToggle.addEventListener("click", function(){
+      vMaster.addEventListener("click", function(){
         window.__mpVoiceOn = !window.__mpVoiceOn;
-        vToggle.setAttribute("aria-pressed", window.__mpVoiceOn ? "true" : "false");
-        vToggle.textContent = window.__mpVoiceOn ? "🔈 음성 안내 끄기" : "🔈 음성 안내 켜기";
-        vToggle.setAttribute("aria-label", window.__mpVoiceOn ? "음성 안내 끄기" : "음성 안내 켜기");
-        vOpts.hidden = !window.__mpVoiceOn;
+        vMaster.setAttribute("aria-pressed", window.__mpVoiceOn ? "true" : "false");
+        vMaster.textContent = window.__mpVoiceOn ? "음성 안내 끄기" : "음성 안내 켜기";
+        vMaster.setAttribute("aria-label", window.__mpVoiceOn ? "음성 안내 끄기" : "음성 안내 켜기");
         if (window.__mpVoiceOn && window.mpTTS){ syncState(); if (window.mpTTS.warmup) window.mpTTS.warmup(); window.mpTTS.speak("음성 안내를 켰습니다. 도우미의 답변을 읽어 드릴게요."); }
         else if (window.mpTTS){ window.mpTTS.stop(); }
       });
