@@ -1094,6 +1094,61 @@
         return (!lm || u.includes("lm=")) ? u : u + (u.includes("?") ? "&" : "?") + "lm=" + lm;
       };
 
+      // ── 지도 화면 RAG 챗봇: assistant.js 의 자유 질문을 graphrag /query 로 라우팅 ──
+      //   memory-walk 의 window.mpAssistantAsk 와 동일 구조. 방(route) 컨텍스트가 없으므로
+      //   관련 개념 칩은 그 개념이 속한 챕터의 랜드마크 '입장' 칩으로 만든다(매칭 실패 시 칩 없음).
+      const MAP_PALACE_ID = (PAL && PAL.palace && PAL.palace.id) || "korean_history";
+      const MNEMO_BASE = (function () {
+        try { const j = JSON.parse(localStorage.getItem("mp_rag_job") || "null"); if (j && j.base) return j.base; } catch (_) {}
+        return "https://3d-mindpalace-ai-backend-h3gze8h7hfhqg3h8.canadacentral-01.azurewebsites.net";
+      })();
+      window.mpAssistantAsk = async (text, ctx) => {
+        const q = (text || "").trim();
+        if (!q) return null;
+        let job = null;
+        try { job = JSON.parse(localStorage.getItem("mp_rag_job") || "null"); } catch (_) {}
+        let url, body;
+        if (job && job.base && job.jobId && job.done !== false) {  // 업로드 PDF(라이브 잡)면 그 잡으로 질의
+          url = job.base + "/jobs/" + encodeURIComponent(job.jobId) + "/query";
+          body = { question: q, method: "auto" };
+        } else {                                                    // 아니면 쇼케이스 스냅샷으로 질의
+          url = MNEMO_BASE + "/query";
+          body = { question: q, snapshot: MAP_PALACE_ID, method: "auto" };
+        }
+        try {
+          const ctrl = new AbortController();
+          const to = setTimeout(() => ctrl.abort(), 25000);
+          const r = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+            signal: ctrl.signal,
+          });
+          clearTimeout(to);
+          if (!r.ok)
+            return { text: "학습 답변을 가져오지 못했어요 (" + r.status + "). 분석이 끝났는지 확인해 주세요." };
+          const j = await r.json();
+          const ans = (j.answer || "").replace(/\s*\[Data:[^\]]*\]/g, "").trim(); // GraphRAG 인용 토큰 정리
+          // 관련 개념 → 그 개념이 배정된 챕터의 랜드마크 '입장' 칩(act:"go" = 그 방으로 이동)
+          const chips = [], seen = new Set();
+          for (const e of (j.sources && j.sources.entities) || []) {
+            const t = e && e.title;
+            if (!t || seen.has(t)) continue;
+            seen.add(t);
+            const idx = PAL_ROOMS.findIndex((rm) =>
+              rm && (rm.title === t || (rm.entities || []).some((x) => (x && (x.title || x)) === t)));
+            if (idx >= 0) {
+              const nm = ((CITY.landmarks || [])[idx] || {}).name || t;
+              const u = roomFor(idx, nm);
+              if (u) { chips.push({ label: "📍 " + nm + " 입장", act: "go", v: u }); if (chips.length >= 4) break; }
+            }
+          }
+          return { text: ans || "관련 내용을 찾지 못했어요.", chips };
+        } catch (_) {
+          return { text: "요청이 지연됐어요. 잠시 후 다시 물어봐 주세요." };
+        }
+      };
+
       // 시작/중심 좌표가 데이터에 없으면 랜드마크 평균 위치로 자동 계산.
       const CITY_CENTROID = (() => {
         const ls = LANDMARKS.filter((m) => isFinite(m.lon) && isFinite(m.lat));
