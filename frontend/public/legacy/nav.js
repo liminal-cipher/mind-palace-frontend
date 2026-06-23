@@ -78,8 +78,10 @@
     // '기술 설명'은 단일 링크가 아니라 하위 기술 문서로 가는 드롭다운(클릭 시 작은 팝업).
     const TECH_SUB = [
       { label: "🏛 전체 소개",          href: "home.html" },
+      { label: "🧭 전체 기술 한눈에",    href: "how-it-all-works.html" },
       { label: "🗺 3D 시스템 아키텍처",  href: "system-architecture.html" },
       { label: "📍 3D 마커 만드는 법",   href: "how-markers-work.html" },
+      { label: "🚶 동선 설계",           href: "how-route-works.html" },
       { label: "📦 바운딩 박스 시각화",  href: "bounding-box-visual.html" },
     ];
     const right = document.createElement("div");
