@@ -77,14 +77,26 @@
     nav.setAttribute("aria-label", "주요 메뉴");
     nav.innerHTML = `<a class="mpb" href="${withCity("home.html", "explain")}">기억의 궁전</a>`;
     // 우측 그룹: 번호 라벨 링크(home과 동일) + 계정. 몰입형 바엔 컴팩트.
-    // '전체 기술 설명'은 단일 링크 → bounding-box-visual.html(3D 기술 워크스루). 세부 기술 문서는 그 페이지 안에서 링크.
+    // '전체 기술 설명'은 누르면 두 갈래(글 / 3D)를 고르는 드롭다운.
     const right = document.createElement("div");
     right.className = "mpright";
-    right.innerHTML = ITEMS.map((it) =>
-      (it.key === CUR)
+    const TECH_SUB = [
+      { label: "📖 전체 기술 한눈에 (글)", href: "how-it-all-works.html" },
+      { label: "🧊 3D 워크스루 (체험)",    href: "bounding-box-visual.html" },
+    ];
+    right.innerHTML = ITEMS.map((it) => {
+      if (it.key === "explain") {
+        const on = (CUR === "explain") ? " on" : "";
+        return `<div class="mpdd">`
+          + `<a class="mpsec mpdd-t${on}" role="button" aria-haspopup="true" aria-expanded="false" tabindex="0">${it.label} <span class="mpcar">▾</span></a>`
+          + `<div class="mpdd-menu" role="menu">`
+          + TECH_SUB.map((s) => `<a role="menuitem" href="${s.href}">${s.label}</a>`).join("")
+          + `</div></div>`;
+      }
+      return (it.key === CUR)
         ? `<a class="mpsec on" aria-current="page">${it.label}</a>`
-        : `<a class="mpsec" href="${withCity(it.href, it.key)}" title="${it.label}로 이동">${it.label}</a>`
-    ).join("");
+        : `<a class="mpsec" href="${withCity(it.href, it.key)}" title="${it.label}로 이동">${it.label}</a>`;
+    }).join("");
     // Easy Auth 계정 섹션(로그인 → Microsoft / 로그인됨 → 마이페이지). 몰입형 바엔 숨김(CSS).
     const auth = document.createElement("div");
     auth.className = "mpauth";
@@ -122,13 +134,16 @@
 
     // 문서형은 풀바+body 패딩. 지도(vworld_map)는 다른 페이지와 같은 솔리드 통일 바(브랜드+메뉴+계정)를
     //   오버레이로 두고, 위쪽 떠있는 카드(안내·대시도크)를 바 아래로 내려 겹침 방지. 그 외 몰입형(memory-walk)은 컴팩트 플로트.
-    const DOC = ["region-select", "compose", "glb-customizer"];
+    const DOC = ["region-select", "compose", "glb-customizer", "how-it-all-works"];
     if (DOC.includes(file)) {
       document.body.classList.add("mpnav-pad");
     } else if (file === "vworld_map") {
       const ov = document.createElement("style");
       ov.textContent = "#status{top:62px !important;} .dash-dock{top:62px !important;}";
       document.head.appendChild(ov);
+    } else if (file === "bounding-box-visual") {
+      /* 전체 기술 설명(3D 워크스루): 다른 페이지와 동일한 솔리드 배너를 캔버스 위 오버레이로.
+         (float/pad 미적용 = 기본 솔리드 .mpnav. 헤더·근거패널이 top:60px라 겹치지 않음) */
     } else {
       nav.classList.add("mpnav-float");
     }
