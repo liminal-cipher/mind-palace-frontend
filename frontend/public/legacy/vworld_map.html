@@ -1045,7 +1045,11 @@
       //   도시가 mp_palace:<city>로 claim 하고 전역을 비운다 → 귀속 안 된 도시는 자료 없이(데모 폴백) 로드.
       function mpCityPalaceStr(city){
         try{
-          var ck="mp_palace:"+city, own=sessionStorage.getItem(ck)||localStorage.getItem(ck);
+          var ck="mp_palace:"+city;
+          // (마이그레이션) 구 모델서 데모가 실제 키에 claim 된 잔재 폐기 — 데모 표식이 붙은 건 실제 자료가 아님.
+          try{ if(localStorage.getItem("mp_palace_demo:"+city)==="1"){ localStorage.removeItem(ck); sessionStorage.removeItem(ck); localStorage.removeItem("mp_palace_demo:"+city); } }catch(_){}
+          try{ if(localStorage.getItem("mp_palace_demo")==="1"){ localStorage.removeItem("mp_palace"); sessionStorage.removeItem("mp_palace"); localStorage.removeItem("mp_palace_demo"); } }catch(_){}
+          var own=sessionStorage.getItem(ck)||localStorage.getItem(ck);
           if(own) return own;
           var stg=sessionStorage.getItem("mp_palace")||localStorage.getItem("mp_palace");
           if(stg){ var p=JSON.parse(stg); if(p&&p.rooms&&p.rooms.length){

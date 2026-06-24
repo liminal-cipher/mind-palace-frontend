@@ -7,6 +7,22 @@
   try {
     if (window.self !== window.top) return;   // 임베드(대시보드 iframe)엔 미표시
     function isOn() { try { return localStorage.getItem("mp_demo") === "1"; } catch (_) { return false; } }
+    function hasCache() { try { return !!(localStorage.getItem("mp_demo_palace") || sessionStorage.getItem("mp_demo_palace")); } catch (_) { return false; } }
+    // 자가복구: 데모 ON 인데 캐시가 사라진 경우(외부 eviction 등) — 페이지마다 폴백이 달라 불일치가
+    //   생기지 않게 여기서 한 번에 처리. 번들로 캐시 복구 후 1회 새로고침(모든 페이지 일관). 복구·저장
+    //   실패면 데모를 끄고 새로고침(빈 상태로 일관) → 무한 새로고침 없음.
+    if (isOn() && !hasCache()) {
+      fetch("public/data/korean_history.palace.json").then(function (r) { return r.json(); }).then(function (pal) {
+        var ok = false;
+        try { var s = JSON.stringify(pal); localStorage.setItem("mp_demo_palace", s); sessionStorage.setItem("mp_demo_palace", s); ok = !!localStorage.getItem("mp_demo_palace"); } catch (_) {}
+        if (!ok) { try { localStorage.removeItem("mp_demo"); sessionStorage.removeItem("mp_demo"); } catch (_) {} }
+        location.reload();
+      }).catch(function () {
+        try { localStorage.removeItem("mp_demo"); sessionStorage.removeItem("mp_demo"); } catch (_) {}
+        location.reload();
+      });
+      return;   // 곧 새로고침 — 배지 마운트 보류
+    }
     function mount() {
       if (!isOn() || document.getElementById("mpDemoBadge")) return;
       var css =
