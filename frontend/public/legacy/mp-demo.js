@@ -43,9 +43,32 @@
         location.reload();
       };
       document.body.appendChild(b);
+      reposition();
+    }
+    // 좌하단을 쓰는 다른 고정 요소(예: memory-walk 의 .hint 조작법 안내) 위로 배지를 올려 겹침 방지.
+    //   요소 높이가 가변(텍스트 줄바꿈)이라 실측해서 배치하고, 리사이즈에도 다시 맞춘다.
+    function reposition() {
+      try {
+        var b = document.getElementById("mpDemoBadge"); if (!b) return;
+        var base = 14, raised = base;
+        var nodes = document.querySelectorAll(".hint");
+        for (var i = 0; i < nodes.length; i++) {
+          var el = nodes[i], cs = getComputedStyle(el);
+          if (cs.position !== "fixed" || cs.display === "none" || cs.visibility === "hidden") continue;
+          var r = el.getBoundingClientRect();
+          if (!r.width || !r.height) continue;
+          // 좌측·하단 영역과 겹치는 요소만 대상(다른 위치의 .hint 는 무시).
+          if (r.left < 280 && r.bottom > window.innerHeight - 200) {
+            raised = Math.max(raised, (window.innerHeight - r.top) + 10);
+          }
+        }
+        b.style.bottom = raised + "px";
+      } catch (_) {}
     }
     if (document.body) mount(); else document.addEventListener("DOMContentLoaded", mount);
     // 같은 페이지에서 데모를 켜면(region-select 등) 새로고침 없이도 배지가 바로 뜨게.
     window.addEventListener("mp-demo-changed", mount);
+    window.addEventListener("resize", reposition);
+    window.addEventListener("load", reposition);   // 폰트·이미지 로드로 .hint 높이가 바뀐 뒤에도 한 번 더 맞춤
   } catch (e) { /* 배지 실패는 페이지 동작에 영향 주지 않음 */ }
 })();
