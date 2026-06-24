@@ -384,13 +384,14 @@ function setStep(s){
     cam8From=new THREE.Vector3(c.x, 2.35, c.z+0.02);
     cam8To=new THREE.Vector3(c.x+Math.cos(bestDir8)*2.2, 1.5, c.z+Math.sin(bestDir8)*2.2);
   }
+  controls.autoRotate = true;   // 숫자 칩을 누르면 카메라 회전 애니메이션 재개(드래그/클릭하면 다시 멈춤)
 }
 document.querySelectorAll(".chip").forEach(c=> c.onclick=()=> setStep(+c.dataset.s));
 document.getElementById("next").onclick=()=> setStep(step%10+1);
 document.getElementById("prev").onclick=()=> setStep((step+8)%10+1);
 let playing=false, playT;
 document.getElementById("play").onclick=(e)=>{ playing=!playing; e.target.textContent=playing?"⏸ 정지":"▶ 자동";
-  clearInterval(playT); if(playing) playT=setInterval(()=> setStep(step%10+1), 3600); };
+  clearInterval(playT); if(playing){ controls.autoRotate=true; playT=setInterval(()=> setStep(step%10+1), 3600); } };
 
 // ── 세그 병합 보조 마커 ──
 const segMarkA=makePin(0x15B86B), segMarkB=makePin(0x15B86B);

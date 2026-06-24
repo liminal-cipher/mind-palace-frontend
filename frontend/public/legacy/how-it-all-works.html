@@ -188,7 +188,16 @@
     <div class="head"><div class="badge">📦</div>
       <div><h2>GLB 처리 — 이름표가 있냐 없냐</h2><div class="lead">라벨 있으면 믿고, 없으면 모양으로 가려내기</div></div></div>
     <p class="body">3D 방 파일(GLB)을 열면 수많은 조각 중 '가구'만 추려요. <span class="o">이름표</span>가 있으면('Sofa', 'Chair') 그대로 믿고, <span class="o">없거나 'Object_12'처럼 모호</span>하면 <b>크기·모양</b>으로 가려내요. 노드 이름은 공짜로 딸려 오는 정보라, '가구' 단어만 보이면 AI를 한 번도 안 부르고 이름·위치를 얻을 수 있어요.</p>
-    <p class="body">크기·모양 판별은 절대 길이가 아니라 <b>방 기준(가로 7.2)에 대한 비율</b>로 재요 — 방이 커도 작아도 같은 잣대가 통하죠. 최장변이 3%↓면 소품, 92%↑면 방 그 자체, 얇고 큰 면은 벽, 납작·거대하면 바닥, 키가 방 높이 전체면 기둥. <b>천장(방 높이 72%↑)에 붙은 조명</b>은 빼요 — 천장에 번호가 찍히면 걸으면서 올려다볼 수 없어 '걷는 순서로 외우기'가 깨지거든요. 그래서 어떤 방 파일이든 자동으로 처리돼요.</p>
+    <p class="body">크기·모양 판별은 절대 길이가 아니라 <b>방 기준(가로 7.2≈7.2m)에 대한 비율</b>로 재요 — 방이 커도 작아도 같은 잣대가 통하죠. <b>7.2m 방으로 환산하면 이런 뜻이에요:</b></p>
+    <ul style="margin:10px 0 4px;padding-left:2px;list-style:none;font-size:14px;line-height:1.75;color:#4E5968;">
+      <li>🔹 <b>소품 컷</b> — 가장 긴 변이 <b>7.2의 3%(≈22cm)</b>도 안 되면 컵·리모컨 같은 소품 → 외울 ‘정거장’으론 너무 작아 제외.</li>
+      <li>🔹 <b>방 자체 컷</b> — 장변이 <b>92%(≈6.6m)</b>를 넘으면 가구가 아니라 방 바닥·전체 덩어리 → 제외.</li>
+      <li>🔹 <b>벽</b> — 두께(가장 짧은 변)가 <b>20cm 미만</b>으로 얇은데 키가 방 높이 절반↑이거나 폭이 <b>2.2m↑</b>로 넓으면 → 세워진 벽·칸막이.</li>
+      <li>🔹 <b>바닥</b> — 높이가 <b>9cm 미만</b>으로 납작한데 폭이 <b>3.2m↑</b>로 거대하면 → 바닥·천장 슬래브(러그는 이보다 작아 살아남음).</li>
+      <li>🔹 <b>기둥</b> — 높이가 <b>방 높이의 82%↑</b>면 바닥~천장을 잇는 기둥·두꺼운 벽 → 제외(전체 높이 가구는 드물어서).</li>
+      <li>🔹 <b>천장 조명</b> — 사물 한가운데 높이가 <b>방 높이 72%↑</b>면 천장에 붙은 조명·실링팬 → 제외.</li>
+    </ul>
+    <p class="body"><b>천장 조명을 왜 빼냐면</b> — 천장에 번호가 찍히면 걸으면서 올려다볼 수 없어 ‘걷는 순서로 외우기’가 깨지거든요. 이렇게 비율 잣대 하나로 어떤 방 파일이든 자동으로 가구만 골라내요.</p>
     <div class="easy"><span class="ic">💡</span><span class="tx"><b>쉽게 말하면</b> — 이름표가 있으면 그대로, 없으면 <b>모양으로 가구만</b> 골라내요.</span></div>
   </div>
 
@@ -227,6 +236,22 @@
     <p class="body">이름표가 항상 옳진 않아요. 그래서 <span class="o">애매하거나 이름 없는 것만</span> 그 자리를 화면 캡처해 <b>GPT-4.1 비전</b>에게 "이거 뭐야?" 물어 한국어 이름을 받아요. 진짜 확실한 이름(식탁·소파)은 그대로 둬 정확도는 지키고 비용은 아끼죠. <b>‘헷갈리는 사물’의 기준</b>은 ① 모양으로만 잡은 것(obj12) ② 좌표만 있는 합성 지점(spot) ③ object·mesh·untitled 같은 무의미·임의 이름 — 이 셋 중 하나면 비전이 다시 봐요.</p>
     <p class="body" style="margin-top:12px;"><b>2단으로 지어요</b> — ① 방 전체를 한 번에, ② 약한 것만 클로즈업으로 다시.</p>
     <p class="body"><b>방 전체 4컷은 대각선 네 방향(±45·±135°)에서 찍어요</b> — 한 각도에서 가려진 가구가 다른 컷에서는 드러나거든요. 좁은 방이라 카메라를 멀리 못 빼도, 64°의 넓은 화각이면 면 전체와 여러 마커가 한 장에 담겨요. 이 4컷을 묶어 AI를 <b>딱 한 번</b>만 부르고(호출 제한·비용↓) 결과는 방마다 저장해 다시 부르지 않아요. 정밀 클로즈업은 512×512로 충분히 또렷하면서 가볍고, 한가운데 <b>빨간 십자</b>로 '바로 이 좌표'를 콕 집어 옆의 큰 가구를 잘못 부르지 않게 해요. 답이 매번 같도록 무작위성은 끄고(temperature 0) 돌려요.</p>
+    <div class="viz">
+      <svg viewBox="0 0 300 158" aria-label="네 모서리(대각 ±45·±135°)에서 방 중심을 4컷 촬영">
+        <rect x="64" y="32" width="172" height="90" rx="10" fill="#FBF5EC" stroke="#E7D9C2"/>
+        <g fill="#E0730F" opacity=".12">
+          <path d="M40 24 L150 77 L66 12 Z"/><path d="M260 24 L150 77 L234 12 Z"/>
+          <path d="M40 130 L150 77 L66 142 Z"/><path d="M260 130 L150 77 L234 142 Z"/>
+        </g>
+        <g stroke="#E0730F" stroke-width="1" opacity=".5">
+          <line x1="40" y1="24" x2="150" y2="77"/><line x1="260" y1="24" x2="150" y2="77"/>
+          <line x1="40" y1="130" x2="150" y2="77"/><line x1="260" y1="130" x2="150" y2="77"/>
+        </g>
+        <g font-size="17" text-anchor="middle"><text x="40" y="30">📷</text><text x="260" y="30">📷</text><text x="40" y="138">📷</text><text x="260" y="138">📷</text></g>
+        <g class="lbl-s" fill="#B25400" text-anchor="middle"><text x="40" y="15">+135°</text><text x="260" y="15">+45°</text><text x="40" y="153">−135°</text><text x="260" y="153">−45°</text></g>
+        <circle cx="150" cy="77" r="4" fill="#C9B89E"/><text x="150" y="93" text-anchor="middle" class="lbl-s">방 중심</text>
+      </svg>
+    </div>
     <div class="viz">
       <svg viewBox="0 0 300 142" aria-label="2단 비전 명명 과정">
         <text x="8" y="14" font="800 11px Pretendard" fill="#B25400">① 배치 — 방 전체 1번</text>
@@ -346,16 +371,46 @@
     <p class="body"><b>바운딩 박스</b> — 가구 조각의 <span class="o">모든 점을 감싸는 가장 작은 상자</span>를 씌워, 그 <b>한가운데를 위치</b>로, <b>상자 모양</b>을 '가구냐 벽이냐' 단서로 써요(렌더링 없이 점만 읽어 오차 0). 상자 한가운데를 쓰는 건, 모델에 박힌 중심점이 모델러 손에 달려 못 믿는 반면 상자 가운데는 부피의 진짜 무게중심이라 사람이 느끼는 자리와 같기 때문이에요. 사진일 땐 AI가 화면에 <b>2D 박스</b>를 그리고 거기로 광선을 쏴 3D로 바꿔요. 이때 한 점만 쏘면 가구 틈으로 빠져 뒤벽을 맞히니, <b>3×3=9곳</b>에 쏴 가장 가까운 앞면 무리만 평균 내요.</p>
     <p class="body"><b>세그멘테이션</b> — "어떤 조각들이 한 사물인가"를 묶는 문제예요(부정확은 좌표가 아니라 대부분 여기서). <span class="o">한 가구가 여러 조각</span>이면 마커가 겹쳐 → 가까운 건 합쳐요. 거리 기준이 셋이에요 — 라벨과 상관없이 <b>0.5m</b>는 사람이 '같은 자리'로 느끼는 최소 간격(의자끼리는 보존하면서 쪼개진 메쉬만 솎음), 같은 라벨이면 <b>1.0m</b>(수납장 패널 여럿을 하나로), 높이를 버리고 위에서 본 <b>0.42m</b>는 바닥 러그와 공중 벽그림이 위에서 겹쳐 보이던 걸 풀려고 의자 간격보다 일부러 좁게 잡은 값이에요. <span class="o">여러 가구가 한 덩어리</span>면 좌표가 뭉쳐 → 통짜 메쉬는 빼고 사진·손편집으로 받쳐요(점이 한 덩어리라 기하학만으론 못 쪼갬).</p>
     <div class="viz">
-      <svg viewBox="0 0 300 100" aria-label="바운딩 박스 중심과 겹침 정리">
-        <rect x="22" y="30" width="78" height="44" rx="6" fill="#fff" stroke="#DCD2C4"/>
-        <rect x="30" y="38" width="62" height="28" rx="3" fill="none" stroke="#E0730F" stroke-dasharray="4 3"/>
-        <circle cx="61" cy="52" r="4" fill="#E0730F"/>
-        <text x="61" y="92" class="lbl-s" text-anchor="middle">상자 중심 = 위치</text>
-        <circle cx="176" cy="46" r="13" fill="#241C12" opacity=".5"/>
-        <circle cx="188" cy="50" r="13" fill="#E0730F" opacity=".7"/>
-        <text x="225" y="46" class="lbl" text-anchor="middle">→</text>
-        <circle cx="262" cy="48" r="13" fill="#E0730F"/>
-        <text x="219" y="92" class="lbl-s" text-anchor="middle">겹친 둘 → 하나로</text>
+      <svg viewBox="0 0 300 122" aria-label="사진→3D 좌표: 한 점이면 뒤벽, 9점이면 앞면 무리 평균">
+        <line x1="12" y1="95" x2="288" y2="95" stroke="#DCD2C4" stroke-width="2"/>
+        <text x="150" y="108" text-anchor="middle" class="lbl-s">뒤 벽</text>
+        <text x="55" y="16" text-anchor="middle" font-size="14">📷</text>
+        <rect x="30" y="48" width="20" height="28" rx="3" fill="#EAE3D6" stroke="#D6CAB4"/>
+        <rect x="62" y="48" width="20" height="28" rx="3" fill="#EAE3D6" stroke="#D6CAB4"/>
+        <line x1="55" y1="22" x2="57" y2="93" stroke="#E0303A" stroke-width="1.8"/>
+        <circle cx="57" cy="93" r="3.2" fill="#E0303A"/>
+        <text x="56" y="120" text-anchor="middle" class="lbl-s" fill="#C0292F">한 점 → 틈으로 빠져 뒤벽 ✗</text>
+        <text x="228" y="16" text-anchor="middle" font-size="14">📷</text>
+        <rect x="198" y="52" width="60" height="24" rx="3" fill="#EAE3D6" stroke="#D6CAB4"/>
+        <g stroke="#E0730F" stroke-width="0.9" opacity=".5">
+          <line x1="228" y1="22" x2="212" y2="56"/><line x1="228" y1="22" x2="228" y2="56"/><line x1="228" y1="22" x2="244" y2="56"/>
+          <line x1="228" y1="22" x2="212" y2="63"/><line x1="228" y1="22" x2="228" y2="63"/><line x1="228" y1="22" x2="244" y2="63"/>
+          <line x1="228" y1="22" x2="212" y2="70"/><line x1="228" y1="22" x2="228" y2="70"/><line x1="228" y1="22" x2="244" y2="70"/>
+        </g>
+        <g fill="#15B86B"><circle cx="212" cy="56" r="2.2"/><circle cx="228" cy="56" r="2.2"/><circle cx="244" cy="56" r="2.2"/><circle cx="212" cy="63" r="2.2"/><circle cx="228" cy="63" r="2.2"/><circle cx="244" cy="63" r="2.2"/><circle cx="212" cy="70" r="2.2"/><circle cx="228" cy="70" r="2.2"/><circle cx="244" cy="70" r="2.2"/></g>
+        <text x="228" y="120" text-anchor="middle" class="lbl-s" fill="#0c7a47">9점 → 앞면 무리만 평균 ✓</text>
+      </svg>
+    </div>
+    <div class="viz">
+      <svg viewBox="0 0 300 124" aria-label="세그멘테이션 3거리 — 겹친 마커 합치기">
+        <text x="150" y="13" text-anchor="middle" class="lbl-s">겹친 마커를 ‘한 사물’로 합치는 거리 기준 셋</text>
+        <line x1="100" y1="22" x2="100" y2="116" stroke="#EFE6D8"/><line x1="200" y1="22" x2="200" y2="116" stroke="#EFE6D8"/>
+        <text x="50" y="40" text-anchor="middle" font="800 14px Pretendard" fill="#B25400">0.5m</text>
+        <g fill="#15B86B"><circle cx="32" cy="60" r="4.5"/><circle cx="68" cy="60" r="4.5"/></g>
+        <text x="50" y="82" text-anchor="middle" class="lbl-s">라벨 무관</text>
+        <text x="50" y="96" text-anchor="middle" class="lbl-s">떨어진 의자 보존,</text>
+        <text x="50" y="109" text-anchor="middle" class="lbl-s">쪼개진 메쉬만 솎음</text>
+        <text x="150" y="40" text-anchor="middle" font="800 14px Pretendard" fill="#B25400">1.0m</text>
+        <g fill="#E0730F"><rect x="137" y="53" width="11" height="16" rx="2"/><rect x="152" y="53" width="11" height="16" rx="2"/></g>
+        <text x="150" y="82" text-anchor="middle" class="lbl-s">같은 라벨끼리</text>
+        <text x="150" y="96" text-anchor="middle" class="lbl-s">수납장 패널 여럿</text>
+        <text x="150" y="109" text-anchor="middle" class="lbl-s">→ 하나로</text>
+        <text x="250" y="40" text-anchor="middle" font="800 14px Pretendard" fill="#B25400">0.42m</text>
+        <rect x="230" y="54" width="20" height="13" rx="2" fill="#DCD2C4"/>
+        <circle cx="256" cy="60" r="4" fill="#E0730F"/>
+        <text x="250" y="82" text-anchor="middle" class="lbl-s">위에서 본 평면(높이↓)</text>
+        <text x="250" y="96" text-anchor="middle" class="lbl-s">바닥 러그·공중 벽그림이</text>
+        <text x="250" y="109" text-anchor="middle" class="lbl-s">겹쳐 보이던 걸 분리</text>
       </svg>
     </div>
     <div class="easy"><span class="ic">💡</span><span class="tx"><b>쉽게 말하면</b> — 물건마다 '딱 맞는 상자'를 씌워 가운데를 찍고, <b>겹친 건 합치되 통짜로 붙은 건 못 쪼개</b> 사진·손편집으로 도와요.</span></div>
