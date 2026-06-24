@@ -1,0 +1,11 @@
+/* mp-lottie.css — Lottie 탑재 레이아웃 (점진적 향상) */
+.viz-anim{position:relative;display:block;width:100%;margin:0 auto;max-width:100%;}
+.viz-anim > svg, .viz-anim > img{display:block;width:100%;height:auto;}
+.viz-anim .lottie-mount, .viz-anim .lottie-text-overlay{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+.viz-anim .lottie-text-overlay{opacity:0;transition:opacity .55s ease .35s;}
+.viz-anim.playing .lottie-text-overlay{opacity:1;}
+.viz-anim.enhanced > svg, .viz-anim.enhanced > img{visibility:hidden;}
+@media (prefers-reduced-motion: reduce){
+  .viz-anim .lottie-mount, .viz-anim .lottie-text-overlay{display:none;}
+  .viz-anim.enhanced > svg, .viz-anim.enhanced > img{visibility:visible;}
+}

@@ -95,6 +95,7 @@
 
   @media(max-width:420px){ .hero h1{font-size:28px;} .step h2{font-size:18px;} .flow .chips{gap:7px;} }
 </style>
+  <link rel="stylesheet" href="mp-lottie.css" />
 </head>
 <body>
 <div class="wrap">
@@ -105,7 +106,7 @@
     <h1>3D 방에 <b>학습 마커</b>가<br>생기는 7단계</h1>
     <p class="sub">방(3D 모델)을 넣으면 — 가구를 알아보고, 이름을 붙이고,<br>걷는 순서대로 번호를 매기기까지. 차근차근 풀어봤어요.</p>
     <div class="scene">
-      <svg viewBox="0 0 340 200" role="img" aria-label="방 안 번호 마커 예시">
+      <div class="viz-anim" data-lottie="lottie/how-markers-work__hero.json" role="img" aria-label="방 안 번호 마커 예시" style="aspect-ratio:340/200"><svg viewBox="0 0 340 200" role="img" aria-label="방 안 번호 마커 예시">
         <rect x="0" y="0" width="340" height="200" rx="18" fill="#F2F4F6"/>
         <!-- 바닥 원근 -->
         <path d="M40 170 L300 170 L250 110 L90 110 Z" fill="#E9EDF2"/>
@@ -123,7 +124,7 @@
         </g>
         <text x="130" y="146" class="lbl-s" text-anchor="middle">소파</text>
         <text x="224" y="138" class="lbl-s" text-anchor="middle">식탁</text>
-      </svg>
+      </svg></div>
     </div>
   </section>
 
@@ -149,7 +150,7 @@
     <p class="body">방마다 실제 크기가 제각각이라, 먼저 <b>가로 폭을 같은 기준으로</b> 맞춰요. 그래야 "방 높이의 절반보다 크면 가구" 같은 모든 기준을 방 크기와 상관없이 똑같이 적용할 수 있어요.</p>
     <p class="body" style="margin-top:8px;font-size:13.5px;color:var(--gray5);">※ 기준 폭은 <b>7.2</b> — 물리 상수가 아니라, <b>방 스캐너가 쓰는 정규화 값과 같게</b> 맞춘 거예요(좌표 호환 · 실제 중형 방 ~7m라 걷기·카메라 속도감도 자연스러움).</p>
     <div class="viz">
-      <svg viewBox="0 0 300 92" aria-label="크고 작은 방을 같은 크기로">
+      <div class="viz-anim" data-lottie="lottie/how-markers-work__s1-normalize.json" role="img" aria-label="크고 작은 방을 같은 크기로" style="aspect-ratio:300/92"><svg viewBox="0 0 300 92" aria-label="크고 작은 방을 같은 크기로">
         <rect x="6" y="20" width="70" height="52" rx="6" fill="#fff" stroke="#D1D6DB"/>
         <rect x="92" y="34" width="40" height="38" rx="5" fill="#fff" stroke="#D1D6DB"/>
         <text x="155" y="52" class="lbl" text-anchor="middle">→</text>
@@ -157,7 +158,7 @@
         <rect x="240" y="22" width="56" height="50" rx="6" fill="#E8F1FE" stroke="#3182F6"/>
         <text x="206" y="86" class="lbl-s" text-anchor="middle">폭 7.2</text>
         <text x="268" y="86" class="lbl-s" text-anchor="middle">폭 7.2</text>
-      </svg>
+      </svg></div>
     </div>
     <div class="easy"><span class="ic">💡</span><span class="tx"><b>쉽게 말하면</b> — 큰 방이든 작은 방이든, 같은 축척의 지도로 다시 그리는 거예요.</span></div>
   </div>
@@ -169,7 +170,7 @@
       <div><h2>사물 찾기</h2><div class="lead">이름표 + 모양으로 가구만 골라내기</div></div></div>
     <p class="body">3D 모델 속 수많은 조각 중 '가구'만 추려요. ① <b>이름표</b>(조각 이름에 sofa·chair 같은 단어가 있으면) ② <b>모양</b>(가로·세로·높이 상자 크기). 얇고 큰 면은 '벽', 아주 납작·거대하면 '바닥'으로 보고 <b>걸러내요</b>.</p>
     <div class="viz">
-      <svg viewBox="0 0 300 96" aria-label="바운딩 박스로 사물 크기 재기">
+      <div class="viz-anim" data-lottie="lottie/how-markers-work__s2-bbox.json" role="img" aria-label="바운딩 박스로 사물 크기 재기" style="aspect-ratio:300/96"><svg viewBox="0 0 300 96" aria-label="바운딩 박스로 사물 크기 재기">
         <rect x="22" y="30" width="70" height="46" rx="6" fill="#fff" stroke="#D1D6DB"/>
         <rect x="30" y="40" width="54" height="30" rx="4" fill="none" stroke="#3182F6" stroke-dasharray="4 3"/>
         <text x="57" y="90" class="lbl-s" text-anchor="middle">소파 ✓</text>
@@ -179,7 +180,7 @@
         <text x="221" y="90" class="lbl-s" text-anchor="middle">바닥 ✕</text>
         <rect x="196" y="34" width="44" height="26" rx="5" fill="#fff" stroke="#D1D6DB"/>
         <rect x="201" y="40" width="34" height="16" rx="3" fill="none" stroke="#3182F6" stroke-dasharray="4 3"/>
-      </svg>
+      </svg></div>
     </div>
     <div class="easy"><span class="ic">💡</span><span class="tx"><b>쉽게 말하면</b> — 물건마다 '딱 맞는 상자'를 씌워 크기를 재고, 벽·바닥은 모양으로 빼는 거예요.</span></div>
   </div>
@@ -191,7 +192,7 @@
       <div><h2>이름 짓기</h2><div class="lead">확실하면 이름대로, 애매하면 AI 비전이 판단</div></div></div>
     <p class="body">3D 모델 조각마다 만든 사람이 붙여둔 <b>'이름표(라벨)'</b>가 있어요. 그게 <b>'dining table'처럼 확실하면</b> 그대로 '식탁'으로 둬요. 이름표가 없거나 <b>틀린 경우</b> — 예를 들어 <b>모델 라벨은 'umbrella'인데 실제론 화분</b>일 때 — 그땐 <b>AI 비전이 사진을 직접 보고</b> 한국어로 이름을 붙여요.</p>
     <div class="viz">
-      <svg viewBox="0 0 300 100" aria-label="이름 신뢰 vs 비전 판단">
+      <div class="viz-anim" data-lottie="lottie/how-markers-work__s3-naming.json" role="img" aria-label="이름 신뢰 vs 비전 판단" style="aspect-ratio:300/100"><svg viewBox="0 0 300 100" aria-label="이름 신뢰 vs 비전 판단">
         <rect x="10" y="20" width="130" height="62" rx="12" fill="#fff" stroke="#D1D6DB"/>
         <text x="75" y="42" class="lbl" text-anchor="middle">이름이 확실</text>
         <text x="75" y="62" text-anchor="middle" font="800 15px Pretendard" fill="#00B27A">식탁 · 소파</text>
@@ -200,7 +201,7 @@
         <text x="225" y="42" class="lbl" text-anchor="middle">애매·오명명</text>
         <text x="225" y="62" text-anchor="middle" font="800 15px Pretendard" fill="#1B64DA">📸 비전이 판단</text>
         <text x="225" y="76" class="lbl-s" text-anchor="middle">사진 보고 한국어로</text>
-      </svg>
+      </svg></div>
     </div>
     <div class="easy"><span class="ic">💡</span><span class="tx"><b>쉽게 말하면</b> — 이름표가 믿을 만하면 그대로, 아니면 <b>사진을 보고 직접</b> 이름을 붙여요.</span></div>
   </div>
@@ -212,7 +213,7 @@
       <div><h2>겹친 마커 정리</h2><div class="lead">같은 바닥자리에 둘이면 하나로</div></div></div>
     <p class="body">바닥에 깔린 러그와 벽에 걸린 수납장이 <b>같은 바닥 위치에 겹치면</b> 마커가 둘 겹쳐 보여요. 높이 차이로는 안 걸러지니, <b>바닥 평면(위에서 본 거리)으로 가까운 둘은 하나로</b> 정리해요. (떨어져 있는 카페 의자들은 그대로 둬요.)</p>
     <div class="viz">
-      <svg viewBox="0 0 300 84" aria-label="겹친 두 마커를 하나로">
+      <div class="viz-anim" data-lottie="lottie/how-markers-work__s4-merge.json" role="img" aria-label="겹친 두 마커를 하나로" style="aspect-ratio:300/84"><svg viewBox="0 0 300 84" aria-label="겹친 두 마커를 하나로">
         <circle cx="74" cy="42" r="15" fill="#191F28" opacity=".55"/>
         <circle cx="86" cy="46" r="15" fill="#3182F6" opacity=".7"/>
         <text x="80" y="74" class="lbl-s" text-anchor="middle">겹침</text>
@@ -220,7 +221,7 @@
         <circle cx="224" cy="44" r="15" fill="#3182F6"/>
         <text x="224" y="49" text-anchor="middle" fill="#fff" font="800 13px Pretendard">1</text>
         <text x="224" y="74" class="lbl-s" text-anchor="middle">하나로</text>
-      </svg>
+      </svg></div>
     </div>
     <div class="easy"><span class="ic">💡</span><span class="tx"><b>쉽게 말하면</b> — 위에서 내려다봤을 때 같은 점에 찍힌 둘은 합쳐, 깔끔하게.</span></div>
   </div>
@@ -233,7 +234,7 @@
     <p class="body">번호는 <b>실제로 걷는 동선</b>으로 매겨요. 한 바퀴를 매끄럽게 돌게 하려고 <b>두 가지를 점수로 설계</b>했어요.</p>
     <p class="body" style="margin-top:10px"><b>① 가까움</b> — 지금 위치에서 <b>가장 가까운</b> 미방문 마커일수록 높은 점수.<br><b>② 방향 유지</b> — 지금 <b>가던 방향과 비슷한 쪽</b>이면 가산점, 갑자기 뒤로 꺾이면 감점. <br>매 단계 이 둘을 합친 <b>점수가 가장 높은 마커</b>를 다음으로 골라요 → 방을 횡단하거나 되돌아가지 않고 자연스럽게 한 바퀴.</p>
     <div class="viz">
-      <svg viewBox="0 0 300 118" aria-label="다음 지점 = 가까움 + 방향 유지 점수">
+      <div class="viz-anim" data-lottie="lottie/how-markers-work__s5-order.json" role="img" aria-label="다음 지점 = 가까움 + 방향 유지 점수" style="aspect-ratio:300/118"><svg viewBox="0 0 300 118" aria-label="다음 지점 = 가까움 + 방향 유지 점수">
         <circle cx="56" cy="64" r="9" fill="#8B95A1"/>
         <line x1="68" y1="62" x2="116" y2="56" stroke="#8B95A1" stroke-width="2.5"/>
         <polygon points="116,56 107,54 110,63" fill="#8B95A1"/>
@@ -245,7 +246,7 @@
         <circle cx="118" cy="104" r="11" fill="#D1D6DB"/>
         <text x="118" y="108" text-anchor="middle" fill="#fff" font="800 12px Pretendard">−</text>
         <text x="170" y="108" class="lbl-s">뒤로 꺾임 = 감점</text>
-      </svg>
+      </svg></div>
     </div>
     <div class="easy"><span class="ic">💡</span><span class="tx"><b>쉽게 말하면</b> — '가까운 다음 전시물'을 고르되, <b>가던 방향을 유지</b>하며 한 바퀴 도는 거예요.</span></div>
   </div>
@@ -257,14 +258,14 @@
       <div><h2>마커 자리 잡기</h2><div class="lead">사물 표면에 딱 붙게</div></div></div>
     <p class="body">마커를 그 자리에서 <b>아래로 빛을 쏴(레이캐스트)</b> 닿는 <b>표면 바로 위에 살짝 띄워</b> 얹어요(사물을 파고들거나 가려지지 않게). 그래서 책상 위·소파 위에 자연스럽게 붙죠. (창문·그림처럼 벽에 붙은 건 바닥으로 안 떨어지게 예외 처리해요.)</p>
     <div class="viz">
-      <svg viewBox="0 0 300 92" aria-label="표면에 마커 부착">
+      <div class="viz-anim" data-lottie="lottie/how-markers-work__s6-raycast.json" role="img" aria-label="표면에 마커 부착" style="aspect-ratio:300/92"><svg viewBox="0 0 300 92" aria-label="표면에 마커 부착">
         <rect x="100" y="58" width="100" height="22" rx="5" fill="#fff" stroke="#D1D6DB"/>
         <line x1="150" y1="20" x2="150" y2="52" stroke="#3182F6" stroke-width="2" stroke-dasharray="3 3"/>
         <polygon points="150,52 146,44 154,44" fill="#3182F6"/>
         <circle cx="150" cy="48" r="13" fill="#3182F6"/>
         <text x="150" y="53" text-anchor="middle" fill="#fff" font="800 12px Pretendard">5</text>
         <text x="222" y="44" class="lbl-s">표면 바로 위</text>
-      </svg>
+      </svg></div>
     </div>
     <div class="easy"><span class="ic">💡</span><span class="tx"><b>쉽게 말하면</b> — 스티커를 허공이 아니라 물건 위에 딱 붙이는 거예요.</span></div>
   </div>
@@ -276,13 +277,13 @@
       <div><h2>카메라가 부드럽게</h2><div class="lead">'다음'을 누르면 휙 안 돌고 활공</div></div></div>
     <p class="body"><b>다음 →</b>을 누르면 카메라가 다음 마커로 <b>부드럽게 가감속</b>하며 이동해요. 이동 중엔 흔들림을 막고, <b>지금 보던 방향과 비슷한 각도</b>를 골라 갑자기 뒤로 휙 도는 일이 없어요.</p>
     <div class="viz">
-      <svg viewBox="0 0 300 80" aria-label="부드러운 카메라 이동">
+      <div class="viz-anim" data-lottie="lottie/how-markers-work__s7-smoothcam.json" role="img" aria-label="부드러운 카메라 이동" style="aspect-ratio:300/80"><svg viewBox="0 0 300 80" aria-label="부드러운 카메라 이동">
         <path d="M30 50 C 110 10, 190 10, 270 50" fill="none" stroke="#3182F6" stroke-width="3" stroke-linecap="round"/>
         <circle cx="30" cy="50" r="6" fill="#8B95A1"/>
         <circle cx="270" cy="50" r="8" fill="#3182F6"/>
         <text x="30" y="70" class="lbl-s" text-anchor="middle">지금</text>
         <text x="270" y="70" class="lbl-s" text-anchor="middle">다음</text>
-      </svg>
+      </svg></div>
     </div>
     <div class="easy"><span class="ic">💡</span><span class="tx"><b>쉽게 말하면</b> — 드론이 미끄러지듯, 멀미 없이 다음 장소로 데려다줘요.</span></div>
   </div>
@@ -325,7 +326,7 @@
     <h2>사진엔 깊이가 없어요.<br>그래서 '삼각측량'으로 3D를 복원해요</h2>
     <p>3D 모델은 좌표가 <b>이미 들어 있어</b> 바로 읽지만, <b>사진은 평면(2D)</b>이라 "얼마나 멀리"가 없어요. 그래서 <b>여러 시점에서 같은 사물을 향해 쏜 시선(광선)이 만나는 점</b>을 그 사물의 3D 위치로 잡아요 — 측량사가 두 지점에서 같은 봉우리를 재 위치를 찾는 것과 똑같죠. 잘 수렴하면 <b>±몇 cm</b>까지 정확해요.</p>
     <div class="viz" style="background:rgba(255,255,255,.12);">
-      <svg viewBox="0 0 300 150" aria-label="삼각측량 — 두 시점의 광선이 사물에서 교차">
+      <div class="viz-anim" data-lottie="lottie/how-markers-work__s8-triangulate.json" role="img" aria-label="삼각측량 — 두 시점의 광선이 사물에서 교차" style="aspect-ratio:300/150"><svg viewBox="0 0 300 150" aria-label="삼각측량 — 두 시점의 광선이 사물에서 교차">
         <circle cx="150" cy="40" r="10" fill="#fff"/>
         <text x="150" y="22" text-anchor="middle" font="700 12px Pretendard" fill="#fff">사물</text>
         <g stroke="#fff" stroke-width="1.8" stroke-dasharray="5 3" opacity=".9">
@@ -342,7 +343,7 @@
         <text x="50" y="108" text-anchor="middle" font="600 10px Pretendard" fill="rgba(255,255,255,.85)">샷 A</text>
         <text x="250" y="108" text-anchor="middle" font="600 10px Pretendard" fill="rgba(255,255,255,.85)">샷 B</text>
         <text x="150" y="146" text-anchor="middle" font="700 11px Pretendard" fill="#fff">두 시선이 만나는 점 = 3D 위치</text>
-      </svg>
+      </svg></div>
     </div>
     <div class="vflow">
       <div class="vstep"><div class="vi">📷</div><div class="vt">여러 각도 촬영</div><div class="vd">방을 빠짐없이 커버</div></div>
@@ -357,6 +358,28 @@
     <div class="head"><div class="badge">🔀</div>
       <div><h2>왜 길이 둘일까?</h2><div class="lead">좌표가 있으면 읽고, 없으면 삼각측량으로 만든다</div></div></div>
     <p class="body"><b>모델(GLB)</b>은 좌표가 이미 있으니 <b>바로 읽어요</b>(삼각측량 불필요·무오차). <b>사진</b>은 좌표가 없으니 <b>삼각측량으로 복원</b>하죠. 게다가 스캐너는 1차로 <b>표면에 광선을 쏴 맞은 점</b>(베스트샷)을 쓰고, <b>가림이 의심될 때만</b> 삼각측량 수렴점으로 보정해요. 두 길의 결과는 <b>똑같은 정규화 좌표계</b>(가로 7.2·바닥 0)로 나와서, 스캐너 좌표·모델에서 읽은 좌표·손으로 고친 좌표가 서로 갈아끼워집니다.</p>
+  <div class="viz"><div class="viz-anim" data-lottie="lottie/how-markers-work__coord-unify.json" role="img" aria-label="세 입력(모델·스캐너·손편집)이 같은 정규화 좌표계로" style="aspect-ratio:300/118"><svg viewBox="0 0 300 118" role="img" aria-label="세 입력(모델·스캐너·손편집)이 같은 정규화 좌표계로 합쳐진다">
+  <!-- 세 입력 -->
+  <rect x="8" y="10" width="130" height="26" rx="7" fill="#fff" stroke="#DCD2C4"/>
+  <text x="20" y="27" font="700 11.5px Pretendard" fill="#5E5346">3D 모델 → 읽기</text>
+  <rect x="8" y="46" width="130" height="26" rx="7" fill="#fff" stroke="#DCD2C4"/>
+  <text x="20" y="63" font="700 11.5px Pretendard" fill="#5E5346">스캐너 → 삼각측량</text>
+  <rect x="8" y="82" width="130" height="26" rx="7" fill="#fff" stroke="#DCD2C4"/>
+  <text x="20" y="99" font="700 11.5px Pretendard" fill="#5E5346">손편집 → 입력</text>
+
+  <!-- 커넥터 -->
+  <g stroke="#E0730F" stroke-width="1.6" opacity=".7">
+    <line x1="138" y1="23" x2="190" y2="59"/>
+    <line x1="138" y1="59" x2="190" y2="59"/>
+    <line x1="138" y1="95" x2="190" y2="59"/>
+  </g>
+
+  <!-- 같은 좌표계 -->
+  <rect x="190" y="38" width="102" height="42" rx="11" fill="#FBE7D1" stroke="#E0730F"/>
+  <text x="241" y="58" text-anchor="middle" font="800 13px Pretendard" fill="#B25400">같은 좌표계</text>
+  <text x="241" y="73" text-anchor="middle" font="600 10px Pretendard" fill="#9A8E7F">가로 7.2 · 바닥 0</text>
+</svg>
+</div></div>
   </div>
 
   <!-- 한계 -->
@@ -373,6 +396,8 @@
   </footer>
 
 </div>
+  <script src="vendor/lottie.min.js"></script>
+  <script src="mp-lottie.js" defer></script>
 <script src="nav.js" defer></script>
 </body>
 </html>
