@@ -18,6 +18,8 @@
   }
   function snapshotKey() {
     if (cfg().snapshot) return cfg().snapshot;
+    // 데모(데모 데이터로 체험)면 진행 중 업로드 잡을 무시하고 항상 샘플(korean_history)로 — 처리 중 잡 snapshot 404 방지.
+    try { if (localStorage.getItem("mp_palace_demo") === "1") return "korean_history"; } catch (e) {}
     // 업로드한 PDF(라이브 잡)가 있으면 그 jobId 가 graphrag 스냅샷 키. 없으면 데모(korean_history).
     //   ?city 는 지도(vworld_map)용 도시 슬러그일 뿐 graphrag 스냅샷이 아니라서 폴백에 쓰지 않는다.
     //   (jongno 등 미등록 슬러그를 보내면 /quiz/json 이 '스냅샷 없음' 404 를 냈음.)

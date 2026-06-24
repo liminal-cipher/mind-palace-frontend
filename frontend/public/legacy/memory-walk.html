@@ -402,9 +402,44 @@
     #quizBody .qz-evi-card h4{margin:0 0 3px;font-size:13px;color:#2a241d;}
     #quizBody .qz-evi-card .ec-text{font-size:12px;color:#6b6258;line-height:1.55;margin:0;}
     #quizBody .qz-evi-empty{font-size:12px;color:#9a8f82;margin-top:8px;line-height:1.5;}
+    /* 방 입장 중 AI 검수 안내 — 하단 중앙 고정 */
+    #aiDisclaimer{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:9000;
+      max-width:calc(100vw - 28px);padding:9px 18px;border-radius:999px;text-align:center;
+      background:rgba(20,16,12,.80);color:#fff;font-size:12.5px;font-weight:600;line-height:1.45;
+      box-shadow:0 8px 24px rgba(0,0,0,.34);-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);
+      pointer-events:none;opacity:1;transition:opacity .55s ease;}
+    #aiDisclaimer.hide{opacity:0;}
+    #aiDisclaimer .ic{margin-right:5px;}
+    @media(max-width:520px){ #aiDisclaimer{white-space:normal;font-size:11.5px;bottom:14px;} }
   </style>
 
   <div class="status" id="status">로드 중…</div>
+
+  <!-- 방 입장 중 AI 검수 안내(하단 중앙) — 방이 준비되거나 사용자가 화면을 만지면 사라짐 -->
+  <div id="aiDisclaimer"><span class="ic">⚠️</span>AI의 답변은 달라질 수 있습니다. 사용자의 검수를 권고드립니다.</div>
+  <script>
+    (function(){
+      var P = new URLSearchParams(location.search);
+      var el = document.getElementById("aiDisclaimer"); if(!el) return;
+      // 미리보기 4컷 캡처·대시보드 임베드에선 표시하지 않음(스크린샷 오염 방지)
+      if (P.get("capture") || P.get("dash")){ el.remove(); return; }
+      var shownAt = Date.now(), hidden = false;
+      function hide(){ if(hidden) return; hidden = true;
+        var wait = Math.max(0, 2200 - (Date.now() - shownAt));   // 최소 노출 보장(빠른 로드 시 깜빡임 방지)
+        setTimeout(function(){ el.classList.add("hide"); setTimeout(function(){ try{ el.style.display="none"; }catch(_){} }, 650); }, wait);
+      }
+      // 방이 준비되면(상태 텍스트가 '다음 →'/'투어 시작' 등 완료 신호) 숨김
+      try {
+        var st = document.getElementById("status");
+        if (st){ var mo = new MutationObserver(function(){ var t = st.textContent || "";
+          if (/다음\s*→|투어 시작|방이 없습니다|로드 실패/.test(t)){ hide(); mo.disconnect(); } });
+          mo.observe(st, { childList:true, subtree:true, characterData:true }); }
+      } catch(_){}
+      // 사용자가 화면을 만지면(=입장 완료) 숨김
+      ["pointerdown","keydown","wheel"].forEach(function(ev){ window.addEventListener(ev, hide, { once:true, passive:true }); });
+      setTimeout(hide, 15000);   // 안전망: 무슨 일이 있어도 자동 숨김
+    })();
+  </script>
 
   <nav class="panel nav" id="nav" style="display:none">
     <button class="btn ghost" id="homeBtn" title="모든 핫스팟이 잘 보이는 전체 조망">⌂ 홈</button>
@@ -2167,7 +2202,9 @@
       lastQuizTopic = topic;   // 메타 라인(주제 · N문항)에 사용
       $("quizBody").innerHTML = `<div style="color:#7a7066">📝 퀴즈를 만드는 중…</div>`; $("quizActions").innerHTML="";
       let job=null; try { job=JSON.parse(localStorage.getItem("mp_rag_job")||"null"); } catch(_){}
-      const snapshot = (job && job.jobId) ? job.jobId : (MW_PALACE_ID || QUIZ_FALLBACK_SNAPSHOT);
+      // 데모(쇼케이스 콘텐츠)면 진행 중 업로드 잡을 무시하고 데모 스냅샷으로 — PDF 처리 중 데모 입장 시 잡 snapshot 이 404나던 문제.
+      const _demo = /korean_history|sample|demo/i.test(MW_PALACE_ID || "");
+      const snapshot = (!_demo && job && job.jobId) ? job.jobId : (MW_PALACE_ID || QUIZ_FALLBACK_SNAPSHOT);
       await requestQuiz(snapshot, topic, count, types, false);
     }
     // /quiz/json 호출 — 미등록 snapshot(404)이면 준비된 샘플 코퍼스로 1회 폴백 재시도.
@@ -3140,10 +3177,12 @@
     window.mpAssistantAsk = async (text, ctx) => {
       const q = (text || "").trim(); if (!q) return null;
       let job = null; try { job = JSON.parse(localStorage.getItem("mp_rag_job") || "null"); } catch(_){}
+      // 데모(한국사 등 쇼케이스 콘텐츠)면 진행 중인 업로드 잡을 무시하고 항상 쇼케이스로 — PDF 처리 중 데모로 입장하면 아직 인덱싱 안 된 잡 /query 가 404나던 문제.
+      const _demo = /korean_history|sample|demo/i.test(MW_PALACE_ID || "");
       // 쇼케이스(데모 스냅샷) 질의 — 항상 고정 백엔드(QUIZ_API)로. 잡 서버 base 로 보내면 /query+snapshot 이 없어 404가 났음(퀴즈 위젯과 동일 이슈).
       const showcase = { url: QUIZ_API + "/query", body: { question: q, snapshot: MW_PALACE_ID || "korean_history", method: "local" } };
-      // 업로드 PDF(라이브 잡)가 유효하면 그 잡으로 먼저 질의(local 이라야 sources.entities 동반→개념 칩).
-      const primary = (job && job.base && job.jobId && job.done !== false)
+      // 업로드 PDF(라이브 잡)가 유효하면 그 잡으로 먼저 질의(local 이라야 sources.entities 동반→개념 칩). 데모면 건너뜀.
+      const primary = (!_demo && job && job.base && job.jobId && job.done !== false)
         ? { url: job.base + "/jobs/" + encodeURIComponent(job.jobId) + "/query", body: { question: q, method: "local" } }
         : showcase;
       async function askOnce(spec){
