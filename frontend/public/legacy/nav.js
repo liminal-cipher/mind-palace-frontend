@@ -27,6 +27,7 @@
 
     // home.html의 상단 네비와 동일한 번호 라벨로 통일(동일 서비스 느낌).
     const ITEMS = [
+      { key: "home",    label: "🏠 처음",                href: "home.html" },
       { key: "explain", label: "1 · 전체 기술 설명",     href: "bounding-box-visual.html" },
       { key: "browse",  label: "2 · 공간 둘러보기",      href: "region-select.html" },
       { key: "create",  label: "3 · 나만의 공간 만들기", href: "compose.html" },
