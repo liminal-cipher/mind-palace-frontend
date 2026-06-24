@@ -1113,10 +1113,12 @@
         if (!q) return null;
         let job = null;
         try { job = JSON.parse(localStorage.getItem("mp_rag_job") || "null"); } catch (_) {}
+        // 데모(한국사 등 쇼케이스 콘텐츠)면 진행 중 업로드 잡을 무시하고 항상 쇼케이스로 — PDF 처리 중 데모로 둘러볼 때 잡 query 가 404나던 문제(방안 memory-walk 와 동일).
+        const _demo = /korean_history|sample|demo/i.test(MAP_PALACE_ID || "");
         // 쇼케이스(데모 스냅샷) 질의 — 잡이 없거나, 잡 질의가 실패하면 이걸로 폴백.
         const showcase = { url: MNEMO_BASE + "/query", body: { question: q, snapshot: MAP_PALACE_ID, method: "local" } };
-        // 업로드 PDF(라이브 잡)가 유효하면 그 잡으로 먼저 질의(local 이라야 sources.entities 동반→개념 칩).
-        const primary = (job && job.base && job.jobId && job.done !== false)
+        // 업로드 PDF(라이브 잡)가 유효하면 그 잡으로 먼저 질의(local 이라야 sources.entities 동반→개념 칩). 데모면 건너뜀.
+        const primary = (!_demo && job && job.base && job.jobId && job.done !== false)
           ? { url: job.base + "/jobs/" + encodeURIComponent(job.jobId) + "/query", body: { question: q, method: "local" } }
           : showcase;
         async function askOnce(spec) {
