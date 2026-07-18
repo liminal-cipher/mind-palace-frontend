@@ -499,7 +499,7 @@ cd frontend && npm install && npm run dev
 | **오효석** | 3D 엔진 및 보안 |
 | **김시언** | UI 및 데이터 전처리 |
 | **지경민** | 이미지 및 데이터 전처리 |
-| **조윤재** | GraphRAG |
+| **조윤재** | GraphRAG 및 백엔드 |
 | **김인준** | GraphRAG |
 | **이재모** | GraphRAG (초기 이미지 전처리) |
 
@@ -513,7 +513,7 @@ cd frontend && npm install && npm run dev
 | 오효석 | 프리셋·랜드마크 마커 적용, memory-walk 엔진, 보안(Stored XSS 방어) |
 | 김시언 | 홈·챗봇·퀴즈 UI, TTS 공간음향(HRTF), 지도 UX, RAG 챗봇 연동 |
 | 지경민 | MinerU 이미지·캡션 추출, 스캔 PDF 정제, "서기" 창구 챗봇, 전처리 파이프라인 |
-| 조윤재 | AI 교안 테스트, 방 개수 K 자동화, 이미지 매칭, GraphRAG 인덱싱·라우팅 |
+| 조윤재 | 기획·아키텍처 설계, GraphRAG 백엔드(FastAPI)·라이브 오케스트레이터 구축, 방(K) 자동화·이미지 매칭, Azure Cosmos DB / Blob 기반 상태 영속성 |
 | 김인준 | AI 교안 테스트, GraphRAG 인덱싱·검색·요약, 퀴즈 근거 검증 |
 | 이재모 | OpenCV 이미지 분리·캡션(초기) → GraphRAG 인덱싱·퀴즈 |
 
